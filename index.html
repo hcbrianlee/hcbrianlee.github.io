@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Chat — hcbrianlee</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1>Chat (local UI)</h1>
+      <nav>
+        <a href="README.md">Setup</a>
+        <button id="clearBtn" title="Clear chat">Clear</button>
+      </nav>
+    </header>
+
+    <main class="chat-wrap">
+      <ul id="messages" class="messages" aria-live="polite"></ul>
+    </main>
+
+    <form id="inputForm" class="composer" autocomplete="off">
+      <textarea id="input" placeholder="Ask anything..." rows="1"></textarea>
+      <div class="controls">
+        <button type="button" id="pasteKeyBtn">Paste API key (unsafe)</button>
+        <button type="submit" id="sendBtn">Send</button>
+      </div>
+    </form>
+
+    <div class="notice">
+      This is a static frontend. You MUST deploy the included serverless function (api/chat.js) to a server (Vercel/Netlify/etc.) and set OPENAI_API_KEY there. See README.md for setup steps.
+    </div>
+  </div>
+
+  <script src="/script.js"></script>
+</body>
+</html>
