@@ -10,17 +10,34 @@
   <div class="app">
     <header class="topbar">
       <h1>Chat (local UI)</h1>
-      <nav>
-        <label class="model-label">Model:
-          <select id="modelSelect" title="Choose model">
-            <option value="gpt-4">gpt-4</option>
-            <option value="gpt-3.5-turbo" selected>gpt-3.5-turbo</option>
-            <option value="gpt-3.5-turbo-0613">gpt-3.5-turbo-0613</option>
-            <option value="text-davinci-003">text-davinci-003</option>
-          </select>
-        </label>
+
+      <nav class="top-controls">
+        <div class="model-dropdown" id="modelDropdown" aria-haspopup="listbox">
+          <button id="modelToggle" class="model-toggle" aria-expanded="false" aria-label="Choose model">
+            Model: <span id="modelLabel">gpt-3.5-turbo</span> ▾
+          </button>
+
+          <ul class="model-list" id="modelList" role="listbox" aria-hidden="true">
+            <li role="option" data-value="gpt-4">
+              <span class="model-name">gpt-4</span>
+              <button class="model-info" aria-label="More info about gpt-4" data-model="gpt-4">ℹ</button>
+            </li>
+            <li role="option" data-value="gpt-3.5-turbo" aria-selected="true">
+              <span class="model-name">gpt-3.5-turbo</span>
+              <button class="model-info" aria-label="More info about gpt-3.5-turbo" data-model="gpt-3.5-turbo">ℹ</button>
+            </li>
+            <li role="option" data-value="gpt-3.5-turbo-0613">
+              <span class="model-name">gpt-3.5-turbo-0613</span>
+              <button class="model-info" aria-label="More info about gpt-3.5-turbo-0613" data-model="gpt-3.5-turbo-0613">ℹ</button>
+            </li>
+            <li role="option" data-value="text-davinci-003">
+              <span class="model-name">text-davinci-003</span>
+              <button class="model-info" aria-label="More info about text-davinci-003" data-model="text-davinci-003">ℹ</button>
+            </li>
+          </ul>
+        </div>
+
         <button id="clearBtn" title="Clear chat">Clear</button>
-        <label class="toggle-label"><input type="checkbox" id="showReasoning" checked> Show reasoning summary</label>
       </nav>
     </header>
 

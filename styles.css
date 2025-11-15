@@ -7,7 +7,19 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helve
 .app{max-width:900px;margin:28px auto;border-radius:12px;box-shadow:0 6px 24px rgba(16,24,40,.08);overflow:hidden;border:1px solid #e6e9ef}
 .topbar{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;background:linear-gradient(90deg,#fff,#fbfdff)}
 .topbar h1{margin:0;font-size:16px}
-.topbar nav a, .topbar nav button{margin-left:12px;color:var(--muted);text-decoration:none;background:none;border:none;cursor:pointer}
+
+/* Top controls and model dropdown */
+.top-controls{display:flex;align-items:center;gap:12px}
+.model-dropdown{position:relative;font-size:14px}
+.model-toggle{background:white;border:1px solid #e6e9ef;padding:8px 10px;border-radius:8px;cursor:pointer}
+.model-list{position:absolute;top:calc(100% + 6px);left:0;min-width:220px;background:white;border:1px solid #e6e9ef;border-radius:8px;box-shadow:0 8px 24px rgba(16,24,40,.08);padding:6px 6px;list-style:none;margin:0;display:none;z-index:50}
+.model-list[aria-hidden="false"]{display:block}
+.model-list li{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:6px;cursor:pointer}
+.model-list li:hover{background:#f8fafc}
+.model-info{background:none;border:none;color:var(--muted);cursor:help;padding:4px 6px;border-radius:6px}
+.model-name{flex:1; margin-right:8px; font-weight:500}
+
+/* Chat area */
 .chat-wrap{height:60vh;padding:18px;background:var(--surface);overflow:auto}
 .messages{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:12px}
 .message{max-width:78%;padding:12px 14px;border-radius:12px;line-height:1.4}
@@ -19,4 +31,31 @@ body{margin:0;font-family:Inter,system-ui,-apple-system,"Segoe UI",Roboto,"Helve
 .controls button{background:var(--accent);color:white;border:none;padding:10px 12px;border-radius:8px;cursor:pointer}
 .controls #pasteKeyBtn{background:#f3f4f6;color:#111}
 .notice{font-size:12px;color:var(--muted);padding:12px 16px}
+
+/* Explanation block (always shown when present) */
+.explanation{
+  margin-top:8px;
+  font-size:13px;
+  color:#475569;
+  background: rgba(14,165,132,0.04);
+  border-left: 3px solid rgba(14,165,132,0.16);
+  padding:8px 10px;
+  border-radius:6px;
+}
+
+/* Tooltip styling (JS positions it) */
+.co2-tooltip{
+  position:fixed;
+  pointer-events:none;
+  display:none;
+  padding:8px;
+  background:rgba(0,0,0,0.8);
+  color:white;
+  border-radius:6px;
+  font-size:13px;
+  line-height:1.2;
+  max-width:320px;
+  z-index:9999;
+}
+
 @media (max-width:640px){.app{margin:12px}}
