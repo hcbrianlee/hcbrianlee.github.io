@@ -1,26 +1,90 @@
-```markdown
-# Chat UI (static) + serverless example
+# Green Nudge Chat
 
-This repository now contains a lightweight ChatGPT-like static frontend (index.html, styles.css, script.js) and an example serverless function (api/chat.js) for proxying requests to OpenAI. GitHub Pages will publish the static frontend at https://hcbrianlee.github.io/ once these files are on the main branch.
+A ChatGPT-style chat interface for the **Green Nudging AI** experiment: participants use an
+AI assistant to help draft captions for [The New Yorker Cartoon Caption Contest](https://nextml.github.io/caption-contest-data/),
+choosing between a "heavy" and a "light" model. The interface nudges toward the lower-energy
+model, tracks estimated carbon/water impact of usage, and asks at the end whether participants
+want to donate part of their participation reward to a pro-environmental organization.
 
-Important security notes
-- Do NOT put your OpenAI API key in client-side code that will be served on GitHub Pages. Instead, deploy the serverless function to a server (Vercel, Netlify, Cloudflare Workers, etc.) and set the OPENAI_API_KEY secret there.
+Condition assignment (model-info framing x pricing framing), token usage, response timing, and
+donations are logged server-side to Supabase for analysis.
 
-Quick setup
-1. Deploy the serverless function:
-   - Vercel: create a new project pointing at this repo. The file api/chat.js will be deployed automatically. In the Vercel dashboard set Environment Variable OPENAI_API_KEY to your OpenAI key (Production).
-   - Netlify: create a Function with the same code and set the OPENAI_API_KEY environment variable in settings.
-2. Make sure the deployed function is reachable at https://<your-deploy>.vercel.app/api/chat. If the server URL is different, update the fetch call in script.js or add a reverse proxy.
-3. (Optional local testing) Click "Paste API key" in the UI and paste your key to test locally — this will call OpenAI directly from your browser (unsafe!). Use only for quick testing behind local host.
+## Stack
 
-If you want me to also deploy a serverless function (Vercel) for you, give me permission and the OpenAI billing account details, or tell me to open a draft PR to add a GitHub Actions workflow to run serverless code (note: Actions cannot serve a runtime endpoint for Pages). 
+- **Next.js (App Router)**, deployed on Vercel — API routes call the LLM provider server-side so
+  API keys never reach the browser.
+- **Supabase (Postgres)** — `conditions`, `sessions`, `events` tables (see `sql/`).
+- **OpenAI and/or Anthropic** — chat responses stream back to the UI; token usage is read from
+  the provider's own response metadata and logged immediately after each response.
+- **Deterministic randomization** — a session's condition is `sha256(session_id) mod (number of
+  rows in conditions)`, computed server-side. No `Math.random()`, no client-side assignment.
 
-What's included
-- index.html — static frontend chat UI
-- styles.css — styles
-- script.js — front-end behavior. Sends POST /api/chat with conversation.
-- api/chat.js — Node serverless handler (Vercel/Netlify)
-- README.md — setup and security guidance
+## Project layout
+
+```
+sql/schema.sql            conditions / sessions / events tables + session_usage_summary view
+sql/seed_conditions.sql   seeds the info x pricing condition matrix
+src/lib/                  assignment, condition copy, model config, carbon estimator, provider clients
+src/app/api/session       POST: create or resume a session, assigns a condition
+src/app/api/chat          POST: streams a chat completion, logs prompt + response events
+src/app/api/donate        POST: records the end-of-session donation, closes the session
+src/app/page.tsx          the chat UI (client component)
+src/components/           Sidebar, ModelPicker, MessageList, Composer, DonationModal
+```
+
+## Setup
+
+1. **Create a Supabase project**, then in the SQL editor run, in order:
+   - `sql/schema.sql`
+   - `sql/seed_conditions.sql`
+
+   The seed file ships all 4 info variants (environmental / energy_usage / convenience / none)
+   x 3 pricing variants (variable / fixed / free) = 12 conditions. The design doc mentions
+   targeting "9 conditions" but was unresolved on whether "convenience" (speed) is a 4th info
+   arm — trim the `convenience_*` rows in `sql/seed_conditions.sql` to collapse to 3x3=9 if
+   that's the design you land on. Condition count isn't hardcoded anywhere else — the assignment
+   hash always mods by however many rows are in `conditions`.
+
+2. **Copy `.env.example` to `.env.local`** and fill in:
+   - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (Project Settings → API in Supabase)
+   - `OPENAI_API_KEY` and/or `ANTHROPIC_API_KEY`, matching whatever you set for
+     `MODEL_HEAVY_PROVIDER` / `MODEL_LIGHT_PROVIDER`
+
+3. **Install and run locally:**
+   ```
+   npm install
+   npm run dev
+   ```
+   Open http://localhost:3000.
+
+4. **Deploy to Vercel:** import this repo, set the same environment variables in the Vercel
+   project settings, deploy. No further config needed — the API routes run as Vercel functions.
+
+## Participant linking (MTurk / Prolific)
+
+The client reads a participant identifier from the URL (`?pid=...` or `?PROLIFIC_PID=...`) and
+stores it on the session row (`sessions.participant_ref`), so a MTurk/Prolific redirect link can
+tag each session without any extra setup.
+
+## What's implemented vs. what's still open
+
+Implemented: condition assignment, model-info + pricing nudge copy, cumulative usage/carbon
+sidebar, live social-norm stat ("x% of responses used the light model"), end-of-session donation
+flow, full event log for later analysis.
+
+Not implemented (flagged here rather than guessed at, since the design doc leaves them open):
+- The carbon/water estimator (`src/lib/carbon.ts`) uses illustrative, adjustable constants — the
+  design doc explicitly calls out needing "an appropriate method" for this; treat the current
+  numbers as a placeholder for relative comparison, not a validated figure.
+- No cartoon image display, caption submission, or MTurk/Prolific voting flow — the UI links out
+  to the caption-contest-data site and frames the task, but doesn't implement image serving or
+  the post-survey voting step described in the design doc.
+- No admin/export view over `events` — query Supabase directly (or build a view) for analysis in
+  the meantime.
+
+## Security
+
+API keys and the Supabase service role key are read from server-side environment variables only
+(`src/lib/*`, `src/app/api/*`), never sent to the client. Do not set them as `NEXT_PUBLIC_*`.
 
 License: MIT
-```
