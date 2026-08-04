@@ -34,34 +34,41 @@ export async function POST(req: NextRequest) {
     return jsonError("sessionId, modelKey ('light'|'heavy'), and a non-empty messages array are required", 400);
   }
 
-  const supabase = getSupabaseServerClient();
+  let supabase;
+  let modelCfg;
+  try {
+    supabase = getSupabaseServerClient();
 
-  const { data: session, error: sessionErr } = await supabase
-    .from("sessions")
-    .select("id, status")
-    .eq("id", sessionId)
-    .maybeSingle();
+    const { data: session, error: sessionErr } = await supabase
+      .from("sessions")
+      .select("id, status")
+      .eq("id", sessionId)
+      .maybeSingle();
 
-  if (sessionErr || !session) {
-    return jsonError("Unknown session", 404);
+    if (sessionErr || !session) {
+      return jsonError("Unknown session", 404);
+    }
+    if (session.status !== "active") {
+      return jsonError("Session has already ended", 409);
+    }
+
+    modelCfg = getModelConfig(modelKey);
+    const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
+
+    // Log the prompt before generating so we have a record even if the
+    // downstream provider call fails.
+    await supabase.from("events").insert({
+      session_id: sessionId,
+      event_type: "prompt_submitted",
+      model: modelCfg.key,
+      provider: modelCfg.provider,
+      prompt_text: lastUserMessage?.content ?? null,
+      prompt_length_chars: lastUserMessage?.content?.length ?? null,
+    });
+  } catch (err) {
+    console.error("POST /api/chat setup failed", err);
+    return jsonError(err instanceof Error ? err.message : "Failed to start generation", 500);
   }
-  if (session.status !== "active") {
-    return jsonError("Session has already ended", 409);
-  }
-
-  const modelCfg = getModelConfig(modelKey);
-  const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
-
-  // Log the prompt before generating so we have a record even if the
-  // downstream provider call fails.
-  await supabase.from("events").insert({
-    session_id: sessionId,
-    event_type: "prompt_submitted",
-    model: modelCfg.key,
-    provider: modelCfg.provider,
-    prompt_text: lastUserMessage?.content ?? null,
-    prompt_length_chars: lastUserMessage?.content?.length ?? null,
-  });
 
   const systemMessage = {
     role: "system" as const,

@@ -37,12 +37,13 @@ async function buildSessionInfo(
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = getSupabaseServerClient();
   const body = await req.json().catch(() => ({}));
   const existingSessionId: string | undefined = body?.existingSessionId;
   const participantRef: string | undefined = body?.participantRef;
 
   try {
+    const supabase = getSupabaseServerClient();
+
     if (existingSessionId) {
       const { data: existing } = await supabase
         .from("sessions")
