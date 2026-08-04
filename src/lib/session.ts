@@ -11,7 +11,7 @@ export async function getCumulativeUsage(
     .eq("session_id", sessionId)
     .maybeSingle();
 
-  if (error) throw error;
+  if (error) throw new Error(`session_usage_summary query failed: ${error.message}`);
 
   return {
     promptCount: data?.prompt_count ?? 0,
@@ -38,8 +38,8 @@ export async function getSocialProofPct(supabase: SupabaseClient): Promise<numbe
     .select("id", { count: "exact", head: true })
     .eq("event_type", "response_received");
 
-  if (lightErr) throw lightErr;
-  if (totalErr) throw totalErr;
+  if (lightErr) throw new Error(`social proof (light count) query failed: ${lightErr.message}`);
+  if (totalErr) throw new Error(`social proof (total count) query failed: ${totalErr.message}`);
 
   if (!totalCount || totalCount < 10) return null;
   return Math.round(((lightCount ?? 0) / totalCount) * 100);
@@ -51,7 +51,7 @@ export async function getConditions(supabase: SupabaseClient): Promise<Condition
     .select("id, code, info_variant, pricing_variant, default_model")
     .order("id", { ascending: true });
 
-  if (error) throw error;
+  if (error) throw new Error(`conditions query failed: ${error.message}`);
   if (!data || data.length === 0) {
     throw new Error(
       "No rows in `conditions`. Run sql/schema.sql then sql/seed_conditions.sql against your Supabase project."

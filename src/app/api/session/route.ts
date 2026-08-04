@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
       participant_ref: participantRef ?? null,
       fixed_credit_cents: fixedCreditCents,
     });
-    if (insertError) throw insertError;
+    if (insertError) throw new Error(`sessions insert failed: ${insertError.message}`);
 
     await supabase.from("events").insert({
       session_id: sessionId,

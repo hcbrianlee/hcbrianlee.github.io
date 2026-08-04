@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
         ended_at: new Date().toISOString(),
       })
       .eq("id", sessionId);
-    if (updateErr) throw updateErr;
+    if (updateErr) throw new Error(`sessions update failed: ${updateErr.message}`);
 
     await supabase.from("events").insert([
       { session_id: sessionId, event_type: "donation_submitted", metadata: { donation_cents: donationCents } },
