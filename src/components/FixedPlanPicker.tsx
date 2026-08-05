@@ -1,16 +1,22 @@
 "use client";
 
+import { modelCaption } from "@/components/ModelPicker";
 import { formatCents } from "@/lib/format";
-import type { CopyBlock, ModelKey } from "@/lib/types";
+import type { CopyBlock, InfoVariant, ModelComparison, ModelKey } from "@/lib/types";
 
 export function FixedPlanPicker(props: {
   options: { heavy: number; light: number };
   fixedCreditCents: number;
+  infoVariant: InfoVariant;
   infoCopy: CopyBlock | null;
+  modelComparison: ModelComparison;
   submitting: boolean;
   onSelect: (model: ModelKey) => void;
 }) {
-  const { options, fixedCreditCents, infoCopy, submitting, onSelect } = props;
+  const { options, fixedCreditCents, infoVariant, infoCopy, modelComparison, submitting, onSelect } = props;
+  const showCaptions = infoVariant === "environmental" || infoVariant === "energy_usage";
+  const heavyCaption = showCaptions ? modelCaption(infoVariant, "heavy", modelComparison) : null;
+  const lightCaption = showCaptions ? modelCaption(infoVariant, "light", modelComparison) : null;
 
   return (
     <div className="plan-picker">
@@ -21,7 +27,7 @@ export function FixedPlanPicker(props: {
         participation credit.
       </p>
 
-      {infoCopy && (
+      {!showCaptions && infoCopy && (
         <div className="nudge-block info plan-picker-nudge">
           <strong>{infoCopy.title}</strong>
           {infoCopy.body}
@@ -32,12 +38,12 @@ export function FixedPlanPicker(props: {
         <button className="plan-option" disabled={submitting} onClick={() => onSelect("heavy")}>
           <span className="plan-option-label">Heavy</span>
           <span className="plan-option-price">{formatCents(options.heavy)}</span>
-          <span className="plan-option-desc">Higher-power model, generally higher quality.</span>
+          <span className="plan-option-desc">{heavyCaption ?? "Higher-power model, generally higher quality."}</span>
         </button>
         <button className="plan-option" disabled={submitting} onClick={() => onSelect("light")}>
           <span className="plan-option-label">Light</span>
           <span className="plan-option-price">{formatCents(options.light)}</span>
-          <span className="plan-option-desc">Faster, lower energy use per response.</span>
+          <span className="plan-option-desc">{lightCaption ?? "Faster, lower energy use per response."}</span>
         </button>
       </div>
 

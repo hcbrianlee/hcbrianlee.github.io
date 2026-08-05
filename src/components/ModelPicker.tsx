@@ -8,7 +8,7 @@ import { formatGrams, formatMlPrecise, formatUserCount, formatWh } from "@/lib/f
 // framing. Note this app itself does not have 900 million users -- this
 // number is illustrative scale-of-impact copy, not a factual claim about
 // this platform's actual usage.
-function modelCaption(variant: InfoVariant, model: ModelKey, comparison: ModelComparison): string | null {
+export function modelCaption(variant: InfoVariant, model: ModelKey, comparison: ModelComparison): string | null {
   const n = comparison.scaleUsers;
   const nDisplay = formatUserCount(n);
   // Per-token, not per-1,000 -- comparison.* fields are per-1,000-tokens.
