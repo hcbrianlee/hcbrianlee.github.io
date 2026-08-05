@@ -9,12 +9,14 @@ import { DonationModal } from "@/components/DonationModal";
 import type { ChatMessage, ChatStreamFrame, CumulativeUsage, ModelKey, SessionInfo } from "@/lib/types";
 
 const SESSION_STORAGE_KEY = "gn_session_id";
+const SESSION_DEBUG_KEY = "gn_session_debug_condition";
 const EMPTY_USAGE: CumulativeUsage = { promptCount: 0, totalTokens: 0, co2G: 0, waterMl: 0 };
 
 export default function Home() {
   const [session, setSession] = useState<SessionInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [debugConditionCode, setDebugConditionCode] = useState<string | null>(null);
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [draft, setDraft] = useState("");
@@ -27,22 +29,47 @@ export default function Home() {
   const [sessionEnded, setSessionEnded] = useState(false);
 
   useEffect(() => {
-    const stored = window.localStorage.getItem(SESSION_STORAGE_KEY) ?? undefined;
     const params = new URLSearchParams(window.location.search);
     const participantRef = params.get("pid") ?? params.get("PROLIFIC_PID") ?? undefined;
+    // ?condition=<code> forces that exact condition (see sql/seed_conditions.sql
+    // for valid codes) every time it's present, and always mints a fresh
+    // session so it can't be mistaken for a real randomized assignment.
+    // Removing the param -- even if a forced session is still cached in
+    // localStorage -- goes back to true random assignment.
+    const debugParam = params.get("condition");
+    const previousDebugCode = window.localStorage.getItem(SESSION_DEBUG_KEY);
+
+    let existingSessionId: string | undefined;
+    if (debugParam) {
+      existingSessionId = undefined; // always fresh when forcing a condition
+    } else if (previousDebugCode) {
+      window.localStorage.removeItem(SESSION_STORAGE_KEY);
+      window.localStorage.removeItem(SESSION_DEBUG_KEY);
+      existingSessionId = undefined; // discard the forced session, go random
+    } else {
+      existingSessionId = window.localStorage.getItem(SESSION_STORAGE_KEY) ?? undefined;
+    }
 
     (async () => {
       try {
         const res = await fetch("/api/session", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ existingSessionId: stored, participantRef }),
+          body: JSON.stringify({
+            existingSessionId,
+            participantRef,
+            debugConditionCode: debugParam ?? undefined,
+          }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data?.error ?? "Failed to start session");
 
         const info = data as SessionInfo;
         window.localStorage.setItem(SESSION_STORAGE_KEY, info.sessionId);
+        if (debugParam) {
+          window.localStorage.setItem(SESSION_DEBUG_KEY, info.condition.code);
+          setDebugConditionCode(info.condition.code);
+        }
         setSession(info);
         setSelectedModel(info.condition.defaultModel);
       } catch (err) {
@@ -173,6 +200,13 @@ export default function Home() {
       />
 
       <main className="main">
+        {debugConditionCode && (
+          <div className="debug-banner">
+            Debug mode — forced condition <code>{debugConditionCode}</code>. Remove <code>?condition=…</code> from the
+            URL and reload to go back to random assignment.
+          </div>
+        )}
+
         <ModelPicker
           selected={selectedModel}
           onChange={setSelectedModel}

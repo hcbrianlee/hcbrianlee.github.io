@@ -40,11 +40,17 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}));
   const existingSessionId: string | undefined = body?.existingSessionId;
   const participantRef: string | undefined = body?.participantRef;
+  // Internal testing only: forces a specific condition by its `code` instead
+  // of the normal sha256(sessionId) mod N assignment, and always mints a
+  // fresh session so it can't be confused with a real randomized one. Never
+  // reachable unless this exact field is sent (the ordinary UI never sends
+  // it), so it can't be used to cherry-pick a condition as a participant.
+  const debugConditionCode: string | undefined = body?.debugConditionCode;
 
   try {
     const supabase = getSupabaseServerClient();
 
-    if (existingSessionId) {
+    if (existingSessionId && !debugConditionCode) {
       const { data: existing } = await supabase
         .from("sessions")
         .select(
@@ -65,8 +71,21 @@ export async function POST(req: NextRequest) {
 
     const conditions = await getConditions(supabase);
     const sessionId = randomUUID();
-    const idx = assignConditionIndex(sessionId, conditions.length);
-    const condition = conditions[idx];
+
+    let condition: ConditionRow;
+    if (debugConditionCode) {
+      const match = conditions.find((c) => c.code === debugConditionCode);
+      if (!match) {
+        throw new Error(
+          `Unknown debug condition code "${debugConditionCode}". Valid codes: ${conditions.map((c) => c.code).join(", ")}`
+        );
+      }
+      condition = match;
+    } else {
+      const idx = assignConditionIndex(sessionId, conditions.length);
+      condition = conditions[idx];
+    }
+
     const fixedCreditCents = Number(process.env.FIXED_CREDIT_CENTS ?? 1000);
 
     const { error: insertError } = await supabase.from("sessions").insert({
@@ -80,7 +99,11 @@ export async function POST(req: NextRequest) {
     await supabase.from("events").insert({
       session_id: sessionId,
       event_type: "session_started",
-      metadata: { condition_code: condition.code, participant_ref: participantRef ?? null },
+      metadata: {
+        condition_code: condition.code,
+        participant_ref: participantRef ?? null,
+        debug: Boolean(debugConditionCode),
+      },
     });
 
     const info = await buildSessionInfo(supabase, sessionId, condition, fixedCreditCents);

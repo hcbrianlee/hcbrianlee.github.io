@@ -134,6 +134,21 @@ button {
   word-break: break-all;
 }
 
+.debug-banner {
+  background: #fff4e5;
+  border-bottom: 1px solid #f3c98b;
+  color: #7a4a00;
+  font-size: 12.5px;
+  padding: 8px 16px;
+  text-align: center;
+}
+
+.debug-banner code {
+  background: rgba(122, 74, 0, 0.1);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
 /* ---------- Main column ---------- */
 
 .main {
