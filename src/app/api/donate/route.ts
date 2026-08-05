@@ -28,8 +28,14 @@ export async function POST(req: NextRequest) {
     if (sessionErr || !session) {
       return NextResponse.json({ error: "Unknown session" }, { status: 404 });
     }
-    if (donationCents > session.fixed_credit_cents) {
-      return NextResponse.json({ error: "donationCents exceeds the session's fixed credit" }, { status: 400 });
+
+    const preDonationUsage = await getCumulativeUsage(supabase, sessionId);
+    const remainingCents = session.fixed_credit_cents - preDonationUsage.spentCents;
+    if (donationCents > remainingCents) {
+      return NextResponse.json(
+        { error: "donationCents exceeds the session's remaining credit" },
+        { status: 400 }
+      );
     }
 
     const { error: updateErr } = await supabase
@@ -51,7 +57,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       donationCents,
-      remainingCents: session.fixed_credit_cents - donationCents,
+      remainingCents: remainingCents - donationCents,
       cumulative,
     });
   } catch (err) {

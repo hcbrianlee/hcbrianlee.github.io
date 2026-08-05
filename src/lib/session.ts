@@ -7,7 +7,7 @@ export async function getCumulativeUsage(
 ): Promise<CumulativeUsage> {
   const { data, error } = await supabase
     .from("session_usage_summary")
-    .select("prompt_count, total_tokens, total_co2_g, total_water_ml")
+    .select("prompt_count, total_tokens, total_co2_g, total_water_ml, total_spent_cents")
     .eq("session_id", sessionId)
     .maybeSingle();
 
@@ -18,6 +18,7 @@ export async function getCumulativeUsage(
     totalTokens: data?.total_tokens ?? 0,
     co2G: Number(data?.total_co2_g ?? 0),
     waterMl: Number(data?.total_water_ml ?? 0),
+    spentCents: Number(data?.total_spent_cents ?? 0),
   };
 }
 

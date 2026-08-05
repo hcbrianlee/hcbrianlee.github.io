@@ -10,7 +10,7 @@ import type { ChatMessage, ChatStreamFrame, CumulativeUsage, ModelKey, SessionIn
 
 const SESSION_STORAGE_KEY = "gn_session_id";
 const SESSION_DEBUG_KEY = "gn_session_debug_condition";
-const EMPTY_USAGE: CumulativeUsage = { promptCount: 0, totalTokens: 0, co2G: 0, waterMl: 0 };
+const EMPTY_USAGE: CumulativeUsage = { promptCount: 0, totalTokens: 0, co2G: 0, waterMl: 0, spentCents: 0 };
 
 export default function Home() {
   const [session, setSession] = useState<SessionInfo | null>(null);

@@ -13,8 +13,9 @@ export function DonationModal(props: {
   onSubmit: (donationCents: number) => void;
 }) {
   const { fixedCreditCents, cumulative, submitting, result, onClose, onSubmit } = props;
+  const remainingCents = Math.max(0, fixedCreditCents - cumulative.spentCents);
   const [wantsToDonate, setWantsToDonate] = useState<boolean | null>(null);
-  const [dollars, setDollars] = useState(Math.round(fixedCreditCents / 100 / 2));
+  const [dollars, setDollars] = useState(Math.round(remainingCents / 100 / 2));
 
   if (result) {
     return (
@@ -54,15 +55,18 @@ export function DonationModal(props: {
     );
   }
 
-  const maxDollars = Math.max(0, Math.floor(fixedCreditCents / 100));
+  const maxDollars = Math.max(0, Math.floor(remainingCents / 100));
 
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true">
       <div className="modal-card">
         <h2>Finish session</h2>
         <p>
-          Do you want to donate part of your ${(fixedCreditCents / 100).toFixed(2)} participation reward to a
-          pro-environmental organization?
+          Do you want to donate part of your ${(remainingCents / 100).toFixed(2)} remaining participation reward to
+          a pro-environmental organization?
+          {cumulative.spentCents > 0 && (
+            <> You started with ${(fixedCreditCents / 100).toFixed(2)} and spent {formatCents(cumulative.spentCents)} on model usage.</>
+          )}
         </p>
 
         <div className="donate-choice">

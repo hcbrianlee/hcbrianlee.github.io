@@ -3,8 +3,9 @@ import { getSupabaseServerClient } from "@/lib/supabase";
 import { getModelConfig } from "@/lib/models";
 import { streamChat } from "@/lib/providers";
 import { estimateImpact } from "@/lib/carbon";
+import { estimateCostCents } from "@/lib/pricing";
 import { getCumulativeUsage } from "@/lib/session";
-import type { ChatStreamFrame, ModelKey } from "@/lib/types";
+import type { ChatStreamFrame, ConditionRow, ModelKey } from "@/lib/types";
 
 export const runtime = "nodejs";
 
@@ -36,12 +37,13 @@ export async function POST(req: NextRequest) {
 
   let supabase;
   let modelCfg;
+  let pricingVariant: ConditionRow["pricing_variant"];
   try {
     supabase = getSupabaseServerClient();
 
     const { data: session, error: sessionErr } = await supabase
       .from("sessions")
-      .select("id, status")
+      .select("id, status, condition:conditions(pricing_variant)")
       .eq("id", sessionId)
       .maybeSingle();
 
@@ -51,6 +53,10 @@ export async function POST(req: NextRequest) {
     if (session.status !== "active") {
       return jsonError("Session has already ended", 409);
     }
+
+    const condition = (session as unknown as { condition: Pick<ConditionRow, "pricing_variant"> | null })
+      .condition;
+    pricingVariant = condition?.pricing_variant ?? "free";
 
     modelCfg = getModelConfig(modelKey);
     const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
@@ -100,6 +106,11 @@ export async function POST(req: NextRequest) {
           totalTokens: usage.totalTokens,
           responseTimeMs,
         });
+        const costCents = estimateCostCents({
+          modelKey: modelCfg.key,
+          totalTokens: usage.totalTokens,
+          pricingVariant,
+        });
 
         await supabase.from("events").insert({
           session_id: sessionId,
@@ -114,6 +125,7 @@ export async function POST(req: NextRequest) {
           estimated_energy_wh: impact.energyWh,
           estimated_co2_g: impact.co2G,
           estimated_water_ml: impact.waterMl,
+          estimated_cost_cents: costCents,
         });
 
         const cumulative = await getCumulativeUsage(supabase, sessionId);

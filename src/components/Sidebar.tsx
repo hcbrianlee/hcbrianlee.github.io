@@ -48,8 +48,18 @@ export function Sidebar(props: {
       <div className="sidebar-section">
         <h3>Participation credit</h3>
         <div className="stat-row">
-          <span className="stat-label">Fixed credit</span>
+          <span className="stat-label">Starting credit</span>
           <span>{formatCents(fixedCreditCents)}</span>
+        </div>
+        {cumulative.spentCents > 0 && (
+          <div className="stat-row">
+            <span className="stat-label">Spent so far</span>
+            <span>{formatCents(cumulative.spentCents)}</span>
+          </div>
+        )}
+        <div className="stat-row">
+          <span className="stat-label">Remaining</span>
+          <span>{formatCents(fixedCreditCents - cumulative.spentCents)}</span>
         </div>
       </div>
 

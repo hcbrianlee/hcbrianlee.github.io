@@ -36,6 +36,8 @@ export interface CumulativeUsage {
   totalTokens: number;
   co2G: number;
   waterMl: number;
+  /** Always 0 for the "free" pricing condition. */
+  spentCents: number;
 }
 
 export interface ChatMessage {

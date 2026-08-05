@@ -38,6 +38,11 @@ src/components/           Sidebar, ModelPicker, MessageList, Composer, DonationM
    - `sql/schema.sql`
    - `sql/seed_conditions.sql`
 
+   If you already ran `schema.sql` before the "variable"/"fixed" pricing conditions started
+   actually deducting from the participation credit, also run `sql/migration_add_cost_tracking.sql`
+   once — it adds the missing column and refreshes the view. New projects don't need this, it's
+   already in `schema.sql`.
+
    The seed file ships all 4 info variants (environmental / energy_usage / convenience / none)
    x 3 pricing variants (variable / fixed / free) = 12 conditions. The design doc mentions
    targeting "9 conditions" but was unresolved on whether "convenience" (speed) is a 4th info
@@ -68,9 +73,12 @@ tag each session without any extra setup.
 
 ## What's implemented vs. what's still open
 
-Implemented: condition assignment, model-info + pricing nudge copy, cumulative usage/carbon
+Implemented: condition assignment, model-info + pricing nudge copy, cumulative usage/carbon/spend
 sidebar, live social-norm stat ("x% of responses used the light model"), end-of-session donation
-flow, full event log for later analysis.
+flow (capped at remaining, post-spend credit), full event log for later analysis. Under the
+"variable" and "fixed" pricing conditions, each response actually deducts
+`(tokens / 1000) * price-per-1k-tokens` (see `src/lib/pricing.ts`, prices in `.env.example`) from
+the session's credit — "free" never charges regardless of model choice.
 
 Not implemented (flagged here rather than guessed at, since the design doc leaves them open):
 - The carbon/water estimator (`src/lib/carbon.ts`) uses illustrative, adjustable constants — the

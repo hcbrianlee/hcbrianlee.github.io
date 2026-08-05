@@ -59,6 +59,7 @@ create table if not exists events (
   estimated_energy_wh numeric,
   estimated_co2_g numeric,
   estimated_water_ml numeric,
+  estimated_cost_cents numeric,
   metadata jsonb,
   created_at timestamptz not null default now()
 );
@@ -76,6 +77,7 @@ select
   coalesce(sum(e.total_tokens) filter (where e.event_type = 'response_received'), 0) as total_tokens,
   coalesce(sum(e.estimated_co2_g) filter (where e.event_type = 'response_received'), 0) as total_co2_g,
   coalesce(sum(e.estimated_water_ml) filter (where e.event_type = 'response_received'), 0) as total_water_ml,
+  coalesce(sum(e.estimated_cost_cents) filter (where e.event_type = 'response_received'), 0) as total_spent_cents,
   count(*) filter (where e.event_type = 'response_received' and e.model = 'light') as light_responses,
   count(*) filter (where e.event_type = 'response_received' and e.model = 'heavy') as heavy_responses
 from sessions s
