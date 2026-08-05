@@ -28,7 +28,13 @@ create table if not exists sessions (
   donation_cents integer,
   status text not null default 'active' check (status in ('active', 'completed')),
   started_at timestamptz not null default now(),
-  ended_at timestamptz
+  ended_at timestamptz,
+  -- Filename only (e.g. "510.jpg"), chosen once via the same deterministic
+  -- hash-mod-N scheme as condition assignment (src/lib/cartoons.ts). The
+  -- image itself is never stored here or anywhere in this app -- it's
+  -- hotlinked from GitHub at render time.
+  cartoon_filename text,
+  final_caption text
 );
 
 create index if not exists sessions_condition_id_idx on sessions(condition_id);
@@ -45,6 +51,7 @@ create table if not exists events (
     'prompt_submitted',
     'response_received',
     'fixed_plan_selected',
+    'caption_submitted',
     'donation_submitted',
     'session_ended'
   )),
@@ -53,6 +60,8 @@ create table if not exists events (
   prompt_text text,
   prompt_length_chars integer,
   response_text text,
+  caption_text text,
+  cartoon_filename text,
   input_tokens integer,
   output_tokens integer,
   total_tokens integer,

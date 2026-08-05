@@ -33,6 +33,10 @@ export interface SessionInfo {
   fixedPlan: { model: ModelKey; costCents: number } | null;
   /** Flat one-time prices for each model, for the "fixed" plan-picker screen. */
   fixedPlanOptions: { heavy: number; light: number };
+  /** Hotlinked image URL for this session's assigned cartoon (chosen once, deterministically, at session creation). */
+  cartoonImageUrl: string;
+  /** The participant's submitted caption for this cartoon, if any. */
+  finalCaption: string | null;
 }
 
 export interface CumulativeUsage {

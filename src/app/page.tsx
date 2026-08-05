@@ -7,6 +7,7 @@ import { MessageList } from "@/components/MessageList";
 import { Composer } from "@/components/Composer";
 import { DonationModal } from "@/components/DonationModal";
 import { FixedPlanPicker } from "@/components/FixedPlanPicker";
+import { CaptionBox } from "@/components/CaptionBox";
 import type { ChatMessage, ChatStreamFrame, CumulativeUsage, ModelKey, SessionInfo } from "@/lib/types";
 
 const SESSION_STORAGE_KEY = "gn_session_id";
@@ -25,6 +26,7 @@ export default function Home() {
   const [sending, setSending] = useState(false);
 
   const [planSubmitting, setPlanSubmitting] = useState(false);
+  const [captionSubmitting, setCaptionSubmitting] = useState(false);
 
   const [donateOpen, setDonateOpen] = useState(false);
   const [donateSubmitting, setDonateSubmitting] = useState(false);
@@ -168,6 +170,25 @@ export default function Home() {
     }
   }
 
+  async function handleSubmitCaption(captionText: string) {
+    if (!session || captionSubmitting) return;
+    setCaptionSubmitting(true);
+    try {
+      const res = await fetch("/api/submit-caption", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: session.sessionId, captionText }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? "Failed to submit caption");
+      setSession((prev) => (prev ? { ...prev, finalCaption: data.finalCaption } : prev));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to submit caption");
+    } finally {
+      setCaptionSubmitting(false);
+    }
+  }
+
   async function handleDonateSubmit(donationCents: number) {
     if (!session) return;
     setDonateSubmitting(true);
@@ -234,6 +255,13 @@ export default function Home() {
             URL and reload to go back to random assignment.
           </div>
         )}
+
+        <CaptionBox
+          cartoonImageUrl={session.cartoonImageUrl}
+          finalCaption={session.finalCaption}
+          submitting={captionSubmitting}
+          onSubmit={handleSubmitCaption}
+        />
 
         {needsPlanSelection ? (
           <FixedPlanPicker
