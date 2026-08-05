@@ -11,7 +11,7 @@ export function ModelPicker(props: {
   const { selected, onChange, locked } = props;
 
   return (
-    <div className="header-bar">
+    <div className="model-picker-bar">
       <div className="model-picker">
         {locked ? (
           <div className="locked-plan-label">

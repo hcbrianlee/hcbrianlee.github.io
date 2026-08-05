@@ -163,13 +163,14 @@ button {
   min-height: 100dvh;
 }
 
-.header-bar {
+.model-picker-bar {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  padding: 10px 16px;
-  border-bottom: 1px solid #e7e7e7;
+  max-width: 768px;
+  margin: 0 auto;
+  padding: 14px 16px 4px;
   flex-wrap: wrap;
 }
 

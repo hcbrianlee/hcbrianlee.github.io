@@ -268,12 +268,6 @@ export default function Home() {
           />
         ) : (
           <>
-            <ModelPicker
-              selected={selectedModel}
-              onChange={setSelectedModel}
-              locked={session.condition.pricingVariant === "fixed"}
-            />
-
             <CartoonImage cartoonImageUrl={session.cartoonImageUrl} />
 
             <MessageList messages={messages} />
@@ -288,6 +282,12 @@ export default function Home() {
             {session.finalCaption && (
               <FinishSection sessionEnded={sessionEnded} onDonateClick={() => setDonateOpen(true)} />
             )}
+
+            <ModelPicker
+              selected={selectedModel}
+              onChange={setSelectedModel}
+              locked={session.condition.pricingVariant === "fixed"}
+            />
 
             <NudgePanel infoCopy={session.infoCopy} pricingCopy={session.pricingCopy} />
 
