@@ -39,6 +39,16 @@ export interface SessionInfo {
   finalCaption: string | null;
   /** ISO timestamp of when finalCaption was submitted, if any. */
   finalCaptionSubmittedAt: string | null;
+  /** Static per-1,000-token heavy vs. light comparison, for the environmental/energy_usage nudge under the model toggle. */
+  modelComparison: ModelComparison;
+}
+
+export interface ModelComparison {
+  heavy: ImpactEstimate;
+  light: ImpactEstimate;
+  deltaEnergyWh: number;
+  deltaCo2G: number;
+  deltaWaterMl: number;
 }
 
 export interface CumulativeUsage {

@@ -6,6 +6,7 @@ import { hashIndex } from "@/lib/assignment";
 import { getConditions, getCumulativeUsage, getFixedPlan, getSocialProofPct } from "@/lib/session";
 import { getInfoCopy, getPricingCopy } from "@/lib/conditions";
 import { getFixedPlanPriceCents } from "@/lib/pricing";
+import { getModelComparison } from "@/lib/carbon";
 import { getCartoonImageUrl, pickCartoonFilename } from "@/lib/cartoons";
 import type { ConditionRow, SessionInfo } from "@/lib/types";
 
@@ -44,6 +45,7 @@ async function buildSessionInfo(
     cartoonImageUrl: getCartoonImageUrl(cartoonFilename),
     finalCaption,
     finalCaptionSubmittedAt,
+    modelComparison: getModelComparison(),
   };
 }
 

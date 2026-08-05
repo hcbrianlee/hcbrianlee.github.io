@@ -295,9 +295,11 @@ export default function Home() {
                   <ModelPicker
                     selected={selectedModel}
                     onChange={setSelectedModel}
+                    infoVariant={session.condition.infoVariant}
+                    modelComparison={session.modelComparison}
                     locked={session.condition.pricingVariant === "fixed"}
                   />
-                  {session.condition.pricingVariant !== "fixed" && <NudgePanel infoCopy={session.infoCopy} />}
+                  {session.condition.infoVariant === "convenience" && <NudgePanel infoCopy={session.infoCopy} />}
                 </>
               }
             />

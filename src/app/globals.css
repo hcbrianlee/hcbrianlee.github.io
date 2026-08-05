@@ -183,13 +183,36 @@ button {
 
 .model-picker-bar {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 12px;
+  gap: 8px;
   max-width: 768px;
   margin: 0 auto;
   padding: 0 0 4px;
-  flex-wrap: wrap;
+}
+
+.model-caption-row {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.model-caption {
+  flex: 1;
+  padding: 8px 12px;
+  background: #f4fbf8;
+  border: 1px solid #cdeee0;
+  border-radius: 10px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #33334a;
+}
+
+.model-caption strong {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 12px;
+  color: #0b6b4d;
 }
 
 .cartoon-panel {
