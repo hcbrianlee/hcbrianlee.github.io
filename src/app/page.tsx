@@ -278,11 +278,11 @@ export default function Home() {
               onSubmit={handleSubmitCaption}
             />
 
-            <MessageList messages={messages} />
-
             {session.finalCaption && (
               <FinishSection sessionEnded={sessionEnded} onDonateClick={() => setDonateOpen(true)} />
             )}
+
+            <MessageList messages={messages} />
 
             <Composer
               value={draft}
