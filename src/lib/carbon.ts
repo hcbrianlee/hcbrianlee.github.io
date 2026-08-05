@@ -4,11 +4,14 @@ import type { ImpactEstimate, ModelComparison, ModelKey } from "./types";
 // Hypothetical group size used to scale the per-1,000-token comparison into
 // a more tangible aggregate figure for the nudge copy ("if N people did
 // this..."). A single response's savings are a fraction of a gram/mL/Wh --
-// too small to feel consequential -- multiplying by a round number of
-// people makes the same underlying numbers legible without changing what
-// they represent. This is an illustrative multiplier, not a claim about
-// actual platform usage.
-const NUDGE_IMPACT_SCALE_USERS = Number(process.env.NUDGE_IMPACT_SCALE_USERS ?? 100);
+// too small to feel consequential -- multiplying by a large, recognizable
+// number makes the same underlying figures legible without changing what
+// they represent. Default is OpenAI's own reported ChatGPT weekly active
+// user count (900 million, announced Feb 2026, still current as of Jul
+// 2026) -- used here purely as a relatable reference scale for "a lot of AI
+// chat usage," not a claim that this app has that many users. Revisit this
+// number periodically as OpenAI reports updated figures.
+const NUDGE_IMPACT_SCALE_USERS = Number(process.env.NUDGE_IMPACT_SCALE_USERS ?? 900_000_000);
 
 // Sourced 2026: IEA global average grid intensity (~420-430 g/kWh for
 // 2025-2026, declining ~3.7%/yr from 445 in 2024) and average data-center
