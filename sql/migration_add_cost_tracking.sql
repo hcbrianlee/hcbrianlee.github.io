@@ -5,7 +5,13 @@
 
 alter table events add column if not exists estimated_cost_cents numeric;
 
-create or replace view session_usage_summary as
+-- `create or replace view` can only append columns at the end of the
+-- existing list; total_spent_cents needs to slot in before
+-- light_responses/heavy_responses, which Postgres treats as renaming an
+-- existing column (error 42P16). Drop and recreate instead.
+drop view if exists session_usage_summary;
+
+create view session_usage_summary as
 select
   s.id as session_id,
   count(*) filter (where e.event_type = 'prompt_submitted') as prompt_count,
