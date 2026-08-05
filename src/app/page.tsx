@@ -7,7 +7,8 @@ import { MessageList } from "@/components/MessageList";
 import { Composer } from "@/components/Composer";
 import { DonationModal } from "@/components/DonationModal";
 import { FixedPlanPicker } from "@/components/FixedPlanPicker";
-import { CaptionBox } from "@/components/CaptionBox";
+import { CartoonImage } from "@/components/CartoonImage";
+import { CaptionSubmit } from "@/components/CaptionSubmit";
 import type { ChatMessage, ChatStreamFrame, CumulativeUsage, ModelKey, SessionInfo } from "@/lib/types";
 
 const SESSION_STORAGE_KEY = "gn_session_id";
@@ -181,7 +182,9 @@ export default function Home() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? "Failed to submit caption");
-      setSession((prev) => (prev ? { ...prev, finalCaption: data.finalCaption } : prev));
+      setSession((prev) =>
+        prev ? { ...prev, finalCaption: data.finalCaption, finalCaptionSubmittedAt: data.finalCaptionSubmittedAt } : prev
+      );
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to submit caption");
     } finally {
@@ -273,14 +276,16 @@ export default function Home() {
               locked={session.condition.pricingVariant === "fixed"}
             />
 
-            <CaptionBox
-              cartoonImageUrl={session.cartoonImageUrl}
+            <CartoonImage cartoonImageUrl={session.cartoonImageUrl} />
+
+            <MessageList messages={messages} />
+
+            <CaptionSubmit
               finalCaption={session.finalCaption}
+              finalCaptionSubmittedAt={session.finalCaptionSubmittedAt}
               submitting={captionSubmitting}
               onSubmit={handleSubmitCaption}
             />
-
-            <MessageList messages={messages} />
 
             <Composer value={draft} onChange={setDraft} onSend={handleSend} disabled={sending || sessionEnded} />
           </>

@@ -34,7 +34,8 @@ create table if not exists sessions (
   -- image itself is never stored here or anywhere in this app -- it's
   -- hotlinked from GitHub at render time.
   cartoon_filename text,
-  final_caption text
+  final_caption text,
+  final_caption_submitted_at timestamptz
 );
 
 create index if not exists sessions_condition_id_idx on sessions(condition_id);

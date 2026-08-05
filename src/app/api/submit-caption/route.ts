@@ -31,9 +31,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Session has already ended" }, { status: 409 });
     }
 
+    const submittedAt = new Date().toISOString();
+
     const { error: updateErr } = await supabase
       .from("sessions")
-      .update({ final_caption: trimmed })
+      .update({ final_caption: trimmed, final_caption_submitted_at: submittedAt })
       .eq("id", sessionId);
     if (updateErr) throw new Error(`sessions update failed: ${updateErr.message}`);
 
@@ -45,7 +47,7 @@ export async function POST(req: NextRequest) {
     });
     if (insertErr) throw new Error(`caption_submitted insert failed: ${insertErr.message}`);
 
-    return NextResponse.json({ finalCaption: trimmed });
+    return NextResponse.json({ finalCaption: trimmed, finalCaptionSubmittedAt: submittedAt });
   } catch (err) {
     console.error("POST /api/submit-caption failed", err);
     return NextResponse.json(

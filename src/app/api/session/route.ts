@@ -17,7 +17,8 @@ async function buildSessionInfo(
   condition: ConditionRow,
   fixedCreditCents: number,
   cartoonFilename: string,
-  finalCaption: string | null
+  finalCaption: string | null,
+  finalCaptionSubmittedAt: string | null
 ): Promise<SessionInfo> {
   const [cumulative, socialProofPct, fixedPlan] = await Promise.all([
     getCumulativeUsage(supabase, sessionId),
@@ -42,6 +43,7 @@ async function buildSessionInfo(
     fixedPlanOptions: { heavy: getFixedPlanPriceCents("heavy"), light: getFixedPlanPriceCents("light") },
     cartoonImageUrl: getCartoonImageUrl(cartoonFilename),
     finalCaption,
+    finalCaptionSubmittedAt,
   };
 }
 
@@ -63,7 +65,7 @@ export async function POST(req: NextRequest) {
       const { data: existing } = await supabase
         .from("sessions")
         .select(
-          "id, fixed_credit_cents, status, cartoon_filename, final_caption, condition:conditions(id, code, info_variant, pricing_variant, default_model)"
+          "id, fixed_credit_cents, status, cartoon_filename, final_caption, final_caption_submitted_at, condition:conditions(id, code, info_variant, pricing_variant, default_model)"
         )
         .eq("id", existingSessionId)
         .maybeSingle();
@@ -77,7 +79,8 @@ export async function POST(req: NextRequest) {
           condition,
           existing.fixed_credit_cents,
           existing.cartoon_filename,
-          existing.final_caption
+          existing.final_caption,
+          existing.final_caption_submitted_at
         );
         return NextResponse.json(info);
       }
@@ -125,7 +128,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const info = await buildSessionInfo(supabase, sessionId, condition, fixedCreditCents, cartoonFilename, null);
+    const info = await buildSessionInfo(supabase, sessionId, condition, fixedCreditCents, cartoonFilename, null, null);
     return NextResponse.json(info);
   } catch (err) {
     console.error("POST /api/session failed", err);

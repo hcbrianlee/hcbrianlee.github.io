@@ -37,6 +37,8 @@ export interface SessionInfo {
   cartoonImageUrl: string;
   /** The participant's submitted caption for this cartoon, if any. */
   finalCaption: string | null;
+  /** ISO timestamp of when finalCaption was submitted, if any. */
+  finalCaptionSubmittedAt: string | null;
 }
 
 export interface CumulativeUsage {
