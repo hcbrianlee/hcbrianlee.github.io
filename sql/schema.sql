@@ -44,6 +44,7 @@ create table if not exists events (
     'session_started',
     'prompt_submitted',
     'response_received',
+    'fixed_plan_selected',
     'donation_submitted',
     'session_ended'
   )),
@@ -77,7 +78,11 @@ select
   coalesce(sum(e.total_tokens) filter (where e.event_type = 'response_received'), 0) as total_tokens,
   coalesce(sum(e.estimated_co2_g) filter (where e.event_type = 'response_received'), 0) as total_co2_g,
   coalesce(sum(e.estimated_water_ml) filter (where e.event_type = 'response_received'), 0) as total_water_ml,
-  coalesce(sum(e.estimated_cost_cents) filter (where e.event_type = 'response_received'), 0) as total_spent_cents,
+  -- Not filtered to one event_type: "variable" pricing charges on each
+  -- response_received row, "fixed" pricing charges once on a
+  -- fixed_plan_selected row -- estimated_cost_cents is simply null on every
+  -- other row type, so an unfiltered sum picks up whichever applies.
+  coalesce(sum(e.estimated_cost_cents), 0) as total_spent_cents,
   count(*) filter (where e.event_type = 'response_received' and e.model = 'light') as light_responses,
   count(*) filter (where e.event_type = 'response_received' and e.model = 'heavy') as heavy_responses
 from sessions s

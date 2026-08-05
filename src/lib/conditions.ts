@@ -37,8 +37,8 @@ export function getPricingCopy(variant: PricingVariant): CopyBlock {
       };
     case "fixed":
       return {
-        title: "Fixed session credit",
-        body: "You have a fixed credit for this session. Using the heavy model draws down your credit faster than the light model.",
+        title: "Flat-rate plan",
+        body: "Before you start chatting, you'll pick one model for the whole session: heavy or light, each a flat one-time price charged from your participation credit.",
       };
     case "free":
     default:

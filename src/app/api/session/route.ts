@@ -3,8 +3,9 @@ import { randomUUID } from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { assignConditionIndex } from "@/lib/assignment";
-import { getConditions, getCumulativeUsage, getSocialProofPct } from "@/lib/session";
+import { getConditions, getCumulativeUsage, getFixedPlan, getSocialProofPct } from "@/lib/session";
 import { getInfoCopy, getPricingCopy } from "@/lib/conditions";
+import { getFixedPlanPriceCents } from "@/lib/pricing";
 import type { ConditionRow, SessionInfo } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -15,9 +16,10 @@ async function buildSessionInfo(
   condition: ConditionRow,
   fixedCreditCents: number
 ): Promise<SessionInfo> {
-  const [cumulative, socialProofPct] = await Promise.all([
+  const [cumulative, socialProofPct, fixedPlan] = await Promise.all([
     getCumulativeUsage(supabase, sessionId),
     getSocialProofPct(supabase),
+    getFixedPlan(supabase, sessionId),
   ]);
 
   return {
@@ -33,6 +35,8 @@ async function buildSessionInfo(
     fixedCreditCents,
     socialProofPct,
     cumulative,
+    fixedPlan,
+    fixedPlanOptions: { heavy: getFixedPlanPriceCents("heavy"), light: getFixedPlanPriceCents("light") },
   };
 }
 

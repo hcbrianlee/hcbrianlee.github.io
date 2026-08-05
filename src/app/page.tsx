@@ -6,6 +6,7 @@ import { ModelPicker } from "@/components/ModelPicker";
 import { MessageList } from "@/components/MessageList";
 import { Composer } from "@/components/Composer";
 import { DonationModal } from "@/components/DonationModal";
+import { FixedPlanPicker } from "@/components/FixedPlanPicker";
 import type { ChatMessage, ChatStreamFrame, CumulativeUsage, ModelKey, SessionInfo } from "@/lib/types";
 
 const SESSION_STORAGE_KEY = "gn_session_id";
@@ -22,6 +23,8 @@ export default function Home() {
   const [draft, setDraft] = useState("");
   const [selectedModel, setSelectedModel] = useState<ModelKey>("light");
   const [sending, setSending] = useState(false);
+
+  const [planSubmitting, setPlanSubmitting] = useState(false);
 
   const [donateOpen, setDonateOpen] = useState(false);
   const [donateSubmitting, setDonateSubmitting] = useState(false);
@@ -71,7 +74,7 @@ export default function Home() {
           setDebugConditionCode(info.condition.code);
         }
         setSession(info);
-        setSelectedModel(info.condition.defaultModel);
+        setSelectedModel(info.fixedPlan?.model ?? info.condition.defaultModel);
       } catch (err) {
         setLoadError(err instanceof Error ? err.message : "Failed to start session");
       } finally {
@@ -142,6 +145,29 @@ export default function Home() {
     }
   }
 
+  async function handleSelectPlan(model: ModelKey) {
+    if (!session || planSubmitting) return;
+    setPlanSubmitting(true);
+    try {
+      const res = await fetch("/api/select-plan", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: session.sessionId, modelKey: model }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? "Failed to select plan");
+
+      setSession((prev) =>
+        prev ? { ...prev, fixedPlan: { model: data.model, costCents: data.costCents }, cumulative: data.cumulative } : prev
+      );
+      setSelectedModel(data.model);
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to select plan");
+    } finally {
+      setPlanSubmitting(false);
+    }
+  }
+
   async function handleDonateSubmit(donationCents: number) {
     if (!session) return;
     setDonateSubmitting(true);
@@ -188,6 +214,8 @@ export default function Home() {
     );
   }
 
+  const needsPlanSelection = session.condition.pricingVariant === "fixed" && !session.fixedPlan;
+
   return (
     <div className="app-shell">
       <Sidebar
@@ -207,24 +235,36 @@ export default function Home() {
           </div>
         )}
 
-        <ModelPicker
-          selected={selectedModel}
-          onChange={setSelectedModel}
-          infoCopy={session.infoCopy}
-          pricingCopy={session.pricingCopy}
-        />
+        {needsPlanSelection ? (
+          <FixedPlanPicker
+            options={session.fixedPlanOptions}
+            fixedCreditCents={session.fixedCreditCents}
+            submitting={planSubmitting}
+            onSelect={handleSelectPlan}
+          />
+        ) : (
+          <>
+            <ModelPicker
+              selected={selectedModel}
+              onChange={setSelectedModel}
+              infoCopy={session.infoCopy}
+              pricingCopy={session.pricingCopy}
+              locked={session.condition.pricingVariant === "fixed"}
+            />
 
-        <div className="task-banner">
-          Task: use the assistant to help draft a caption for{" "}
-          <a href="https://nextml.github.io/caption-contest-data/" target="_blank" rel="noreferrer">
-            The New Yorker Cartoon Caption Contest
-          </a>
-          . Try the light and heavy models and see how they compare.
-        </div>
+            <div className="task-banner">
+              Task: use the assistant to help draft a caption for{" "}
+              <a href="https://nextml.github.io/caption-contest-data/" target="_blank" rel="noreferrer">
+                The New Yorker Cartoon Caption Contest
+              </a>
+              . Try the light and heavy models and see how they compare.
+            </div>
 
-        <MessageList messages={messages} />
+            <MessageList messages={messages} />
 
-        <Composer value={draft} onChange={setDraft} onSend={handleSend} disabled={sending || sessionEnded} />
+            <Composer value={draft} onChange={setDraft} onSend={handleSend} disabled={sending || sessionEnded} />
+          </>
+        )}
       </main>
 
       {donateOpen && (

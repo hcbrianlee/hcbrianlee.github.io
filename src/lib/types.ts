@@ -29,6 +29,10 @@ export interface SessionInfo {
   fixedCreditCents: number;
   socialProofPct: number | null;
   cumulative: CumulativeUsage;
+  /** Only meaningful when condition.pricingVariant === "fixed". Null until a plan has been picked via /api/select-plan. */
+  fixedPlan: { model: ModelKey; costCents: number } | null;
+  /** Flat one-time prices for each model, for the "fixed" plan-picker screen. */
+  fixedPlanOptions: { heavy: number; light: number };
 }
 
 export interface CumulativeUsage {

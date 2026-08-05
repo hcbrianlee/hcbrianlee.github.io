@@ -27,9 +27,10 @@ sql/seed_conditions.sql   seeds the info x pricing condition matrix
 src/lib/                  assignment, condition copy, model config, carbon estimator, provider clients
 src/app/api/session       POST: create or resume a session, assigns a condition
 src/app/api/chat          POST: streams a chat completion, logs prompt + response events
+src/app/api/select-plan   POST: "fixed" pricing only -- pay the flat one-time price for heavy or light
 src/app/api/donate        POST: records the end-of-session donation, closes the session
 src/app/page.tsx          the chat UI (client component)
-src/components/           Sidebar, ModelPicker, MessageList, Composer, DonationModal
+src/components/           Sidebar, ModelPicker, MessageList, Composer, DonationModal, FixedPlanPicker
 ```
 
 ## Setup
@@ -38,10 +39,11 @@ src/components/           Sidebar, ModelPicker, MessageList, Composer, DonationM
    - `sql/schema.sql`
    - `sql/seed_conditions.sql`
 
-   If you already ran `schema.sql` before the "variable"/"fixed" pricing conditions started
-   actually deducting from the participation credit, also run `sql/migration_add_cost_tracking.sql`
-   once — it adds the missing column and refreshes the view. New projects don't need this, it's
-   already in `schema.sql`.
+   If you already ran `schema.sql` before pricing was wired up, also run these two once each
+   (new projects don't need them, they're already folded into `schema.sql`):
+   - `sql/migration_add_cost_tracking.sql` — adds the cost column + view for "variable" pricing
+   - `sql/migration_add_fixed_plans.sql` — adds the `fixed_plan_selected` event type + view update
+     for the "fixed" pricing pre-chat plan picker
 
    The seed file ships all 4 info variants (environmental / energy_usage / convenience / none)
    x 3 pricing variants (variable / fixed / free) = 12 conditions. The design doc mentions
@@ -75,10 +77,17 @@ tag each session without any extra setup.
 
 Implemented: condition assignment, model-info + pricing nudge copy, cumulative usage/carbon/spend
 sidebar, live social-norm stat ("x% of responses used the light model"), end-of-session donation
-flow (capped at remaining, post-spend credit), full event log for later analysis. Under the
-"variable" and "fixed" pricing conditions, each response actually deducts
-`(tokens / 1000) * price-per-1k-tokens` (see `src/lib/pricing.ts`, prices in `.env.example`) from
-the session's credit — "free" never charges regardless of model choice.
+flow (capped at remaining, post-spend credit), full event log for later analysis.
+
+Pricing conditions actually charge, differently per variant:
+- **free**: never charges, regardless of model choice.
+- **variable**: every response deducts `(tokens / 1000) * price-per-1k-tokens` from the credit
+  (see `src/lib/pricing.ts`, prices in `.env.example`) — the per-token price is shown up front.
+- **fixed**: before the first message, a plan-picker screen (`FixedPlanPicker`) asks the
+  participant to choose heavy or light for a flat one-time price (`$2.00` / `$1.00` by default),
+  charged once. That model is then locked for the rest of the session — the picker in the header
+  becomes a plain "Your plan: Heavy" label, and `/api/chat` rejects requests for the other model
+  server-side, not just in the UI.
 
 Not implemented (flagged here rather than guessed at, since the design doc leaves them open):
 - The carbon/water estimator (`src/lib/carbon.ts`) uses illustrative, adjustable constants — the

@@ -4,7 +4,7 @@ import { getModelConfig } from "@/lib/models";
 import { streamChat } from "@/lib/providers";
 import { estimateImpact } from "@/lib/carbon";
 import { estimateCostCents } from "@/lib/pricing";
-import { getCumulativeUsage } from "@/lib/session";
+import { getCumulativeUsage, getFixedPlan } from "@/lib/session";
 import type { ChatStreamFrame, ConditionRow, ModelKey } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -57,6 +57,16 @@ export async function POST(req: NextRequest) {
     const condition = (session as unknown as { condition: Pick<ConditionRow, "pricing_variant"> | null })
       .condition;
     pricingVariant = condition?.pricing_variant ?? "free";
+
+    if (pricingVariant === "fixed") {
+      const plan = await getFixedPlan(supabase, sessionId);
+      if (!plan) {
+        return jsonError("Choose a model plan before chatting", 400);
+      }
+      if (plan.model !== modelKey) {
+        return jsonError(`Your plan only covers the ${plan.model} model this session`, 400);
+      }
+    }
 
     modelCfg = getModelConfig(modelKey);
     const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");

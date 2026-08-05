@@ -8,8 +8,10 @@ export interface ModelConfig {
   description: string;
   /** Illustrative Wh per 1,000 tokens (input+output combined) used for the carbon estimate. */
   energyWhPer1kTokens: number;
-  /** Price per 1,000 tokens in cents, used for the "variable"/"fixed" pricing conditions. Matches the copy in conditions.ts. */
+  /** Price per 1,000 tokens in cents, used for the "variable" pricing condition. Matches the copy in conditions.ts. */
   pricePerThousandTokensCents: number;
+  /** Flat one-time price in cents to pick this model under the "fixed" pricing condition. */
+  fixedPlanPriceCents: number;
 }
 
 function envProvider(name: string, fallback: Provider): Provider {
@@ -26,6 +28,7 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
     description: "Higher-power model. Generally higher quality, higher energy use per response.",
     energyWhPer1kTokens: Number(process.env.MODEL_HEAVY_ENERGY_WH_PER_1K ?? 5.6),
     pricePerThousandTokensCents: Number(process.env.MODEL_HEAVY_PRICE_CENTS_PER_1K ?? 2),
+    fixedPlanPriceCents: Number(process.env.MODEL_HEAVY_FIXED_PLAN_CENTS ?? 200),
   },
   light: {
     key: "light",
@@ -35,6 +38,7 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
     description: "Lower-power model. Faster, lower energy use per response.",
     energyWhPer1kTokens: Number(process.env.MODEL_LIGHT_ENERGY_WH_PER_1K ?? 1.2),
     pricePerThousandTokensCents: Number(process.env.MODEL_LIGHT_PRICE_CENTS_PER_1K ?? 1),
+    fixedPlanPriceCents: Number(process.env.MODEL_LIGHT_FIXED_PLAN_CENTS ?? 100),
   },
 };
 
