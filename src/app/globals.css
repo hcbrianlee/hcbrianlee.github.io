@@ -170,7 +170,7 @@ button {
   gap: 12px;
   max-width: 768px;
   margin: 0 auto;
-  padding: 14px 16px 4px;
+  padding: 0 0 4px;
   flex-wrap: wrap;
 }
 

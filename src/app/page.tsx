@@ -283,15 +283,22 @@ export default function Home() {
               <FinishSection sessionEnded={sessionEnded} onDonateClick={() => setDonateOpen(true)} />
             )}
 
-            <ModelPicker
-              selected={selectedModel}
-              onChange={setSelectedModel}
-              locked={session.condition.pricingVariant === "fixed"}
+            <Composer
+              value={draft}
+              onChange={setDraft}
+              onSend={handleSend}
+              disabled={sending || sessionEnded}
+              topContent={
+                <>
+                  <ModelPicker
+                    selected={selectedModel}
+                    onChange={setSelectedModel}
+                    locked={session.condition.pricingVariant === "fixed"}
+                  />
+                  <NudgePanel infoCopy={session.infoCopy} pricingCopy={session.pricingCopy} />
+                </>
+              }
             />
-
-            <NudgePanel infoCopy={session.infoCopy} pricingCopy={session.pricingCopy} />
-
-            <Composer value={draft} onChange={setDraft} onSend={handleSend} disabled={sending || sessionEnded} />
           </>
         )}
       </main>

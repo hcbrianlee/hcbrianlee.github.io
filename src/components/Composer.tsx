@@ -8,8 +8,10 @@ export function Composer(props: {
   onChange: (value: string) => void;
   onSend: () => void;
   disabled: boolean;
+  /** Rendered inside the sticky composer bar, above the input -- keeps the model picker/nudge panel pinned with the input instead of scrolling away with the message list. */
+  topContent?: React.ReactNode;
 }) {
-  const { value, onChange, onSend, disabled } = props;
+  const { value, onChange, onSend, disabled, topContent } = props;
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   function handleKeyDown(e: KeyboardEvent<HTMLTextAreaElement>) {
@@ -30,6 +32,7 @@ export function Composer(props: {
 
   return (
     <div className="composer-wrap">
+      {topContent}
       <div className="composer">
         <textarea
           ref={textareaRef}
@@ -49,9 +52,7 @@ export function Composer(props: {
           ↑
         </button>
       </div>
-      <div className="footnote">
-        Model choice affects estimated energy use — see the info panel above the chat.
-      </div>
+      <div className="footnote">Model choice affects estimated energy use.</div>
     </div>
   );
 }
