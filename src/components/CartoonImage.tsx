@@ -7,7 +7,7 @@ export function CartoonImage({ cartoonImageUrl }: { cartoonImageUrl: string }) {
 
   return (
     <div className="cartoon-panel">
-      <div className="chat-nudge">💬 Chat with the assistant below to brainstorm ideas for this cartoon — you&apos;ll submit your favorite caption once you&apos;re ready.</div>
+      <div className="chat-nudge">🏆 A panel of judges will rate captions for funniness — the caption with the most votes wins $100.</div>
 
       {imageFailed ? (
         <div className="cartoon-image-fallback">
