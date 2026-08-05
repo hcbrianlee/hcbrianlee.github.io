@@ -444,21 +444,21 @@ button {
   gap: 8px;
 }
 
-.nudge-panel-salient .nudge-block {
+.nudge-block {
   padding: 12px 16px;
   border-radius: 12px;
   font-size: 13.5px;
   line-height: 1.5;
 }
 
-.nudge-panel-salient .nudge-block.info {
+.nudge-block.info {
   background: #eafaf3;
   border: 1.5px solid #7fd4ac;
   color: #0b6b4d;
   box-shadow: 0 2px 8px rgba(16, 163, 127, 0.12);
 }
 
-.nudge-panel-salient .nudge-block.pricing {
+.nudge-block.pricing {
   background: #f4f4f8;
   border: 1.5px solid #c9c9dc;
   color: #33334a;
@@ -468,6 +468,11 @@ button {
   display: block;
   margin-bottom: 3px;
   font-size: 14px;
+}
+
+.plan-picker-nudge {
+  margin: 0 0 20px;
+  text-align: left;
 }
 
 /* Finish & donate CTA, shown once the caption is submitted */

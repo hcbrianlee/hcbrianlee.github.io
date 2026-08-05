@@ -264,6 +264,7 @@ export default function Home() {
           <FixedPlanPicker
             options={session.fixedPlanOptions}
             fixedCreditCents={session.fixedCreditCents}
+            infoCopy={session.infoCopy}
             submitting={planSubmitting}
             onSelect={handleSelectPlan}
           />
@@ -296,7 +297,7 @@ export default function Home() {
                     onChange={setSelectedModel}
                     locked={session.condition.pricingVariant === "fixed"}
                   />
-                  <NudgePanel infoCopy={session.infoCopy} />
+                  {session.condition.pricingVariant !== "fixed" && <NudgePanel infoCopy={session.infoCopy} />}
                 </>
               }
             />
