@@ -3,25 +3,32 @@
 import type { InfoVariant, ModelComparison, ModelKey } from "@/lib/types";
 import { formatGrams, formatMlPrecise, formatUserCount, formatWh } from "@/lib/format";
 
+// "900 million" references OpenAI's own reported ChatGPT weekly-active-user
+// figure -- explicitly attributed to ChatGPT, not this app, since this
+// prototype obviously doesn't have that many users. Framing it as "our
+// platform's users" would be a false claim to participants; framing it as
+// "if ChatGPT's weekly users did this" keeps the same scale/impact honestly.
 function modelCaption(variant: InfoVariant, model: ModelKey, comparison: ModelComparison): string | null {
   const n = comparison.scaleUsers;
   const nDisplay = formatUserCount(n);
-  const scaledDeltaEnergyWh = comparison.deltaEnergyWh * n;
-  const scaledHeavyEnergyWh = comparison.heavy.energyWh * n;
-  const scaledDeltaCo2G = comparison.deltaCo2G * n;
-  const scaledDeltaWaterMl = comparison.deltaWaterMl * n;
+  // Per-token, not per-1,000 -- comparison.* fields are per-1,000-tokens.
+  const scaledDeltaEnergyWh = (comparison.deltaEnergyWh / 1000) * n;
+  const scaledHeavyEnergyWh = (comparison.heavy.energyWh / 1000) * n;
+  const scaledDeltaCo2G = (comparison.deltaCo2G / 1000) * n;
+  const scaledDeltaWaterMl = (comparison.deltaWaterMl / 1000) * n;
+  const lead = `If everyone who uses ChatGPT weekly (${nDisplay} people!) did the same`;
 
   if (variant === "environmental") {
     if (model === "light") {
-      return `If ${nDisplay} people did the same on our platform, that's ${formatWh(scaledDeltaEnergyWh)} saved, along with ${formatGrams(scaledDeltaCo2G)} less CO₂ and ${formatMlPrecise(scaledDeltaWaterMl)} less water, per 1,000 tokens each.`;
+      return `${lead}, that's ${formatWh(scaledDeltaEnergyWh)} saved, along with ${formatGrams(scaledDeltaCo2G)} less CO₂ and ${formatMlPrecise(scaledDeltaWaterMl)} less water, per token.`;
     }
-    return `If ${nDisplay} people did the same on our platform, that's ${formatWh(scaledHeavyEnergyWh)} used, leading to ${formatGrams(scaledDeltaCo2G)} more CO₂ and ${formatMlPrecise(scaledDeltaWaterMl)} more water, per 1,000 tokens each.`;
+    return `${lead}, that's ${formatWh(scaledHeavyEnergyWh)} used, leading to ${formatGrams(scaledDeltaCo2G)} more CO₂ and ${formatMlPrecise(scaledDeltaWaterMl)} more water, per token.`;
   }
   if (variant === "energy_usage") {
     if (model === "light") {
-      return `If ${nDisplay} people did the same on our platform, that's ${formatWh(scaledDeltaEnergyWh)} saved per 1,000 tokens each.`;
+      return `${lead}, that's ${formatWh(scaledDeltaEnergyWh)} saved per token.`;
     }
-    return `If ${nDisplay} people did the same on our platform, that's ${formatWh(scaledHeavyEnergyWh)} used per 1,000 tokens each.`;
+    return `${lead}, that's ${formatWh(scaledHeavyEnergyWh)} used per token.`;
   }
   return null;
 }
