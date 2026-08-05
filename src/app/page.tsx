@@ -9,6 +9,8 @@ import { DonationModal } from "@/components/DonationModal";
 import { FixedPlanPicker } from "@/components/FixedPlanPicker";
 import { CartoonImage } from "@/components/CartoonImage";
 import { CaptionSubmit } from "@/components/CaptionSubmit";
+import { NudgePanel } from "@/components/NudgePanel";
+import { FinishSection } from "@/components/FinishSection";
 import type { ChatMessage, ChatStreamFrame, CumulativeUsage, ModelKey, SessionInfo } from "@/lib/types";
 
 const SESSION_STORAGE_KEY = "gn_session_id";
@@ -246,9 +248,7 @@ export default function Home() {
         cumulative={session.cumulative ?? EMPTY_USAGE}
         socialProofPct={session.socialProofPct}
         fixedCreditCents={session.fixedCreditCents}
-        sessionEnded={sessionEnded}
         onNewChat={handleNewChat}
-        onDonateClick={() => setDonateOpen(true)}
       />
 
       <main className="main">
@@ -271,8 +271,6 @@ export default function Home() {
             <ModelPicker
               selected={selectedModel}
               onChange={setSelectedModel}
-              infoCopy={session.infoCopy}
-              pricingCopy={session.pricingCopy}
               locked={session.condition.pricingVariant === "fixed"}
             />
 
@@ -286,6 +284,12 @@ export default function Home() {
               submitting={captionSubmitting}
               onSubmit={handleSubmitCaption}
             />
+
+            {session.finalCaption && (
+              <FinishSection sessionEnded={sessionEnded} onDonateClick={() => setDonateOpen(true)} />
+            )}
+
+            <NudgePanel infoCopy={session.infoCopy} pricingCopy={session.pricingCopy} />
 
             <Composer value={draft} onChange={setDraft} onSend={handleSend} disabled={sending || sessionEnded} />
           </>

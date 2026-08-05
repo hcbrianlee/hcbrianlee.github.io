@@ -7,11 +7,9 @@ export function Sidebar(props: {
   cumulative: CumulativeUsage;
   socialProofPct: number | null;
   fixedCreditCents: number;
-  sessionEnded: boolean;
   onNewChat: () => void;
-  onDonateClick: () => void;
 }) {
-  const { cumulative, socialProofPct, fixedCreditCents, sessionEnded, onNewChat, onDonateClick } = props;
+  const { cumulative, socialProofPct, fixedCreditCents, onNewChat } = props;
 
   return (
     <aside className="sidebar">
@@ -64,10 +62,6 @@ export function Sidebar(props: {
       </div>
 
       <div className="sidebar-spacer" />
-
-      <button className="donate-btn" onClick={onDonateClick} disabled={sessionEnded}>
-        {sessionEnded ? "Session completed" : "Finish & Donate"}
-      </button>
     </aside>
   );
 }

@@ -7,6 +7,8 @@ export function CartoonImage({ cartoonImageUrl }: { cartoonImageUrl: string }) {
 
   return (
     <div className="cartoon-panel">
+      <div className="chat-nudge">💬 Chat with the assistant below to brainstorm ideas for this cartoon — you&apos;ll submit your favorite caption once you&apos;re ready.</div>
+
       {imageFailed ? (
         <div className="cartoon-image-fallback">
           Couldn&apos;t load the cartoon image.{" "}
@@ -24,8 +26,6 @@ export function CartoonImage({ cartoonImageUrl }: { cartoonImageUrl: string }) {
           onError={() => setImageFailed(true)}
         />
       )}
-
-      <div className="chat-nudge">💬 Chat with the assistant below to brainstorm ideas for this cartoon — you&apos;ll submit your favorite caption once you&apos;re ready.</div>
     </div>
   );
 }
