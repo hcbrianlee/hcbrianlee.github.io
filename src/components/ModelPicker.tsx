@@ -4,17 +4,23 @@ import type { InfoVariant, ModelComparison, ModelKey } from "@/lib/types";
 import { formatGrams, formatMlPrecise, formatWh } from "@/lib/format";
 
 function modelCaption(variant: InfoVariant, model: ModelKey, comparison: ModelComparison): string | null {
+  const n = comparison.scaleUsers;
+  const scaledDeltaEnergyWh = comparison.deltaEnergyWh * n;
+  const scaledHeavyEnergyWh = comparison.heavy.energyWh * n;
+  const scaledDeltaCo2G = comparison.deltaCo2G * n;
+  const scaledDeltaWaterMl = comparison.deltaWaterMl * n;
+
   if (variant === "environmental") {
     if (model === "light") {
-      return `Save ${formatWh(comparison.deltaEnergyWh)}, which leads to ${formatGrams(comparison.deltaCo2G)} less CO₂ and ${formatMlPrecise(comparison.deltaWaterMl)} less water per 1,000 tokens.`;
+      return `If ${n} people did the same, that's ${formatWh(scaledDeltaEnergyWh)} saved, along with ${formatGrams(scaledDeltaCo2G)} less CO₂ and ${formatMlPrecise(scaledDeltaWaterMl)} less water, per 1,000 tokens each.`;
     }
-    return `Consumes ${formatWh(comparison.heavy.energyWh)}, which leads to ${formatGrams(comparison.deltaCo2G)} more CO₂ and ${formatMlPrecise(comparison.deltaWaterMl)} more water per 1,000 tokens.`;
+    return `If ${n} people did the same, that's ${formatWh(scaledHeavyEnergyWh)} used, leading to ${formatGrams(scaledDeltaCo2G)} more CO₂ and ${formatMlPrecise(scaledDeltaWaterMl)} more water, per 1,000 tokens each.`;
   }
   if (variant === "energy_usage") {
     if (model === "light") {
-      return `Saves ${formatWh(comparison.deltaEnergyWh)} per 1,000 tokens.`;
+      return `If ${n} people did the same, that's ${formatWh(scaledDeltaEnergyWh)} saved per 1,000 tokens each.`;
     }
-    return `Consumes ${formatWh(comparison.heavy.energyWh)} per 1,000 tokens.`;
+    return `If ${n} people did the same, that's ${formatWh(scaledHeavyEnergyWh)} used per 1,000 tokens each.`;
   }
   return null;
 }

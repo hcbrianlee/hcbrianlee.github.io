@@ -49,6 +49,8 @@ export interface ModelComparison {
   deltaEnergyWh: number;
   deltaCo2G: number;
   deltaWaterMl: number;
+  /** Hypothetical group size used to scale these per-1,000-token figures into a more tangible aggregate for nudge copy. */
+  scaleUsers: number;
 }
 
 export interface CumulativeUsage {

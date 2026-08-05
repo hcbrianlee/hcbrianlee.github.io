@@ -1,5 +1,14 @@
 import { getModelConfig } from "./models";
-import type { ImpactEstimate, ModelKey } from "./types";
+import type { ImpactEstimate, ModelComparison, ModelKey } from "./types";
+
+// Hypothetical group size used to scale the per-1,000-token comparison into
+// a more tangible aggregate figure for the nudge copy ("if N people did
+// this..."). A single response's savings are a fraction of a gram/mL/Wh --
+// too small to feel consequential -- multiplying by a round number of
+// people makes the same underlying numbers legible without changing what
+// they represent. This is an illustrative multiplier, not a claim about
+// actual platform usage.
+const NUDGE_IMPACT_SCALE_USERS = Number(process.env.NUDGE_IMPACT_SCALE_USERS ?? 100);
 
 // Sourced 2026: IEA global average grid intensity (~420-430 g/kWh for
 // 2025-2026, declining ~3.7%/yr from 445 in 2024) and average data-center
@@ -61,13 +70,7 @@ function perThousandTokens(modelKey: ModelKey): ImpactEstimate {
  * measurement of one specific response. Used for the environmental/
  * energy_usage nudge copy under each model toggle.
  */
-export function getModelComparison(): {
-  heavy: ImpactEstimate;
-  light: ImpactEstimate;
-  deltaEnergyWh: number;
-  deltaCo2G: number;
-  deltaWaterMl: number;
-} {
+export function getModelComparison(): ModelComparison {
   const heavy = perThousandTokens("heavy");
   const light = perThousandTokens("light");
   return {
@@ -76,5 +79,6 @@ export function getModelComparison(): {
     deltaEnergyWh: heavy.energyWh - light.energyWh,
     deltaCo2G: heavy.co2G - light.co2G,
     deltaWaterMl: heavy.waterMl - light.waterMl,
+    scaleUsers: NUDGE_IMPACT_SCALE_USERS,
   };
 }

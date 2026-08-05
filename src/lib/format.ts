@@ -13,6 +13,7 @@ export function formatMl(ml: number): string {
 }
 
 export function formatWh(wh: number): string {
+  if (wh >= 1000) return `${(wh / 1000).toFixed(2)} kWh`;
   return `${wh.toFixed(2)} Wh`;
 }
 
