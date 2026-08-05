@@ -191,14 +191,15 @@ button {
   padding: 0 0 4px;
 }
 
-.model-caption-row {
+.model-toggle-cards {
   display: flex;
   gap: 10px;
   width: 100%;
 }
 
-.model-caption {
+.model-toggle-card {
   flex: 1;
+  text-align: left;
   padding: 8px 12px;
   background: #f4fbf8;
   border: 1px solid #cdeee0;
@@ -206,13 +207,21 @@ button {
   font-size: 12px;
   line-height: 1.45;
   color: #33334a;
+  font-family: inherit;
+  cursor: pointer;
 }
 
-.model-caption strong {
+.model-toggle-card strong {
   display: block;
   margin-bottom: 2px;
-  font-size: 12px;
+  font-size: 12.5px;
   color: #0b6b4d;
+}
+
+.model-toggle-card.active {
+  border-color: #10a37f;
+  background: #e6f7f0;
+  box-shadow: 0 0 0 1px #10a37f;
 }
 
 .cartoon-panel {

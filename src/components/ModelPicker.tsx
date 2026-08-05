@@ -3,11 +3,11 @@
 import type { InfoVariant, ModelComparison, ModelKey } from "@/lib/types";
 import { formatGrams, formatMlPrecise, formatUserCount, formatWh } from "@/lib/format";
 
-// "900 million" references OpenAI's own reported ChatGPT weekly-active-user
-// figure -- explicitly attributed to ChatGPT, not this app, since this
-// prototype obviously doesn't have that many users. Framing it as "our
-// platform's users" would be a false claim to participants; framing it as
-// "if ChatGPT's weekly users did this" keeps the same scale/impact honestly.
+// "900 million" is OpenAI's own reported ChatGPT weekly-active-user figure,
+// used here as the hypothetical group size in the "if everyone did this"
+// framing. Note this app itself does not have 900 million users -- this
+// number is illustrative scale-of-impact copy, not a factual claim about
+// this platform's actual usage.
 function modelCaption(variant: InfoVariant, model: ModelKey, comparison: ModelComparison): string | null {
   const n = comparison.scaleUsers;
   const nDisplay = formatUserCount(n);
@@ -16,7 +16,7 @@ function modelCaption(variant: InfoVariant, model: ModelKey, comparison: ModelCo
   const scaledHeavyEnergyWh = (comparison.heavy.energyWh / 1000) * n;
   const scaledDeltaCo2G = (comparison.deltaCo2G / 1000) * n;
   const scaledDeltaWaterMl = (comparison.deltaWaterMl / 1000) * n;
-  const lead = `If everyone who uses ChatGPT weekly (${nDisplay} people!) did the same`;
+  const lead = `If everyone on this platform did the same (we have ${nDisplay} people!)`;
 
   if (variant === "environmental") {
     if (model === "light") {
@@ -44,40 +44,57 @@ export function ModelPicker(props: {
   const { selected, onChange, infoVariant, modelComparison, locked } = props;
   const showCaptions = infoVariant === "environmental" || infoVariant === "energy_usage";
 
-  const lightCaption = showCaptions ? modelCaption(infoVariant, "light", modelComparison) : null;
-  const heavyCaption = showCaptions ? modelCaption(infoVariant, "heavy", modelComparison) : null;
+  if (locked) {
+    return (
+      <div className="model-picker-bar">
+        <div className="model-picker">
+          <div className="locked-plan-label">
+            Your plan: <b>{selected === "heavy" ? "Heavy" : "Light"}</b> (locked for this session)
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (showCaptions) {
+    const lightCaption = modelCaption(infoVariant, "light", modelComparison);
+    const heavyCaption = modelCaption(infoVariant, "heavy", modelComparison);
+    return (
+      <div className="model-picker-bar">
+        <div className="model-toggle-cards">
+          <button
+            type="button"
+            className={`model-toggle-card${selected === "light" ? " active" : ""}`}
+            onClick={() => onChange("light")}
+          >
+            <strong>Light model</strong>
+            <span>{lightCaption}</span>
+          </button>
+          <button
+            type="button"
+            className={`model-toggle-card${selected === "heavy" ? " active" : ""}`}
+            onClick={() => onChange("heavy")}
+          >
+            <strong>Heavy model</strong>
+            <span>{heavyCaption}</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="model-picker-bar">
       <div className="model-picker">
-        {locked ? (
-          <div className="locked-plan-label">
-            Your plan: <b>{selected === "heavy" ? "Heavy" : "Light"}</b> (locked for this session)
-          </div>
-        ) : (
-          <div className="model-toggle-group">
-            <button className={selected === "light" ? "active" : ""} onClick={() => onChange("light")}>
-              Light model
-            </button>
-            <button className={selected === "heavy" ? "active" : ""} onClick={() => onChange("heavy")}>
-              Heavy model
-            </button>
-          </div>
-        )}
-      </div>
-
-      {showCaptions && !locked && (
-        <div className="model-caption-row">
-          <div className="model-caption">
-            <strong>Light model</strong>
-            {lightCaption}
-          </div>
-          <div className="model-caption">
-            <strong>Heavy model</strong>
-            {heavyCaption}
-          </div>
+        <div className="model-toggle-group">
+          <button className={selected === "light" ? "active" : ""} onClick={() => onChange("light")}>
+            Light model
+          </button>
+          <button className={selected === "heavy" ? "active" : ""} onClick={() => onChange("heavy")}>
+            Heavy model
+          </button>
         </div>
-      )}
+      </div>
     </div>
   );
 }
