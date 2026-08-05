@@ -10,15 +10,27 @@ export function CaptionBox(props: {
 }) {
   const { cartoonImageUrl, finalCaption, submitting, onSubmit } = props;
   const [draft, setDraft] = useState("");
+  const [imageFailed, setImageFailed] = useState(false);
 
   return (
     <div className="caption-panel">
-      <img
-        className="cartoon-image"
-        src={cartoonImageUrl}
-        alt="New Yorker Cartoon Caption Contest cartoon to write a caption for"
-        loading="lazy"
-      />
+      {imageFailed ? (
+        <div className="cartoon-image-fallback">
+          Couldn&apos;t load the cartoon image.{" "}
+          <a href={cartoonImageUrl} target="_blank" rel="noreferrer">
+            Open it directly
+          </a>
+          .
+        </div>
+      ) : (
+        <img
+          className="cartoon-image"
+          src={cartoonImageUrl}
+          alt="New Yorker Cartoon Caption Contest cartoon to write a caption for"
+          referrerPolicy="no-referrer"
+          onError={() => setImageFailed(true)}
+        />
+      )}
 
       {finalCaption ? (
         <div className="caption-submitted">

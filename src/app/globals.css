@@ -21,8 +21,8 @@ button {
 
 .app-shell {
   display: flex;
-  height: 100dvh;
-  overflow: hidden;
+  min-height: 100dvh;
+  align-items: flex-start;
 }
 
 /* ---------- Sidebar ---------- */
@@ -36,6 +36,9 @@ button {
   flex-direction: column;
   padding: 14px 12px;
   gap: 14px;
+  position: sticky;
+  top: 0;
+  height: 100dvh;
   overflow-y: auto;
 }
 
@@ -157,6 +160,7 @@ button {
   flex-direction: column;
   min-width: 0;
   background: #ffffff;
+  min-height: 100dvh;
 }
 
 .header-bar {
@@ -246,19 +250,17 @@ button {
   font-style: italic;
 }
 
-.task-banner {
-  max-width: 768px;
-  margin: 14px auto 0;
-  padding: 12px 16px;
-  background: #fafafa;
-  border: 1px solid #e7e7e7;
+.cartoon-image-fallback {
+  padding: 24px 16px;
+  border: 1px dashed #d9d9e3;
   border-radius: 10px;
-  font-size: 13px;
-  line-height: 1.5;
-  color: #444;
+  background: #fafafa;
+  text-align: center;
+  font-size: 13.5px;
+  color: #666;
 }
 
-.task-banner a {
+.cartoon-image-fallback a {
   color: #10a37f;
 }
 
@@ -428,7 +430,6 @@ button {
 
 .messages {
   flex: 1;
-  overflow-y: auto;
 }
 
 .message-row-outer {
@@ -501,6 +502,9 @@ button {
   padding: 14px 16px 18px;
   border-top: 1px solid #e7e7e7;
   background: white;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
 }
 
 .composer {

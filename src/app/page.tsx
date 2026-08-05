@@ -256,13 +256,6 @@ export default function Home() {
           </div>
         )}
 
-        <CaptionBox
-          cartoonImageUrl={session.cartoonImageUrl}
-          finalCaption={session.finalCaption}
-          submitting={captionSubmitting}
-          onSubmit={handleSubmitCaption}
-        />
-
         {needsPlanSelection ? (
           <FixedPlanPicker
             options={session.fixedPlanOptions}
@@ -280,13 +273,12 @@ export default function Home() {
               locked={session.condition.pricingVariant === "fixed"}
             />
 
-            <div className="task-banner">
-              Task: use the assistant to help draft a caption for{" "}
-              <a href="https://nextml.github.io/caption-contest-data/" target="_blank" rel="noreferrer">
-                The New Yorker Cartoon Caption Contest
-              </a>
-              . Try the light and heavy models and see how they compare.
-            </div>
+            <CaptionBox
+              cartoonImageUrl={session.cartoonImageUrl}
+              finalCaption={session.finalCaption}
+              submitting={captionSubmitting}
+              onSubmit={handleSubmitCaption}
+            />
 
             <MessageList messages={messages} />
 
