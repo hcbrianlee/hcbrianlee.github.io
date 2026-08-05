@@ -271,14 +271,14 @@ export default function Home() {
           <>
             <CartoonImage cartoonImageUrl={session.cartoonImageUrl} />
 
-            <MessageList messages={messages} />
-
             <CaptionSubmit
               finalCaption={session.finalCaption}
               finalCaptionSubmittedAt={session.finalCaptionSubmittedAt}
               submitting={captionSubmitting}
               onSubmit={handleSubmitCaption}
             />
+
+            <MessageList messages={messages} />
 
             {session.finalCaption && (
               <FinishSection sessionEnded={sessionEnded} onDonateClick={() => setDonateOpen(true)} />

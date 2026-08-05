@@ -28,23 +28,29 @@ export function getInfoCopy(variant: InfoVariant): CopyBlock | null {
   }
 }
 
-export function getPricingCopy(variant: PricingVariant): CopyBlock {
+/**
+ * Null means: show nothing in the sidebar for this variant.
+ * - "fixed" already explains its pricing on the pre-chat plan-picker screen
+ *   (heavy/light, one flat price each) -- repeating it in the sidebar
+ *   afterward is redundant, so it shows nothing here.
+ * - "variable" and "free" both get a short note; "free" deliberately does
+ *   not mention cost at all (there's nothing to say about it), just that
+ *   the model can be switched anytime.
+ */
+export function getPricingCopy(variant: PricingVariant): CopyBlock | null {
   switch (variant) {
     case "variable":
       return {
         title: "Pay per use",
-        body: "Heavy model: $0.02 per 1,000 tokens. Light model: $0.01 per 1,000 tokens. Usage is charged against your participation credit.",
+        body: "Heavy model: $0.02 per 1,000 tokens. Light model: $0.01 per 1,000 tokens, charged against your participation credit. You can toggle between the light and heavy model anytime in the chat below.",
       };
     case "fixed":
-      return {
-        title: "Flat-rate plan",
-        body: "Before you start chatting, you'll pick one model for the whole session: heavy or light, each a flat one-time price charged from your participation credit.",
-      };
+      return null;
     case "free":
     default:
       return {
-        title: "Free to use",
-        body: "Both models are free to use during this session — there's no cost to you either way.",
+        title: "Switch models anytime",
+        body: "You can toggle between the light and heavy model anytime in the chat below.",
       };
   }
 }

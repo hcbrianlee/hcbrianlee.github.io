@@ -25,7 +25,7 @@ export interface SessionInfo {
     defaultModel: ModelKey;
   };
   infoCopy: CopyBlock | null;
-  pricingCopy: CopyBlock;
+  pricingCopy: CopyBlock | null;
   fixedCreditCents: number;
   socialProofPct: number | null;
   cumulative: CumulativeUsage;

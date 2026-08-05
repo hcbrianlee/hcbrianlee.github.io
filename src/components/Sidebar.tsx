@@ -7,7 +7,7 @@ export function Sidebar(props: {
   cumulative: CumulativeUsage;
   socialProofPct: number | null;
   fixedCreditCents: number;
-  pricingCopy: CopyBlock;
+  pricingCopy: CopyBlock | null;
   onNewChat: () => void;
 }) {
   const { cumulative, socialProofPct, fixedCreditCents, pricingCopy, onNewChat } = props;
@@ -61,10 +61,12 @@ export function Sidebar(props: {
           <span>{formatCents(fixedCreditCents - cumulative.spentCents)}</span>
         </div>
 
-        <div className="sidebar-pricing-note">
-          <strong>{pricingCopy.title}</strong>
-          {pricingCopy.body}
-        </div>
+        {pricingCopy && (
+          <div className="sidebar-pricing-note">
+            <strong>{pricingCopy.title}</strong>
+            {pricingCopy.body}
+          </div>
+        )}
       </div>
 
       <div className="sidebar-spacer" />
