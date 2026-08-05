@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
       condition = conditions[idx];
     }
 
-    const fixedCreditCents = Number(process.env.FIXED_CREDIT_CENTS ?? 1000);
+    const fixedCreditCents = Number(process.env.FIXED_CREDIT_CENTS ?? 200);
 
     const { error: insertError } = await supabase.from("sessions").insert({
       id: sessionId,
