@@ -248,6 +248,7 @@ export default function Home() {
         cumulative={session.cumulative ?? EMPTY_USAGE}
         socialProofPct={session.socialProofPct}
         fixedCreditCents={session.fixedCreditCents}
+        pricingCopy={session.pricingCopy}
         onNewChat={handleNewChat}
       />
 
@@ -295,7 +296,7 @@ export default function Home() {
                     onChange={setSelectedModel}
                     locked={session.condition.pricingVariant === "fixed"}
                   />
-                  <NudgePanel infoCopy={session.infoCopy} pricingCopy={session.pricingCopy} />
+                  <NudgePanel infoCopy={session.infoCopy} />
                 </>
               }
             />

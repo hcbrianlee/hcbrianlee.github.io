@@ -1,15 +1,16 @@
 "use client";
 
-import type { CumulativeUsage } from "@/lib/types";
+import type { CopyBlock, CumulativeUsage } from "@/lib/types";
 import { formatCents, formatGrams, formatMl } from "@/lib/format";
 
 export function Sidebar(props: {
   cumulative: CumulativeUsage;
   socialProofPct: number | null;
   fixedCreditCents: number;
+  pricingCopy: CopyBlock;
   onNewChat: () => void;
 }) {
-  const { cumulative, socialProofPct, fixedCreditCents, onNewChat } = props;
+  const { cumulative, socialProofPct, fixedCreditCents, pricingCopy, onNewChat } = props;
 
   return (
     <aside className="sidebar">
@@ -58,6 +59,11 @@ export function Sidebar(props: {
         <div className="stat-row">
           <span className="stat-label">Remaining</span>
           <span>{formatCents(fixedCreditCents - cumulative.spentCents)}</span>
+        </div>
+
+        <div className="sidebar-pricing-note">
+          <strong>{pricingCopy.title}</strong>
+          {pricingCopy.body}
         </div>
       </div>
 
