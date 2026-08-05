@@ -21,6 +21,9 @@ export function FixedPlanPicker(props: {
   return (
     <div className="plan-picker">
       <h2>Choose your model for this session</h2>
+      <div className="chat-nudge plan-picker-task">
+        🏆 A panel of judges will rate captions for funniness — the caption with the most votes wins $100.
+      </div>
       <p>
         This condition charges a flat, one-time price instead of per-message pricing. Pick heavy or light now — that
         choice covers every message for the rest of this session, charged once from your {formatCents(fixedCreditCents)}{" "}

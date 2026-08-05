@@ -507,6 +507,10 @@ button {
   text-align: left;
 }
 
+.plan-picker-task {
+  margin: 12px 0 20px;
+}
+
 /* Finish & donate CTA, shown once the caption is submitted */
 
 .finish-panel {

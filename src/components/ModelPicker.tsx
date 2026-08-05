@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import type { InfoVariant, ModelComparison, ModelKey } from "@/lib/types";
 import { formatGrams, formatMlPrecise, formatUserCount, formatWh } from "@/lib/format";
 
@@ -8,7 +9,7 @@ import { formatGrams, formatMlPrecise, formatUserCount, formatWh } from "@/lib/f
 // framing. Note this app itself does not have 900 million users -- this
 // number is illustrative scale-of-impact copy, not a factual claim about
 // this platform's actual usage.
-export function modelCaption(variant: InfoVariant, model: ModelKey, comparison: ModelComparison): string | null {
+export function modelCaption(variant: InfoVariant, model: ModelKey, comparison: ModelComparison): ReactNode {
   const n = comparison.scaleUsers;
   const nDisplay = formatUserCount(n);
   // Per-token, not per-1,000 -- comparison.* fields are per-1,000-tokens.
@@ -16,19 +17,43 @@ export function modelCaption(variant: InfoVariant, model: ModelKey, comparison: 
   const scaledHeavyEnergyWh = (comparison.heavy.energyWh / 1000) * n;
   const scaledDeltaCo2G = (comparison.deltaCo2G / 1000) * n;
   const scaledDeltaWaterMl = (comparison.deltaWaterMl / 1000) * n;
-  const lead = `If everyone on this platform did the same (we have ${nDisplay} people!)`;
+  const lead = (
+    <>
+      If everyone on this platform did the same (we have <strong>{nDisplay}</strong> people!)
+    </>
+  );
 
   if (variant === "environmental") {
     if (model === "light") {
-      return `${lead}, that's ${formatWh(scaledDeltaEnergyWh)} saved, along with ${formatGrams(scaledDeltaCo2G)} less CO₂ and ${formatMlPrecise(scaledDeltaWaterMl)} less water, per token.`;
+      return (
+        <>
+          {lead}, that&apos;s <strong>{formatWh(scaledDeltaEnergyWh)}</strong> saved, along with{" "}
+          <strong>{formatGrams(scaledDeltaCo2G)}</strong> less CO₂ and <strong>{formatMlPrecise(scaledDeltaWaterMl)}</strong>{" "}
+          less water, per token.
+        </>
+      );
     }
-    return `${lead}, that's ${formatWh(scaledHeavyEnergyWh)} used, leading to ${formatGrams(scaledDeltaCo2G)} more CO₂ and ${formatMlPrecise(scaledDeltaWaterMl)} more water, per token.`;
+    return (
+      <>
+        {lead}, that&apos;s <strong>{formatWh(scaledHeavyEnergyWh)}</strong> used, leading to{" "}
+        <strong>{formatGrams(scaledDeltaCo2G)}</strong> more CO₂ and <strong>{formatMlPrecise(scaledDeltaWaterMl)}</strong>{" "}
+        more water, per token.
+      </>
+    );
   }
   if (variant === "energy_usage") {
     if (model === "light") {
-      return `${lead}, that's ${formatWh(scaledDeltaEnergyWh)} saved per token.`;
+      return (
+        <>
+          {lead}, that&apos;s <strong>{formatWh(scaledDeltaEnergyWh)}</strong> saved per token.
+        </>
+      );
     }
-    return `${lead}, that's ${formatWh(scaledHeavyEnergyWh)} used per token.`;
+    return (
+      <>
+        {lead}, that&apos;s <strong>{formatWh(scaledHeavyEnergyWh)}</strong> used per token.
+      </>
+    );
   }
   return null;
 }
