@@ -5,7 +5,11 @@ import { streamChat } from "@/lib/providers";
 import { estimateImpact } from "@/lib/carbon";
 import { estimateCostCents } from "@/lib/pricing";
 import { getCumulativeUsage, getFixedPlan } from "@/lib/session";
+import { getExperimentOverrides } from "@/lib/overrides";
 import type { ChatStreamFrame, ConditionRow, ModelKey } from "@/lib/types";
+
+const DEFAULT_MAX_TOKENS = 1024;
+const DEFAULT_PRESENCE_PENALTY = 0;
 
 export const runtime = "nodejs";
 
@@ -38,6 +42,14 @@ export async function POST(req: NextRequest) {
   let supabase;
   let modelCfg;
   let pricingVariant: ConditionRow["pricing_variant"];
+  let effective: {
+    temperature: number;
+    topP: number;
+    topK: number | null;
+    presencePenalty: number | null;
+    maxTokens: number;
+    systemTone: string | null;
+  };
   try {
     supabase = getSupabaseServerClient();
 
@@ -69,6 +81,29 @@ export async function POST(req: NextRequest) {
     }
 
     modelCfg = getModelConfig(modelKey);
+
+    // Live experimenter overrides from /admin -- null fields fall back to
+    // the src/lib/models.ts default for this model. See src/lib/overrides.ts.
+    const overrides = await getExperimentOverrides(supabase);
+    effective =
+      modelKey === "heavy"
+        ? {
+            temperature: overrides.heavyTemperature ?? modelCfg.temperature,
+            topP: modelCfg.topP,
+            topK: overrides.heavyTopK,
+            presencePenalty: overrides.heavyPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
+            maxTokens: overrides.heavyMaxTokens ?? DEFAULT_MAX_TOKENS,
+            systemTone: overrides.heavySystemTone,
+          }
+        : {
+            temperature: overrides.lightTemperature ?? modelCfg.temperature,
+            topP: modelCfg.topP,
+            topK: overrides.lightTopK,
+            presencePenalty: overrides.lightPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
+            maxTokens: overrides.lightMaxTokens ?? DEFAULT_MAX_TOKENS,
+            systemTone: overrides.lightSystemTone,
+          };
+
     const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
 
     // Log the prompt before generating so we have a record even if the
@@ -109,6 +144,7 @@ export async function POST(req: NextRequest) {
       "Keep in-scope responses concise and focused on caption ideas. Give exactly one caption suggestion",
       "per response -- never a list or multiple options. Do not mention, number, or otherwise call out",
       "that you're limiting yourself to one; just respond naturally, as a collaborator would.",
+      ...(effective.systemTone ? ["", `Tone: ${effective.systemTone}`] : []),
     ].join("\n"),
   };
 
@@ -122,8 +158,11 @@ export async function POST(req: NextRequest) {
           provider: modelCfg.provider,
           model: modelCfg.model,
           messages: [systemMessage, ...messages],
-          temperature: modelCfg.temperature,
-          topP: modelCfg.topP,
+          temperature: effective.temperature,
+          topP: effective.topP,
+          topK: effective.topK,
+          presencePenalty: effective.presencePenalty,
+          maxTokens: effective.maxTokens,
         });
 
         for await (const delta of textStream) {

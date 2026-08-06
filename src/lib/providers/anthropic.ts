@@ -9,6 +9,8 @@ export async function streamAnthropic(params: {
   messages: { role: "system" | "user" | "assistant"; content: string }[];
   temperature: number;
   topP: number;
+  topK: number | null;
+  maxTokens: number;
 }): Promise<{ textStream: AsyncIterable<string>; getUsage: () => UsageTotals }> {
   const client = new Anthropic({ apiKey: params.apiKey });
   const usage: UsageTotals = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
@@ -25,11 +27,12 @@ export async function streamAnthropic(params: {
 
   const stream = client.messages.stream({
     model: params.model,
-    max_tokens: DEFAULT_MAX_TOKENS,
+    max_tokens: params.maxTokens || DEFAULT_MAX_TOKENS,
     system,
     messages: conversation,
     temperature,
     top_p: params.topP,
+    ...(params.topK !== null ? { top_k: params.topK } : {}),
   });
 
   async function* textStream(): AsyncIterable<string> {
