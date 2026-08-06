@@ -1,13 +1,18 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import type { ChatMessage } from "@/lib/types";
 
 export function MessageList({ messages }: { messages: ChatMessage[] }) {
-  const bottomRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ block: "end" });
+    // Scroll the page itself to its current bottom, not scrollIntoView on a
+    // sentinel -- with the composer pinned via position: sticky,
+    // scrollIntoView's "end" calculation doesn't play well with that and
+    // was intermittently jumping to the top of the page instead of
+    // following newly streamed text. This runs on every content update
+    // (messages is a new array reference per streamed delta), so the page
+    // tracks the response as it grows.
+    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "auto" });
   }, [messages]);
 
   if (messages.length === 0) {
@@ -33,7 +38,6 @@ export function MessageList({ messages }: { messages: ChatMessage[] }) {
           </div>
         </div>
       ))}
-      <div ref={bottomRef} />
     </div>
   );
 }
