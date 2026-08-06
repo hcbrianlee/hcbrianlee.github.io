@@ -160,6 +160,20 @@ export async function POST(req: NextRequest) {
     async start(controller) {
       let fullText = "";
       try {
+        // Artificial per-model delay -- both models call the same underlying
+        // model, so this (and effective.delayBaseSec/delayJitterSec, live
+        // adjustable from /admin) is what actually makes "heavy" and
+        // "light" take different amounts of time. Applied before generation
+        // starts, while the client is still showing the pending/typing
+        // indicator (no content yet) -- delaying it until after the text
+        // has already streamed in would make it a silent pause on an
+        // already-visible answer instead of a felt "thinking" delay.
+        if (effective.delayBaseSec > 0) {
+          const jitter = (5 + Math.random() * 2 - 1) * effective.delayJitterSec;
+          const extraDelayMs = Math.max(0, effective.delayBaseSec + jitter) * 1000;
+          await new Promise((resolve) => setTimeout(resolve, extraDelayMs));
+        }
+
         const { textStream, getUsage } = await streamChat({
           provider: modelCfg.provider,
           model: modelCfg.model,
@@ -177,19 +191,6 @@ export async function POST(req: NextRequest) {
         }
 
         const usage = getUsage();
-
-        // Artificial per-model delay -- both models call the same underlying
-        // model, so this (and effective.delayBaseSec/delayJitterSec, live
-        // adjustable from /admin) is what actually makes "heavy" and
-        // "light" take different amounts of time. Applied before computing
-        // responseTimeMs so it's reflected in the logged latency, not just
-        // an invisible pause the data doesn't see.
-        if (effective.delayBaseSec > 0) {
-          const jitter = (5 + Math.random() * 2 - 1) * effective.delayJitterSec;
-          const extraDelayMs = Math.max(0, effective.delayBaseSec + jitter) * 1000;
-          await new Promise((resolve) => setTimeout(resolve, extraDelayMs));
-        }
-
         const responseTimeMs = Date.now() - startedAt;
         const impact = estimateImpact({
           modelKey: modelCfg.key,
