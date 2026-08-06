@@ -3,7 +3,7 @@ import { getSupabaseServerClient } from "@/lib/supabase";
 import { isAdminAuthorized } from "@/lib/adminAuth";
 import { getExperimentOverrides, saveExperimentOverrides, type ExperimentOverrides } from "@/lib/overrides";
 import { getModelConfig } from "@/lib/models";
-import { DEFAULT_SYSTEM_PROMPT, DEFAULT_HEAVY_SYSTEM_TONE, DEFAULT_LIGHT_SYSTEM_TONE } from "@/lib/prompts";
+import { DEFAULT_HEAVY_SYSTEM_PROMPT, DEFAULT_LIGHT_SYSTEM_PROMPT } from "@/lib/prompts";
 
 export const runtime = "nodejs";
 
@@ -20,8 +20,8 @@ function defaults() {
       // provider's own default) rather than model.ts.
       presencePenalty: 0,
       maxTokens: 1024,
-      systemTone: DEFAULT_HEAVY_SYSTEM_TONE,
-      systemPrompt: DEFAULT_SYSTEM_PROMPT,
+      systemTone: "" as string,
+      systemPrompt: DEFAULT_HEAVY_SYSTEM_PROMPT,
       // No model.ts default -- unset means OpenAI/Anthropic pick their own
       // random seed per request, which is exactly what "no override" should mean.
       seed: null as number | null,
@@ -34,8 +34,8 @@ function defaults() {
       topP: light.topP,
       presencePenalty: 0,
       maxTokens: 1024,
-      systemTone: DEFAULT_LIGHT_SYSTEM_TONE,
-      systemPrompt: DEFAULT_SYSTEM_PROMPT,
+      systemTone: "" as string,
+      systemPrompt: DEFAULT_LIGHT_SYSTEM_PROMPT,
       seed: null as number | null,
       delayBaseSec: light.extraDelayBaseSec,
       delayJitterSec: light.extraDelayJitterSec,

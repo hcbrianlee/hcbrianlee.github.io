@@ -6,7 +6,7 @@ import { estimateImpact } from "@/lib/carbon";
 import { estimateCostCents } from "@/lib/pricing";
 import { getCumulativeUsage, getFixedPlan } from "@/lib/session";
 import { getExperimentOverrides } from "@/lib/overrides";
-import { DEFAULT_SYSTEM_PROMPT, DEFAULT_HEAVY_SYSTEM_TONE, DEFAULT_LIGHT_SYSTEM_TONE } from "@/lib/prompts";
+import { DEFAULT_HEAVY_SYSTEM_PROMPT, DEFAULT_LIGHT_SYSTEM_PROMPT } from "@/lib/prompts";
 import type { ChatStreamFrame, ConditionRow, ModelKey } from "@/lib/types";
 
 const DEFAULT_MAX_TOKENS = 1024;
@@ -96,8 +96,8 @@ export async function POST(req: NextRequest) {
             topP: overrides.heavyTopP ?? modelCfg.topP,
             presencePenalty: overrides.heavyPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
             maxTokens: overrides.heavyMaxTokens ?? DEFAULT_MAX_TOKENS,
-            systemTone: overrides.heavySystemTone ?? DEFAULT_HEAVY_SYSTEM_TONE,
-            systemPrompt: overrides.heavySystemPrompt ?? DEFAULT_SYSTEM_PROMPT,
+            systemTone: overrides.heavySystemTone,
+            systemPrompt: overrides.heavySystemPrompt ?? DEFAULT_HEAVY_SYSTEM_PROMPT,
             seed: overrides.heavySeed,
             delayBaseSec: overrides.heavyDelayBaseSec ?? modelCfg.extraDelayBaseSec,
             delayJitterSec: overrides.heavyDelayJitterSec ?? modelCfg.extraDelayJitterSec,
@@ -107,8 +107,8 @@ export async function POST(req: NextRequest) {
             topP: overrides.lightTopP ?? modelCfg.topP,
             presencePenalty: overrides.lightPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
             maxTokens: overrides.lightMaxTokens ?? DEFAULT_MAX_TOKENS,
-            systemTone: overrides.lightSystemTone ?? DEFAULT_LIGHT_SYSTEM_TONE,
-            systemPrompt: overrides.lightSystemPrompt ?? DEFAULT_SYSTEM_PROMPT,
+            systemTone: overrides.lightSystemTone,
+            systemPrompt: overrides.lightSystemPrompt ?? DEFAULT_LIGHT_SYSTEM_PROMPT,
             seed: overrides.lightSeed,
             delayBaseSec: overrides.lightDelayBaseSec ?? modelCfg.extraDelayBaseSec,
             delayJitterSec: overrides.lightDelayJitterSec ?? modelCfg.extraDelayJitterSec,
@@ -133,9 +133,10 @@ export async function POST(req: NextRequest) {
 
   // Heavy and light both call the same underlying model -- sampling
   // temperature/top_p and the artificial delay below are what actually make
-  // "heavy" and "light" behave differently. effective.systemPrompt is the
-  // base prompt (DEFAULT_SYSTEM_PROMPT, or a full per-model override from
-  // /admin) with system_tone appended as an extra line, same as before.
+  // "heavy" and "light" behave differently. effective.systemPrompt is that
+  // model's default (DEFAULT_HEAVY_SYSTEM_PROMPT / DEFAULT_LIGHT_SYSTEM_PROMPT,
+  // or a full per-model override from /admin) with system_tone appended as
+  // an extra line if the admin has set one.
   const systemMessage = {
     role: "system" as const,
     content: [effective.systemPrompt, ...(effective.systemTone ? ["", `Tone: ${effective.systemTone}`] : [])].join(

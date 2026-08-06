@@ -15,10 +15,11 @@ export interface ExperimentOverrides {
   heavySystemTone: string | null;
   lightSystemTone: string | null;
   /**
-   * Full replacement for DEFAULT_SYSTEM_PROMPT (src/lib/prompts.ts) for that
-   * model. The system_tone line above still gets appended after whichever
-   * of these (custom or default) is in effect -- this replaces the main
-   * body, not the tone modifier.
+   * Full replacement for that model's default system prompt
+   * (DEFAULT_HEAVY_SYSTEM_PROMPT / DEFAULT_LIGHT_SYSTEM_PROMPT, src/lib/prompts.ts).
+   * The system_tone line above still gets appended after whichever of these
+   * (custom or default) is in effect -- this replaces the main body, not
+   * the tone modifier.
    */
   heavySystemPrompt: string | null;
   lightSystemPrompt: string | null;
