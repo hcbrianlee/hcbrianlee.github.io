@@ -19,8 +19,8 @@ export function MessageList({ messages }: { messages: ChatMessage[] }) {
     return (
       <div className="messages">
         <div className="empty-state">
-          Ask the assistant to help you brainstorm a caption for The New Yorker Cartoon Caption Contest, or just say
-          hello to get started.
+          Ask the assistant to help you brainstorm a caption for the Cartoon Caption Contest, or just say hello to
+          get started.
         </div>
       </div>
     );

@@ -21,7 +21,7 @@ export function CartoonImage({ cartoonImageUrl }: { cartoonImageUrl: string }) {
         <img
           className="cartoon-image"
           src={cartoonImageUrl}
-          alt="New Yorker Cartoon Caption Contest cartoon to write a caption for"
+          alt="Cartoon Caption Contest cartoon to write a caption for"
           referrerPolicy="no-referrer"
           onError={() => setImageFailed(true)}
         />

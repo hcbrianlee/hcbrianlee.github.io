@@ -1,7 +1,7 @@
 # Green Nudge Chat
 
 A ChatGPT-style chat interface for the **Green Nudging AI** experiment: participants use an
-AI assistant to help draft captions for [The New Yorker Cartoon Caption Contest](https://nextml.github.io/caption-contest-data/),
+AI assistant to help draft captions for a [Cartoon Caption Contest](https://nextml.github.io/caption-contest-data/),
 choosing between a "heavy" and a "light" model. The interface nudges toward the lower-energy
 model, tracks estimated carbon/water impact of usage, and asks at the end whether participants
 want to donate part of their participation reward to a pro-environmental organization.
