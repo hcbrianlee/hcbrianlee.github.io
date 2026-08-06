@@ -60,8 +60,7 @@ export function modelCaption(variant: InfoVariant, model: ModelKey, comparison: 
       return (
         <>
           Gives <strong>{comparison.lightSuggestionCount}</strong> caption suggestions per response — faster, but
-          about <strong>{Math.round(comparison.lightOffSuggestionProbability * 100)}%</strong> of the time, one of
-          them may be a bit off.
+          sometimes, one of them may be a bit off.
         </>
       );
     }
