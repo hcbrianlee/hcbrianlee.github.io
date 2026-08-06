@@ -22,11 +22,15 @@ export interface ModelConfig {
    */
   extraDelaySecPerToken: number;
   /**
-   * Chance [0,1] that a response is nudged to deliberately include one
-   * weaker/less-relevant suggestion, so "light" is actually less reliable,
-   * not just labeled that way. 0 for heavy.
+   * Sampling temperature. Heavy stays low/focused (consistently on-target
+   * suggestions); light runs hot enough that an occasional suggestion comes
+   * out noticeably weaker or a bit off-topic, without ever prompting the
+   * model to sandbag itself -- the quality variance is real, not staged.
+   * OpenAI's scale is 0-2; Anthropic's is 0-1 (clamped in
+   * src/lib/providers/anthropic.ts if a light/heavy model is ever pointed
+   * at Anthropic).
    */
-  offSuggestionProbability: number;
+  temperature: number;
 }
 
 function envProvider(name: string, fallback: Provider): Provider {
@@ -46,7 +50,7 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
     fixedPlanPriceCents: Number(process.env.MODEL_HEAVY_FIXED_PLAN_CENTS ?? 200),
     suggestionCount: Number(process.env.MODEL_HEAVY_SUGGESTION_COUNT ?? 5),
     extraDelaySecPerToken: Number(process.env.MODEL_HEAVY_EXTRA_DELAY_SEC_PER_TOKEN ?? 0.5),
-    offSuggestionProbability: 0,
+    temperature: Number(process.env.MODEL_HEAVY_TEMPERATURE ?? 0.7),
   },
   light: {
     key: "light",
@@ -59,7 +63,7 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
     fixedPlanPriceCents: Number(process.env.MODEL_LIGHT_FIXED_PLAN_CENTS ?? 100),
     suggestionCount: Number(process.env.MODEL_LIGHT_SUGGESTION_COUNT ?? 2),
     extraDelaySecPerToken: 0,
-    offSuggestionProbability: Number(process.env.MODEL_LIGHT_OFF_SUGGESTION_PROBABILITY ?? 0.5),
+    temperature: Number(process.env.MODEL_LIGHT_TEMPERATURE ?? 1.2),
   },
 };
 

@@ -5,6 +5,7 @@ export async function streamOpenAI(params: {
   apiKey: string;
   model: string;
   messages: { role: "system" | "user" | "assistant"; content: string }[];
+  temperature: number;
 }): Promise<{ textStream: AsyncIterable<string>; getUsage: () => UsageTotals }> {
   const client = new OpenAI({ apiKey: params.apiKey });
   const usage: UsageTotals = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
@@ -12,6 +13,7 @@ export async function streamOpenAI(params: {
   const stream = await client.chat.completions.create({
     model: params.model,
     messages: params.messages,
+    temperature: params.temperature,
     stream: true,
     stream_options: { include_usage: true },
   });

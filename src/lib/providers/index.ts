@@ -6,14 +6,15 @@ export async function streamChat(params: {
   provider: Provider;
   model: string;
   messages: { role: "system" | "user" | "assistant"; content: string }[];
+  temperature: number;
 }): Promise<{ textStream: AsyncIterable<string>; getUsage: () => UsageTotals }> {
   if (params.provider === "anthropic") {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set");
-    return streamAnthropic({ apiKey, model: params.model, messages: params.messages });
+    return streamAnthropic({ apiKey, model: params.model, messages: params.messages, temperature: params.temperature });
   }
 
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
-  return streamOpenAI({ apiKey, model: params.model, messages: params.messages });
+  return streamOpenAI({ apiKey, model: params.model, messages: params.messages, temperature: params.temperature });
 }

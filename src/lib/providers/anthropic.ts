@@ -7,6 +7,7 @@ export async function streamAnthropic(params: {
   apiKey: string;
   model: string;
   messages: { role: "system" | "user" | "assistant"; content: string }[];
+  temperature: number;
 }): Promise<{ textStream: AsyncIterable<string>; getUsage: () => UsageTotals }> {
   const client = new Anthropic({ apiKey: params.apiKey });
   const usage: UsageTotals = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
@@ -15,11 +16,17 @@ export async function streamAnthropic(params: {
   const conversation = params.messages
     .filter((m): m is { role: "user" | "assistant"; content: string } => m.role !== "system");
 
+  // Anthropic's temperature scale is 0-1 (OpenAI's is 0-2) -- clamp so a
+  // shared MODEL_*_TEMPERATURE value tuned for OpenAI doesn't error out if a
+  // model is ever pointed at Anthropic instead.
+  const temperature = Math.min(params.temperature, 1);
+
   const stream = client.messages.stream({
     model: params.model,
     max_tokens: DEFAULT_MAX_TOKENS,
     system,
     messages: conversation,
+    temperature,
   });
 
   async function* textStream(): AsyncIterable<string> {

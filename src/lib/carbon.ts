@@ -87,6 +87,5 @@ export function getModelComparison(): ModelComparison {
     scaleUsers: NUDGE_IMPACT_SCALE_USERS,
     heavySuggestionCount: heavyCfg.suggestionCount,
     lightSuggestionCount: lightCfg.suggestionCount,
-    lightOffSuggestionProbability: lightCfg.offSuggestionProbability,
   };
 }

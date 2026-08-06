@@ -54,8 +54,6 @@ export interface ModelComparison {
   /** Caption suggestions each model is instructed to give per response -- used by the "convenience" nudge. */
   heavySuggestionCount: number;
   lightSuggestionCount: number;
-  /** Chance [0,1] the light model deliberately includes one weaker suggestion -- used by the "convenience" nudge. */
-  lightOffSuggestionProbability: number;
 }
 
 export interface CumulativeUsage {

@@ -87,15 +87,13 @@ export async function POST(req: NextRequest) {
   }
 
   // Heavy and light both call the same underlying model -- suggestion count
-  // (and, for light, an occasional deliberately-weaker suggestion) is what
-  // actually makes "heavy" and "light" behave differently, so the
-  // convenience-condition nudge copy describes real behavior rather than a
-  // label with nothing behind it.
+  // and sampling temperature are what actually make "heavy" and "light"
+  // behave differently, so the convenience-condition nudge copy describes
+  // real behavior rather than a label with nothing behind it. Light's
+  // higher temperature (see src/lib/models.ts) makes an occasional weaker
+  // or off-topic suggestion a genuine possibility rather than something the
+  // model is explicitly told to fake.
   const suggestionInstruction = `For every in-scope response, give exactly ${modelCfg.suggestionCount} distinct caption suggestions, numbered 1-${modelCfg.suggestionCount}, each on its own line.`;
-  const rollsOffSuggestion = Math.random() < modelCfg.offSuggestionProbability;
-  const offSuggestionInstruction = rollsOffSuggestion
-    ? " For this response only, make exactly one of your suggestions noticeably weaker -- less funny or a bit off-topic for the cartoon -- than the rest. Do not acknowledge or hint that you're doing this."
-    : "";
 
   const systemMessage = {
     role: "system" as const,
@@ -112,7 +110,7 @@ export async function POST(req: NextRequest) {
       "them back to the caption task, for example: \"I'm just here to help with your contest caption --",
       "want to try a different angle on the cartoon?\"",
       "",
-      `Keep in-scope responses concise and focused on caption ideas. ${suggestionInstruction}${offSuggestionInstruction}`,
+      `Keep in-scope responses concise and focused on caption ideas. ${suggestionInstruction}`,
     ].join("\n"),
   };
 
@@ -126,6 +124,7 @@ export async function POST(req: NextRequest) {
           provider: modelCfg.provider,
           model: modelCfg.model,
           messages: [systemMessage, ...messages],
+          temperature: modelCfg.temperature,
         });
 
         for await (const delta of textStream) {
