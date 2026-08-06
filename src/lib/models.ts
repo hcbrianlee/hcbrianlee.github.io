@@ -12,15 +12,16 @@ export interface ModelConfig {
   pricePerThousandTokensCents: number;
   /** Flat one-time price in cents to pick this model under the "fixed" pricing condition. */
   fixedPlanPriceCents: number;
-  /** Caption suggestions the assistant is instructed to give in every in-scope response. */
-  suggestionCount: number;
   /**
    * Both heavy and light call the same underlying model (gpt-4o-mini) --
-   * this is the artificial per-output-token delay (seconds) added after
-   * generation completes, so "heavy" still behaves meaningfully slower.
-   * 0 for light.
+   * this artificial delay (seconds) is what makes "heavy" still behave
+   * meaningfully slower. Applied once per response, after generation
+   * completes, as extraDelayBaseSec +/- extraDelayJitterSec (uniformly
+   * random). Not proportional to response length -- a flat, roughly
+   * 3-second-ish pause regardless of how much text came back. 0/0 for light.
    */
-  extraDelaySecPerToken: number;
+  extraDelayBaseSec: number;
+  extraDelayJitterSec: number;
   /**
    * Sampling temperature. Heavy stays low/focused (consistently on-target
    * suggestions); light runs hot enough that an occasional suggestion comes
@@ -56,12 +57,12 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
     provider: envProvider("MODEL_HEAVY_PROVIDER", "openai"),
     model: process.env.MODEL_HEAVY_ID || "gpt-4o-mini",
     label: "Heavy",
-    description: "More suggestions per response, consistently on-target, but slower to respond.",
+    description: "Consistently on-target, but takes noticeably longer to respond.",
     energyWhPer1kTokens: Number(process.env.MODEL_HEAVY_ENERGY_WH_PER_1K ?? 1.0),
     pricePerThousandTokensCents: Number(process.env.MODEL_HEAVY_PRICE_CENTS_PER_1K ?? 2),
     fixedPlanPriceCents: Number(process.env.MODEL_HEAVY_FIXED_PLAN_CENTS ?? 200),
-    suggestionCount: Number(process.env.MODEL_HEAVY_SUGGESTION_COUNT ?? 5),
-    extraDelaySecPerToken: Number(process.env.MODEL_HEAVY_EXTRA_DELAY_SEC_PER_TOKEN ?? 0.5),
+    extraDelayBaseSec: Number(process.env.MODEL_HEAVY_EXTRA_DELAY_BASE_SEC ?? 3),
+    extraDelayJitterSec: Number(process.env.MODEL_HEAVY_EXTRA_DELAY_JITTER_SEC ?? 1),
     temperature: Number(process.env.MODEL_HEAVY_TEMPERATURE ?? 0.7),
     topP: Number(process.env.MODEL_HEAVY_TOP_P ?? 1.0),
   },
@@ -70,12 +71,12 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
     provider: envProvider("MODEL_LIGHT_PROVIDER", "openai"),
     model: process.env.MODEL_LIGHT_ID || "gpt-4o-mini",
     label: "Light",
-    description: "Fewer suggestions per response, faster, but occasionally a weaker suggestion slips in.",
+    description: "Faster, but occasionally a weaker or slightly off-topic suggestion slips in.",
     energyWhPer1kTokens: Number(process.env.MODEL_LIGHT_ENERGY_WH_PER_1K ?? 0.2),
     pricePerThousandTokensCents: Number(process.env.MODEL_LIGHT_PRICE_CENTS_PER_1K ?? 1),
     fixedPlanPriceCents: Number(process.env.MODEL_LIGHT_FIXED_PLAN_CENTS ?? 100),
-    suggestionCount: Number(process.env.MODEL_LIGHT_SUGGESTION_COUNT ?? 2),
-    extraDelaySecPerToken: 0,
+    extraDelayBaseSec: 0,
+    extraDelayJitterSec: 0,
     temperature: Number(process.env.MODEL_LIGHT_TEMPERATURE ?? 1.5),
     topP: Number(process.env.MODEL_LIGHT_TOP_P ?? 0.5),
   },

@@ -57,19 +57,9 @@ export function modelCaption(variant: InfoVariant, model: ModelKey, comparison: 
   }
   if (variant === "convenience") {
     if (model === "light") {
-      return (
-        <>
-          Gives <strong>{comparison.lightSuggestionCount}</strong> caption suggestions per response — faster, but
-          sometimes, one of them may be a bit off.
-        </>
-      );
+      return <>Faster — but sometimes, the suggestion may be a bit off.</>;
     }
-    return (
-      <>
-        Gives <strong>{comparison.heavySuggestionCount}</strong> caption suggestions per response, consistently
-        on-target — but takes noticeably longer to respond.
-      </>
-    );
+    return <>Consistently on-target — but takes noticeably longer to respond.</>;
   }
   return null;
 }

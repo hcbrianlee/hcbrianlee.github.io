@@ -86,15 +86,11 @@ export async function POST(req: NextRequest) {
     return jsonError(err instanceof Error ? err.message : "Failed to start generation", 500);
   }
 
-  // Heavy and light both call the same underlying model -- suggestion count
-  // and sampling temperature are what actually make "heavy" and "light"
-  // behave differently, so the convenience-condition nudge copy describes
-  // real behavior rather than a label with nothing behind it. Light's
-  // higher temperature (see src/lib/models.ts) makes an occasional weaker
-  // or off-topic suggestion a genuine possibility rather than something the
-  // model is explicitly told to fake.
-  const suggestionInstruction = `For every in-scope response, give exactly ${modelCfg.suggestionCount} distinct caption suggestions, numbered 1-${modelCfg.suggestionCount}, each on its own line.`;
-
+  // Heavy and light both call the same underlying model -- sampling
+  // temperature/top_p and the artificial delay below are what actually make
+  // "heavy" and "light" behave differently. Both give one suggestion per
+  // response; the model is told not to mention or number that constraint so
+  // it reads as a natural single reply, not an enforced rule.
   const systemMessage = {
     role: "system" as const,
     content: [
@@ -110,7 +106,9 @@ export async function POST(req: NextRequest) {
       "them back to the caption task, for example: \"I'm just here to help with your contest caption --",
       "want to try a different angle on the cartoon?\"",
       "",
-      `Keep in-scope responses concise and focused on caption ideas. ${suggestionInstruction}`,
+      "Keep in-scope responses concise and focused on caption ideas. Give exactly one caption suggestion",
+      "per response -- never a list or multiple options. Do not mention, number, or otherwise call out",
+      "that you're limiting yourself to one; just respond naturally, as a collaborator would.",
     ].join("\n"),
   };
 
@@ -137,12 +135,13 @@ export async function POST(req: NextRequest) {
 
         // Artificial "heavier model" delay -- both models call gpt-4o-mini
         // under the hood, so this is what actually makes heavy responses
-        // slower, proportional to real output token count. Applied before
-        // computing responseTimeMs so it's reflected in the logged latency
-        // (and any future nudge copy built from real measured response
-        // times), not just an invisible pause the data doesn't see.
-        if (modelCfg.extraDelaySecPerToken > 0 && usage.outputTokens > 0) {
-          const extraDelayMs = usage.outputTokens * modelCfg.extraDelaySecPerToken * 1000;
+        // slower. A flat extraDelayBaseSec +/- extraDelayJitterSec pause
+        // (uniformly random), not proportional to response length. Applied
+        // before computing responseTimeMs so it's reflected in the logged
+        // latency, not just an invisible pause the data doesn't see.
+        if (modelCfg.extraDelayBaseSec > 0) {
+          const jitter = (Math.random() * 2 - 1) * modelCfg.extraDelayJitterSec;
+          const extraDelayMs = Math.max(0, modelCfg.extraDelayBaseSec + jitter) * 1000;
           await new Promise((resolve) => setTimeout(resolve, extraDelayMs));
         }
 
