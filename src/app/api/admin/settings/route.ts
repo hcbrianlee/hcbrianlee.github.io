@@ -14,26 +14,28 @@ function defaults() {
       provider: heavy.provider,
       temperature: heavy.temperature,
       topP: heavy.topP,
-      // top_k has no OpenAI equivalent; presence_penalty has no Anthropic
-      // equivalent -- there's no model.ts default for either, so the
-      // dashboard shows "0" / "(none)" as the provider's own default.
-      topK: null as number | null,
+      // presence_penalty has no Anthropic equivalent -- there's no
+      // model.ts default for it, so the dashboard shows "0" (the
+      // provider's own default) rather than model.ts.
       presencePenalty: 0,
       maxTokens: 1024,
       systemTone: "" as string,
       // No model.ts default -- unset means OpenAI/Anthropic pick their own
       // random seed per request, which is exactly what "no override" should mean.
       seed: null as number | null,
+      delayBaseSec: heavy.extraDelayBaseSec,
+      delayJitterSec: heavy.extraDelayJitterSec,
     },
     light: {
       provider: light.provider,
       temperature: light.temperature,
       topP: light.topP,
-      topK: null as number | null,
       presencePenalty: 0,
       maxTokens: 1024,
       systemTone: "" as string,
       seed: null as number | null,
+      delayBaseSec: light.extraDelayBaseSec,
+      delayJitterSec: light.extraDelayJitterSec,
     },
   };
 }

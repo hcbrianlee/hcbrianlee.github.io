@@ -109,8 +109,6 @@ create table if not exists experiment_overrides (
   id integer primary key default 1,
   heavy_temperature numeric,
   light_temperature numeric,
-  heavy_top_k integer,
-  light_top_k integer,
   heavy_presence_penalty numeric,
   light_presence_penalty numeric,
   heavy_max_tokens integer,
@@ -119,15 +117,27 @@ create table if not exists experiment_overrides (
   light_system_tone text,
   heavy_seed integer,
   light_seed integer,
+  heavy_delay_base_sec numeric,
+  light_delay_base_sec numeric,
+  heavy_delay_jitter_sec numeric,
+  light_delay_jitter_sec numeric,
   updated_at timestamptz not null default now(),
   constraint experiment_overrides_singleton check (id = 1)
 );
 
 -- `create table if not exists` above only helps on a first-ever run --
--- these two columns were added after some projects already had the table,
--- so pick them up explicitly on a re-run too.
+-- these columns were added/removed after some projects already had the
+-- table, so apply the same changes explicitly on a re-run too.
 alter table experiment_overrides add column if not exists heavy_seed integer;
 alter table experiment_overrides add column if not exists light_seed integer;
+alter table experiment_overrides add column if not exists heavy_delay_base_sec numeric;
+alter table experiment_overrides add column if not exists light_delay_base_sec numeric;
+alter table experiment_overrides add column if not exists heavy_delay_jitter_sec numeric;
+alter table experiment_overrides add column if not exists light_delay_jitter_sec numeric;
+-- top_k never had an effect (OpenAI's API has no top_k param, and both
+-- models run on OpenAI) -- dropped rather than left as dead columns.
+alter table experiment_overrides drop column if exists heavy_top_k;
+alter table experiment_overrides drop column if exists light_top_k;
 
 -- Row Level Security: this app talks to Supabase exclusively from Next.js
 -- API routes using the service role key, never from the browser, so RLS can

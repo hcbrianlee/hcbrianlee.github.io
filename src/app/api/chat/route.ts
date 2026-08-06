@@ -45,11 +45,12 @@ export async function POST(req: NextRequest) {
   let effective: {
     temperature: number;
     topP: number;
-    topK: number | null;
     presencePenalty: number | null;
     maxTokens: number;
     systemTone: string | null;
     seed: number | null;
+    delayBaseSec: number;
+    delayJitterSec: number;
   };
   try {
     supabase = getSupabaseServerClient();
@@ -91,20 +92,22 @@ export async function POST(req: NextRequest) {
         ? {
             temperature: overrides.heavyTemperature ?? modelCfg.temperature,
             topP: modelCfg.topP,
-            topK: overrides.heavyTopK,
             presencePenalty: overrides.heavyPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
             maxTokens: overrides.heavyMaxTokens ?? DEFAULT_MAX_TOKENS,
             systemTone: overrides.heavySystemTone,
             seed: overrides.heavySeed,
+            delayBaseSec: overrides.heavyDelayBaseSec ?? modelCfg.extraDelayBaseSec,
+            delayJitterSec: overrides.heavyDelayJitterSec ?? modelCfg.extraDelayJitterSec,
           }
         : {
             temperature: overrides.lightTemperature ?? modelCfg.temperature,
             topP: modelCfg.topP,
-            topK: overrides.lightTopK,
             presencePenalty: overrides.lightPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
             maxTokens: overrides.lightMaxTokens ?? DEFAULT_MAX_TOKENS,
             systemTone: overrides.lightSystemTone,
             seed: overrides.lightSeed,
+            delayBaseSec: overrides.lightDelayBaseSec ?? modelCfg.extraDelayBaseSec,
+            delayJitterSec: overrides.lightDelayJitterSec ?? modelCfg.extraDelayJitterSec,
           };
 
     const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
@@ -163,7 +166,6 @@ export async function POST(req: NextRequest) {
           messages: [systemMessage, ...messages],
           temperature: effective.temperature,
           topP: effective.topP,
-          topK: effective.topK,
           presencePenalty: effective.presencePenalty,
           maxTokens: effective.maxTokens,
           seed: effective.seed,
@@ -176,15 +178,15 @@ export async function POST(req: NextRequest) {
 
         const usage = getUsage();
 
-        // Artificial "heavier model" delay -- both models call gpt-4o-mini
-        // under the hood, so this is what actually makes heavy responses
-        // slower. A flat extraDelayBaseSec +/- extraDelayJitterSec pause
-        // (uniformly random), not proportional to response length. Applied
-        // before computing responseTimeMs so it's reflected in the logged
-        // latency, not just an invisible pause the data doesn't see.
-        if (modelCfg.extraDelayBaseSec > 0) {
-          const jitter = (5+ Math.random() * 2 - 1) * modelCfg.extraDelayJitterSec;
-          const extraDelayMs = Math.max(0, modelCfg.extraDelayBaseSec + jitter) * 1000;
+        // Artificial per-model delay -- both models call the same underlying
+        // model, so this (and effective.delayBaseSec/delayJitterSec, live
+        // adjustable from /admin) is what actually makes "heavy" and
+        // "light" take different amounts of time. Applied before computing
+        // responseTimeMs so it's reflected in the logged latency, not just
+        // an invisible pause the data doesn't see.
+        if (effective.delayBaseSec > 0) {
+          const jitter = (5 + Math.random() * 2 - 1) * effective.delayJitterSec;
+          const extraDelayMs = Math.max(0, effective.delayBaseSec + jitter) * 1000;
           await new Promise((resolve) => setTimeout(resolve, extraDelayMs));
         }
 

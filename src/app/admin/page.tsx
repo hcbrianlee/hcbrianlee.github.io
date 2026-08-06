@@ -8,11 +8,12 @@ interface ModelDefaults {
   provider: string;
   temperature: number;
   topP: number;
-  topK: number | null;
   presencePenalty: number;
   maxTokens: number;
   systemTone: string;
   seed: number | null;
+  delayBaseSec: number;
+  delayJitterSec: number;
 }
 
 interface Defaults {
@@ -23,8 +24,6 @@ interface Defaults {
 interface Overrides {
   heavyTemperature: number | null;
   lightTemperature: number | null;
-  heavyTopK: number | null;
-  lightTopK: number | null;
   heavyPresencePenalty: number | null;
   lightPresencePenalty: number | null;
   heavyMaxTokens: number | null;
@@ -33,6 +32,10 @@ interface Overrides {
   lightSystemTone: string | null;
   heavySeed: number | null;
   lightSeed: number | null;
+  heavyDelayBaseSec: number | null;
+  lightDelayBaseSec: number | null;
+  heavyDelayJitterSec: number | null;
+  lightDelayJitterSec: number | null;
 }
 
 type ModelPrefix = "heavy" | "light";
@@ -95,11 +98,12 @@ function ModelColumn(props: {
   const { prefix, defaults, overrides, onChange } = props;
   const label = prefix === "heavy" ? "Heavy" : "Light";
   const temperature = prefix === "heavy" ? overrides.heavyTemperature : overrides.lightTemperature;
-  const topK = prefix === "heavy" ? overrides.heavyTopK : overrides.lightTopK;
   const presencePenalty = prefix === "heavy" ? overrides.heavyPresencePenalty : overrides.lightPresencePenalty;
   const maxTokens = prefix === "heavy" ? overrides.heavyMaxTokens : overrides.lightMaxTokens;
   const systemTone = prefix === "heavy" ? overrides.heavySystemTone : overrides.lightSystemTone;
   const seed = prefix === "heavy" ? overrides.heavySeed : overrides.lightSeed;
+  const delayBaseSec = prefix === "heavy" ? overrides.heavyDelayBaseSec : overrides.lightDelayBaseSec;
+  const delayJitterSec = prefix === "heavy" ? overrides.heavyDelayJitterSec : overrides.lightDelayJitterSec;
 
   return (
     <div className="admin-column">
@@ -115,16 +119,6 @@ function ModelColumn(props: {
         min={0}
         max={2}
         onChange={(v) => onChange({ [`${prefix}Temperature`]: v })}
-      />
-
-      <NumberField
-        label="top_k"
-        note={defaults.provider === "openai" ? "(no effect -- OpenAI has no top_k param)" : undefined}
-        value={topK}
-        defaultValue={defaults.topK}
-        step={1}
-        min={1}
-        onChange={(v) => onChange({ [`${prefix}TopK`]: v })}
       />
 
       <NumberField
@@ -168,6 +162,26 @@ function ModelColumn(props: {
         defaultValue={defaults.seed}
         step={1}
         onChange={(v) => onChange({ [`${prefix}Seed`]: v })}
+      />
+
+      <NumberField
+        label="Wait time -- base (sec)"
+        note="added after generation completes, before the response finishes"
+        value={delayBaseSec}
+        defaultValue={defaults.delayBaseSec}
+        step={0.5}
+        min={0}
+        onChange={(v) => onChange({ [`${prefix}DelayBaseSec`]: v })}
+      />
+
+      <NumberField
+        label="Wait time -- jitter (sec)"
+        note="randomizes the wait; see src/app/api/chat/route.ts for the exact formula"
+        value={delayJitterSec}
+        defaultValue={defaults.delayJitterSec}
+        step={0.5}
+        min={0}
+        onChange={(v) => onChange({ [`${prefix}DelayJitterSec`]: v })}
       />
     </div>
   );

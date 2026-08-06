@@ -8,8 +8,6 @@ export async function streamChat(params: {
   messages: { role: "system" | "user" | "assistant"; content: string }[];
   temperature: number;
   topP: number;
-  /** Anthropic only -- silently ignored for the "openai" provider (no equivalent param). */
-  topK: number | null;
   /** OpenAI only -- silently ignored for the "anthropic" provider (no equivalent param). */
   presencePenalty: number | null;
   maxTokens: number;
@@ -25,7 +23,6 @@ export async function streamChat(params: {
       messages: params.messages,
       temperature: params.temperature,
       topP: params.topP,
-      topK: params.topK,
       maxTokens: params.maxTokens,
     });
   }

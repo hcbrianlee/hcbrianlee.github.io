@@ -9,7 +9,6 @@ export async function streamAnthropic(params: {
   messages: { role: "system" | "user" | "assistant"; content: string }[];
   temperature: number;
   topP: number;
-  topK: number | null;
   maxTokens: number;
 }): Promise<{ textStream: AsyncIterable<string>; getUsage: () => UsageTotals }> {
   const client = new Anthropic({ apiKey: params.apiKey });
@@ -32,7 +31,6 @@ export async function streamAnthropic(params: {
     messages: conversation,
     temperature,
     top_p: params.topP,
-    ...(params.topK !== null ? { top_k: params.topK } : {}),
   });
 
   async function* textStream(): AsyncIterable<string> {

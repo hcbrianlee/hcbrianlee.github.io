@@ -3,9 +3,6 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export interface ExperimentOverrides {
   heavyTemperature: number | null;
   lightTemperature: number | null;
-  /** Anthropic only -- OpenAI's API has no top_k param, so this is ignored for any model on the "openai" provider. */
-  heavyTopK: number | null;
-  lightTopK: number | null;
   /** OpenAI only -- Anthropic's API has no presence_penalty param, so this is ignored for any model on the "anthropic" provider. */
   heavyPresencePenalty: number | null;
   lightPresencePenalty: number | null;
@@ -18,19 +15,28 @@ export interface ExperimentOverrides {
    * OpenAI only -- Anthropic's API has no seed param. Paired with
    * temperature: 0, this is OpenAI's "best effort" reproducibility knob:
    * same seed + same params + same prompt usually (not guaranteed) returns
-   * the same completion. Without it, gpt-4o-mini is not deterministic even
-   * at temperature 0 -- that's inherent to how OpenAI serves the model
-   * (MoE routing, floating-point non-associativity), not a bug here.
+   * the same completion. Without it, gpt-4o is not deterministic even at
+   * temperature 0 -- that's inherent to how OpenAI serves the model (MoE
+   * routing, floating-point non-associativity), not a bug here.
    */
   heavySeed: number | null;
   lightSeed: number | null;
+  /**
+   * Artificial post-generation delay (seconds), applied as
+   * delayBaseSec +/- delayJitterSec (uniformly random) -- see
+   * src/app/api/chat/route.ts. This is the whole mechanism behind "heavy
+   * takes noticeably longer"; light defaults to 0/0 (no delay) but can be
+   * given one here too.
+   */
+  heavyDelayBaseSec: number | null;
+  lightDelayBaseSec: number | null;
+  heavyDelayJitterSec: number | null;
+  lightDelayJitterSec: number | null;
 }
 
 const EMPTY_OVERRIDES: ExperimentOverrides = {
   heavyTemperature: null,
   lightTemperature: null,
-  heavyTopK: null,
-  lightTopK: null,
   heavyPresencePenalty: null,
   lightPresencePenalty: null,
   heavyMaxTokens: null,
@@ -39,6 +45,10 @@ const EMPTY_OVERRIDES: ExperimentOverrides = {
   lightSystemTone: null,
   heavySeed: null,
   lightSeed: null,
+  heavyDelayBaseSec: null,
+  lightDelayBaseSec: null,
+  heavyDelayJitterSec: null,
+  lightDelayJitterSec: null,
 };
 
 /** Row -> ExperimentOverrides. Missing row (never saved yet) reads as all-null, i.e. every model default applies. */
@@ -50,8 +60,6 @@ export async function getExperimentOverrides(supabase: SupabaseClient): Promise<
   return {
     heavyTemperature: data.heavy_temperature,
     lightTemperature: data.light_temperature,
-    heavyTopK: data.heavy_top_k,
-    lightTopK: data.light_top_k,
     heavyPresencePenalty: data.heavy_presence_penalty,
     lightPresencePenalty: data.light_presence_penalty,
     heavyMaxTokens: data.heavy_max_tokens,
@@ -60,6 +68,10 @@ export async function getExperimentOverrides(supabase: SupabaseClient): Promise<
     lightSystemTone: data.light_system_tone,
     heavySeed: data.heavy_seed,
     lightSeed: data.light_seed,
+    heavyDelayBaseSec: data.heavy_delay_base_sec,
+    lightDelayBaseSec: data.light_delay_base_sec,
+    heavyDelayJitterSec: data.heavy_delay_jitter_sec,
+    lightDelayJitterSec: data.light_delay_jitter_sec,
   };
 }
 
@@ -75,8 +87,6 @@ export async function saveExperimentOverrides(
     id: 1,
     heavy_temperature: next.heavyTemperature,
     light_temperature: next.lightTemperature,
-    heavy_top_k: next.heavyTopK,
-    light_top_k: next.lightTopK,
     heavy_presence_penalty: next.heavyPresencePenalty,
     light_presence_penalty: next.lightPresencePenalty,
     heavy_max_tokens: next.heavyMaxTokens,
@@ -85,6 +95,10 @@ export async function saveExperimentOverrides(
     light_system_tone: next.lightSystemTone,
     heavy_seed: next.heavySeed,
     light_seed: next.lightSeed,
+    heavy_delay_base_sec: next.heavyDelayBaseSec,
+    light_delay_base_sec: next.lightDelayBaseSec,
+    heavy_delay_jitter_sec: next.heavyDelayJitterSec,
+    light_delay_jitter_sec: next.lightDelayJitterSec,
     updated_at: new Date().toISOString(),
   });
   if (error) throw new Error(`experiment_overrides save failed: ${error.message}`);
