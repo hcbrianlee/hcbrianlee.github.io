@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
         // before computing responseTimeMs so it's reflected in the logged
         // latency, not just an invisible pause the data doesn't see.
         if (modelCfg.extraDelayBaseSec > 0) {
-          const jitter = (Math.random() * 2 - 1) * modelCfg.extraDelayJitterSec;
+          const jitter = (Math.random() * 4 - 1) * modelCfg.extraDelayJitterSec;
           const extraDelayMs = Math.max(0, modelCfg.extraDelayBaseSec + jitter) * 1000;
           await new Promise((resolve) => setTimeout(resolve, extraDelayMs));
         }
