@@ -91,7 +91,7 @@ export async function POST(req: NextRequest) {
       modelKey === "heavy"
         ? {
             temperature: overrides.heavyTemperature ?? modelCfg.temperature,
-            topP: modelCfg.topP,
+            topP: overrides.heavyTopP ?? modelCfg.topP,
             presencePenalty: overrides.heavyPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
             maxTokens: overrides.heavyMaxTokens ?? DEFAULT_MAX_TOKENS,
             systemTone: overrides.heavySystemTone,
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
           }
         : {
             temperature: overrides.lightTemperature ?? modelCfg.temperature,
-            topP: modelCfg.topP,
+            topP: overrides.lightTopP ?? modelCfg.topP,
             presencePenalty: overrides.lightPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
             maxTokens: overrides.lightMaxTokens ?? DEFAULT_MAX_TOKENS,
             systemTone: overrides.lightSystemTone,

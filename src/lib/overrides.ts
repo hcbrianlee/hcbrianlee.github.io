@@ -3,6 +3,9 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 export interface ExperimentOverrides {
   heavyTemperature: number | null;
   lightTemperature: number | null;
+  /** Nucleus sampling threshold [0,1]. Supported by both OpenAI and Anthropic. */
+  heavyTopP: number | null;
+  lightTopP: number | null;
   /** OpenAI only -- Anthropic's API has no presence_penalty param, so this is ignored for any model on the "anthropic" provider. */
   heavyPresencePenalty: number | null;
   lightPresencePenalty: number | null;
@@ -37,6 +40,8 @@ export interface ExperimentOverrides {
 const EMPTY_OVERRIDES: ExperimentOverrides = {
   heavyTemperature: null,
   lightTemperature: null,
+  heavyTopP: null,
+  lightTopP: null,
   heavyPresencePenalty: null,
   lightPresencePenalty: null,
   heavyMaxTokens: null,
@@ -60,6 +65,8 @@ export async function getExperimentOverrides(supabase: SupabaseClient): Promise<
   return {
     heavyTemperature: data.heavy_temperature,
     lightTemperature: data.light_temperature,
+    heavyTopP: data.heavy_top_p,
+    lightTopP: data.light_top_p,
     heavyPresencePenalty: data.heavy_presence_penalty,
     lightPresencePenalty: data.light_presence_penalty,
     heavyMaxTokens: data.heavy_max_tokens,
@@ -87,6 +94,8 @@ export async function saveExperimentOverrides(
     id: 1,
     heavy_temperature: next.heavyTemperature,
     light_temperature: next.lightTemperature,
+    heavy_top_p: next.heavyTopP,
+    light_top_p: next.lightTopP,
     heavy_presence_penalty: next.heavyPresencePenalty,
     light_presence_penalty: next.lightPresencePenalty,
     heavy_max_tokens: next.heavyMaxTokens,

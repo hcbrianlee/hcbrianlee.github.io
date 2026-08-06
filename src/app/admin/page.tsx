@@ -24,6 +24,8 @@ interface Defaults {
 interface Overrides {
   heavyTemperature: number | null;
   lightTemperature: number | null;
+  heavyTopP: number | null;
+  lightTopP: number | null;
   heavyPresencePenalty: number | null;
   lightPresencePenalty: number | null;
   heavyMaxTokens: number | null;
@@ -98,6 +100,7 @@ function ModelColumn(props: {
   const { prefix, defaults, overrides, onChange } = props;
   const label = prefix === "heavy" ? "Heavy" : "Light";
   const temperature = prefix === "heavy" ? overrides.heavyTemperature : overrides.lightTemperature;
+  const topP = prefix === "heavy" ? overrides.heavyTopP : overrides.lightTopP;
   const presencePenalty = prefix === "heavy" ? overrides.heavyPresencePenalty : overrides.lightPresencePenalty;
   const maxTokens = prefix === "heavy" ? overrides.heavyMaxTokens : overrides.lightMaxTokens;
   const systemTone = prefix === "heavy" ? overrides.heavySystemTone : overrides.lightSystemTone;
@@ -119,6 +122,17 @@ function ModelColumn(props: {
         min={0}
         max={2}
         onChange={(v) => onChange({ [`${prefix}Temperature`]: v })}
+      />
+
+      <NumberField
+        label="top_p"
+        note="nucleus sampling -- narrows the candidate token pool before temperature reweights it; supported by both providers"
+        value={topP}
+        defaultValue={defaults.topP}
+        step={0.05}
+        min={0}
+        max={1}
+        onChange={(v) => onChange({ [`${prefix}TopP`]: v })}
       />
 
       <NumberField

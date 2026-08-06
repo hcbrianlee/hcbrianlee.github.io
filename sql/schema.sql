@@ -109,6 +109,8 @@ create table if not exists experiment_overrides (
   id integer primary key default 1,
   heavy_temperature numeric,
   light_temperature numeric,
+  heavy_top_p numeric,
+  light_top_p numeric,
   heavy_presence_penalty numeric,
   light_presence_penalty numeric,
   heavy_max_tokens integer,
@@ -134,6 +136,8 @@ alter table experiment_overrides add column if not exists heavy_delay_base_sec n
 alter table experiment_overrides add column if not exists light_delay_base_sec numeric;
 alter table experiment_overrides add column if not exists heavy_delay_jitter_sec numeric;
 alter table experiment_overrides add column if not exists light_delay_jitter_sec numeric;
+alter table experiment_overrides add column if not exists heavy_top_p numeric;
+alter table experiment_overrides add column if not exists light_top_p numeric;
 -- top_k never had an effect (OpenAI's API has no top_k param, and both
 -- models run on OpenAI) -- dropped rather than left as dead columns.
 alter table experiment_overrides drop column if exists heavy_top_k;
