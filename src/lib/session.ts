@@ -1,5 +1,8 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { CumulativeUsage, ConditionRow, ModelKey } from "./types";
+import type { CaptionSubmission, CumulativeUsage, ConditionRow, ModelKey } from "./types";
+
+/** Most caption ideas a single session may submit for its cartoon. */
+export const MAX_CAPTION_SUBMISSIONS = 10;
 
 export async function getCumulativeUsage(
   supabase: SupabaseClient,
@@ -66,6 +69,28 @@ export async function getFixedPlan(
   if (!data || !data.model) return null;
 
   return { model: data.model as ModelKey, costCents: Number(data.estimated_cost_cents ?? 0) };
+}
+
+/**
+ * Every caption idea submitted so far for this session, oldest first.
+ * Sourced entirely from the `caption_submitted` events already logged by
+ * /api/submit-caption -- sessions.final_caption / final_caption_submitted_at
+ * are no longer written to, superseded by this event-log-derived list.
+ */
+export async function getCaptionSubmissions(
+  supabase: SupabaseClient,
+  sessionId: string
+): Promise<CaptionSubmission[]> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("caption_text, created_at")
+    .eq("session_id", sessionId)
+    .eq("event_type", "caption_submitted")
+    .order("created_at", { ascending: true });
+
+  if (error) throw new Error(`caption submissions query failed: ${error.message}`);
+
+  return (data ?? []).map((row) => ({ text: row.caption_text as string, submittedAt: row.created_at as string }));
 }
 
 export async function getConditions(supabase: SupabaseClient): Promise<ConditionRow[]> {

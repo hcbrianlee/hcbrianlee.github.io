@@ -26,19 +26,21 @@ export interface ModelConfig {
    * suggestions); light runs hot enough that an occasional suggestion comes
    * out noticeably weaker or a bit off-topic, without ever prompting the
    * model to sandbag itself -- the quality variance is real, not staged.
-   * OpenAI's scale is 0-2; Anthropic's is 0-1 (clamped in
+   * OpenAI's scale is 0-2 (1.5 is toward the upper end of coherent for
+   * gpt-4o-mini); Anthropic's is 0-1 (clamped in
    * src/lib/providers/anthropic.ts if a light/heavy model is ever pointed
    * at Anthropic).
    */
   temperature: number;
   /**
    * Nucleus sampling threshold [0,1]. Lowering top_p on its own pulls
-   * output *toward* safer/more focused text -- the opposite of what light
-   * is going for -- so light pairs a raised temperature with only a mild
-   * top_p cut, just enough to cap the extreme tail (avoiding incoherent
-   * output) without cancelling out the variety the higher temperature is
-   * there to produce. Heavy stays at 1 (no restriction), consistent with
-   * its already-low temperature keeping it focused.
+   * output *toward* safer/more focused text, which normally works against
+   * a raised temperature -- but at light's current 0.5, the cut is
+   * aggressive enough that it's doing real work restraining temperature
+   * 1.5's tail, not just a light touch. Watch for output drifting toward
+   * repetitive/bland rather than "occasionally weaker" if tightened
+   * further. Heavy stays at 1 (no restriction), consistent with its
+   * already-low temperature keeping it focused.
    */
   topP: number;
 }
@@ -74,8 +76,8 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
     fixedPlanPriceCents: Number(process.env.MODEL_LIGHT_FIXED_PLAN_CENTS ?? 100),
     suggestionCount: Number(process.env.MODEL_LIGHT_SUGGESTION_COUNT ?? 2),
     extraDelaySecPerToken: 0,
-    temperature: Number(process.env.MODEL_LIGHT_TEMPERATURE ?? 1.2),
-    topP: Number(process.env.MODEL_LIGHT_TOP_P ?? 0.9),
+    temperature: Number(process.env.MODEL_LIGHT_TEMPERATURE ?? 1.5),
+    topP: Number(process.env.MODEL_LIGHT_TOP_P ?? 0.5),
   },
 };
 

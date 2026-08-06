@@ -35,12 +35,17 @@ export interface SessionInfo {
   fixedPlanOptions: { heavy: number; light: number };
   /** Hotlinked image URL for this session's assigned cartoon (chosen once, deterministically, at session creation). */
   cartoonImageUrl: string;
-  /** The participant's submitted caption for this cartoon, if any. */
-  finalCaption: string | null;
-  /** ISO timestamp of when finalCaption was submitted, if any. */
-  finalCaptionSubmittedAt: string | null;
+  /** All caption ideas submitted so far for this cartoon, oldest first. Capped at maxCaptionSubmissions. */
+  captionSubmissions: CaptionSubmission[];
+  /** Most captions a single session may submit (see /api/submit-caption). */
+  maxCaptionSubmissions: number;
   /** Static per-1,000-token heavy vs. light comparison, for the environmental/energy_usage nudge under the model toggle. */
   modelComparison: ModelComparison;
+}
+
+export interface CaptionSubmission {
+  text: string;
+  submittedAt: string;
 }
 
 export interface ModelComparison {

@@ -183,9 +183,7 @@ export default function Home() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data?.error ?? "Failed to submit caption");
-      setSession((prev) =>
-        prev ? { ...prev, finalCaption: data.finalCaption, finalCaptionSubmittedAt: data.finalCaptionSubmittedAt } : prev
-      );
+      setSession((prev) => (prev ? { ...prev, captionSubmissions: data.submissions } : prev));
     } catch (err) {
       alert(err instanceof Error ? err.message : "Failed to submit caption");
     } finally {
@@ -274,13 +272,13 @@ export default function Home() {
             <CartoonImage cartoonImageUrl={session.cartoonImageUrl} />
 
             <CaptionSubmit
-              finalCaption={session.finalCaption}
-              finalCaptionSubmittedAt={session.finalCaptionSubmittedAt}
+              submissions={session.captionSubmissions}
+              maxSubmissions={session.maxCaptionSubmissions}
               submitting={captionSubmitting}
               onSubmit={handleSubmitCaption}
             />
 
-            {session.finalCaption && (
+            {session.captionSubmissions.length > 0 && (
               <FinishSection sessionEnded={sessionEnded} onDonateClick={() => setDonateOpen(true)} />
             )}
 

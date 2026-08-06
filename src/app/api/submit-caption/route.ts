@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase";
+import { MAX_CAPTION_SUBMISSIONS, getCaptionSubmissions } from "@/lib/session";
 
 export const runtime = "nodejs";
 
@@ -31,13 +32,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Session has already ended" }, { status: 409 });
     }
 
-    const submittedAt = new Date().toISOString();
-
-    const { error: updateErr } = await supabase
-      .from("sessions")
-      .update({ final_caption: trimmed, final_caption_submitted_at: submittedAt })
-      .eq("id", sessionId);
-    if (updateErr) throw new Error(`sessions update failed: ${updateErr.message}`);
+    const existing = await getCaptionSubmissions(supabase, sessionId);
+    if (existing.length >= MAX_CAPTION_SUBMISSIONS) {
+      return NextResponse.json(
+        { error: `You've already submitted the maximum of ${MAX_CAPTION_SUBMISSIONS} caption ideas.` },
+        { status: 409 }
+      );
+    }
 
     const { error: insertErr } = await supabase.from("events").insert({
       session_id: sessionId,
@@ -47,7 +48,8 @@ export async function POST(req: NextRequest) {
     });
     if (insertErr) throw new Error(`caption_submitted insert failed: ${insertErr.message}`);
 
-    return NextResponse.json({ finalCaption: trimmed, finalCaptionSubmittedAt: submittedAt });
+    const submissions = await getCaptionSubmissions(supabase, sessionId);
+    return NextResponse.json({ submissions });
   } catch (err) {
     console.error("POST /api/submit-caption failed", err);
     return NextResponse.json(

@@ -3,7 +3,14 @@ import { randomUUID } from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { hashIndex } from "@/lib/assignment";
-import { getConditions, getCumulativeUsage, getFixedPlan, getSocialProofPct } from "@/lib/session";
+import {
+  MAX_CAPTION_SUBMISSIONS,
+  getCaptionSubmissions,
+  getConditions,
+  getCumulativeUsage,
+  getFixedPlan,
+  getSocialProofPct,
+} from "@/lib/session";
 import { getInfoCopy, getPricingCopy } from "@/lib/conditions";
 import { getFixedPlanPriceCents } from "@/lib/pricing";
 import { getModelComparison } from "@/lib/carbon";
@@ -17,14 +24,13 @@ async function buildSessionInfo(
   sessionId: string,
   condition: ConditionRow,
   fixedCreditCents: number,
-  cartoonFilename: string,
-  finalCaption: string | null,
-  finalCaptionSubmittedAt: string | null
+  cartoonFilename: string
 ): Promise<SessionInfo> {
-  const [cumulative, socialProofPct, fixedPlan] = await Promise.all([
+  const [cumulative, socialProofPct, fixedPlan, captionSubmissions] = await Promise.all([
     getCumulativeUsage(supabase, sessionId),
     getSocialProofPct(supabase),
     getFixedPlan(supabase, sessionId),
+    getCaptionSubmissions(supabase, sessionId),
   ]);
 
   return {
@@ -43,8 +49,8 @@ async function buildSessionInfo(
     fixedPlan,
     fixedPlanOptions: { heavy: getFixedPlanPriceCents("heavy"), light: getFixedPlanPriceCents("light") },
     cartoonImageUrl: getCartoonImageUrl(cartoonFilename),
-    finalCaption,
-    finalCaptionSubmittedAt,
+    captionSubmissions,
+    maxCaptionSubmissions: MAX_CAPTION_SUBMISSIONS,
     modelComparison: getModelComparison(),
   };
 }
@@ -67,7 +73,7 @@ export async function POST(req: NextRequest) {
       const { data: existing } = await supabase
         .from("sessions")
         .select(
-          "id, fixed_credit_cents, status, cartoon_filename, final_caption, final_caption_submitted_at, condition:conditions(id, code, info_variant, pricing_variant, default_model)"
+          "id, fixed_credit_cents, status, cartoon_filename, condition:conditions(id, code, info_variant, pricing_variant, default_model)"
         )
         .eq("id", existingSessionId)
         .maybeSingle();
@@ -75,15 +81,7 @@ export async function POST(req: NextRequest) {
       const condition = (existing as unknown as { condition: ConditionRow | null } | null)?.condition ?? null;
 
       if (existing && condition) {
-        const info = await buildSessionInfo(
-          supabase,
-          existing.id,
-          condition,
-          existing.fixed_credit_cents,
-          existing.cartoon_filename,
-          existing.final_caption,
-          existing.final_caption_submitted_at
-        );
+        const info = await buildSessionInfo(supabase, existing.id, condition, existing.fixed_credit_cents, existing.cartoon_filename);
         return NextResponse.json(info);
       }
       // Unknown session id (e.g. stale localStorage after a DB reset) -- fall
@@ -130,7 +128,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const info = await buildSessionInfo(supabase, sessionId, condition, fixedCreditCents, cartoonFilename, null, null);
+    const info = await buildSessionInfo(supabase, sessionId, condition, fixedCreditCents, cartoonFilename);
     return NextResponse.json(info);
   } catch (err) {
     console.error("POST /api/session failed", err);
