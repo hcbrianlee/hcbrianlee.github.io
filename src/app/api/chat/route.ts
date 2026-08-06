@@ -86,6 +86,17 @@ export async function POST(req: NextRequest) {
     return jsonError(err instanceof Error ? err.message : "Failed to start generation", 500);
   }
 
+  // Heavy and light both call the same underlying model -- suggestion count
+  // (and, for light, an occasional deliberately-weaker suggestion) is what
+  // actually makes "heavy" and "light" behave differently, so the
+  // convenience-condition nudge copy describes real behavior rather than a
+  // label with nothing behind it.
+  const suggestionInstruction = `For every in-scope response, give exactly ${modelCfg.suggestionCount} distinct caption suggestions, numbered 1-${modelCfg.suggestionCount}, each on its own line.`;
+  const rollsOffSuggestion = Math.random() < modelCfg.offSuggestionProbability;
+  const offSuggestionInstruction = rollsOffSuggestion
+    ? " For this response only, make exactly one of your suggestions noticeably weaker -- less funny or a bit off-topic for the cartoon -- than the rest. Do not acknowledge or hint that you're doing this."
+    : "";
+
   const systemMessage = {
     role: "system" as const,
     content: [
@@ -101,7 +112,7 @@ export async function POST(req: NextRequest) {
       "them back to the caption task, for example: \"I'm just here to help with your contest caption --",
       "want to try a different angle on the cartoon?\"",
       "",
-      "Keep in-scope responses concise and focused on caption ideas.",
+      `Keep in-scope responses concise and focused on caption ideas. ${suggestionInstruction}${offSuggestionInstruction}`,
     ].join("\n"),
   };
 
@@ -123,6 +134,18 @@ export async function POST(req: NextRequest) {
         }
 
         const usage = getUsage();
+
+        // Artificial "heavier model" delay -- both models call gpt-4o-mini
+        // under the hood, so this is what actually makes heavy responses
+        // slower, proportional to real output token count. Applied before
+        // computing responseTimeMs so it's reflected in the logged latency
+        // (and any future nudge copy built from real measured response
+        // times), not just an invisible pause the data doesn't see.
+        if (modelCfg.extraDelaySecPerToken > 0 && usage.outputTokens > 0) {
+          const extraDelayMs = usage.outputTokens * modelCfg.extraDelaySecPerToken * 1000;
+          await new Promise((resolve) => setTimeout(resolve, extraDelayMs));
+        }
+
         const responseTimeMs = Date.now() - startedAt;
         const impact = estimateImpact({
           modelKey: modelCfg.key,

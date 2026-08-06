@@ -55,6 +55,23 @@ export function modelCaption(variant: InfoVariant, model: ModelKey, comparison: 
       </>
     );
   }
+  if (variant === "convenience") {
+    if (model === "light") {
+      return (
+        <>
+          Gives <strong>{comparison.lightSuggestionCount}</strong> caption suggestions per response — faster, but
+          about <strong>{Math.round(comparison.lightOffSuggestionProbability * 100)}%</strong> of the time, one of
+          them may be a bit off.
+        </>
+      );
+    }
+    return (
+      <>
+        Gives <strong>{comparison.heavySuggestionCount}</strong> caption suggestions per response, consistently
+        on-target — but takes noticeably longer to respond.
+      </>
+    );
+  }
   return null;
 }
 
@@ -67,7 +84,7 @@ export function ModelPicker(props: {
   locked?: boolean;
 }) {
   const { selected, onChange, infoVariant, modelComparison, locked } = props;
-  const showCaptions = infoVariant === "environmental" || infoVariant === "energy_usage";
+  const showCaptions = infoVariant === "environmental" || infoVariant === "energy_usage" || infoVariant === "convenience";
 
   if (locked) {
     return (

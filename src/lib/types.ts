@@ -51,6 +51,11 @@ export interface ModelComparison {
   deltaWaterMl: number;
   /** Hypothetical group size used to scale these per-1,000-token figures into a more tangible aggregate for nudge copy. */
   scaleUsers: number;
+  /** Caption suggestions each model is instructed to give per response -- used by the "convenience" nudge. */
+  heavySuggestionCount: number;
+  lightSuggestionCount: number;
+  /** Chance [0,1] the light model deliberately includes one weaker suggestion -- used by the "convenience" nudge. */
+  lightOffSuggestionProbability: number;
 }
 
 export interface CumulativeUsage {

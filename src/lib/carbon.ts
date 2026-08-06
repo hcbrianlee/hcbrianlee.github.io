@@ -76,6 +76,8 @@ function perThousandTokens(modelKey: ModelKey): ImpactEstimate {
 export function getModelComparison(): ModelComparison {
   const heavy = perThousandTokens("heavy");
   const light = perThousandTokens("light");
+  const heavyCfg = getModelConfig("heavy");
+  const lightCfg = getModelConfig("light");
   return {
     heavy,
     light,
@@ -83,5 +85,8 @@ export function getModelComparison(): ModelComparison {
     deltaCo2G: heavy.co2G - light.co2G,
     deltaWaterMl: heavy.waterMl - light.waterMl,
     scaleUsers: NUDGE_IMPACT_SCALE_USERS,
+    heavySuggestionCount: heavyCfg.suggestionCount,
+    lightSuggestionCount: lightCfg.suggestionCount,
+    lightOffSuggestionProbability: lightCfg.offSuggestionProbability,
   };
 }

@@ -14,7 +14,7 @@ export function FixedPlanPicker(props: {
   onSelect: (model: ModelKey) => void;
 }) {
   const { options, fixedCreditCents, infoVariant, infoCopy, modelComparison, submitting, onSelect } = props;
-  const showCaptions = infoVariant === "environmental" || infoVariant === "energy_usage";
+  const showCaptions = infoVariant === "environmental" || infoVariant === "energy_usage" || infoVariant === "convenience";
   const heavyCaption = showCaptions ? modelCaption(infoVariant, "heavy", modelComparison) : null;
   const lightCaption = showCaptions ? modelCaption(infoVariant, "light", modelComparison) : null;
 

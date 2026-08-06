@@ -9,7 +9,6 @@ import { DonationModal } from "@/components/DonationModal";
 import { FixedPlanPicker } from "@/components/FixedPlanPicker";
 import { CartoonImage } from "@/components/CartoonImage";
 import { CaptionSubmit } from "@/components/CaptionSubmit";
-import { NudgePanel } from "@/components/NudgePanel";
 import { FinishSection } from "@/components/FinishSection";
 import type { ChatMessage, ChatStreamFrame, CumulativeUsage, ModelKey, SessionInfo } from "@/lib/types";
 
@@ -293,16 +292,13 @@ export default function Home() {
               onSend={handleSend}
               disabled={sending || sessionEnded}
               topContent={
-                <>
-                  <ModelPicker
-                    selected={selectedModel}
-                    onChange={setSelectedModel}
-                    infoVariant={session.condition.infoVariant}
-                    modelComparison={session.modelComparison}
-                    locked={session.condition.pricingVariant === "fixed"}
-                  />
-                  {session.condition.infoVariant === "convenience" && <NudgePanel infoCopy={session.infoCopy} />}
-                </>
+                <ModelPicker
+                  selected={selectedModel}
+                  onChange={setSelectedModel}
+                  infoVariant={session.condition.infoVariant}
+                  modelComparison={session.modelComparison}
+                  locked={session.condition.pricingVariant === "fixed"}
+                />
               }
             />
           </>
