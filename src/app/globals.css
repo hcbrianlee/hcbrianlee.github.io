@@ -809,3 +809,155 @@ button {
     display: none;
   }
 }
+
+/* /admin experiment settings dashboard */
+
+.admin-shell {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+
+.admin-login {
+  max-width: 360px;
+  margin: 80px auto 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: center;
+}
+
+.admin-login input {
+  border: 1px solid #d9d9e3;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.admin-login button,
+.admin-save-btn {
+  background: #10a37f;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.admin-save-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.admin-header {
+  margin-bottom: 20px;
+}
+
+.admin-warning {
+  font-size: 13px;
+  color: #8a6d1f;
+  background: #fff8e6;
+  border: 1px solid #f0e0ad;
+  border-radius: 8px;
+  padding: 8px 12px;
+}
+
+.admin-error {
+  color: #c0392b;
+  font-size: 13px;
+}
+
+.admin-saved {
+  color: #0b6b4d;
+  font-size: 13px;
+}
+
+.admin-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 20px;
+}
+
+.admin-column {
+  border: 1px solid #e2e2ea;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.admin-column h3 {
+  margin: 0;
+  font-size: 15px;
+}
+
+.admin-provider-tag {
+  font-weight: 400;
+  color: #888;
+  font-size: 12.5px;
+}
+
+.admin-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.admin-field label {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #444;
+}
+
+.admin-field-note {
+  font-weight: 400;
+  color: #a06a00;
+}
+
+.admin-field-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-field input[type="number"] {
+  width: 100px;
+  border: 1px solid #d9d9e3;
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 13.5px;
+}
+
+.admin-field textarea {
+  border: 1px solid #d9d9e3;
+  border-radius: 6px;
+  padding: 8px 10px;
+  font-size: 13.5px;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.admin-field-default {
+  font-size: 11.5px;
+  color: #999;
+}
+
+.admin-reset-btn {
+  border: 1px solid #d9d9e3;
+  background: white;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11.5px;
+  cursor: pointer;
+  color: #666;
+}
+
+@media (max-width: 640px) {
+  .admin-columns {
+    grid-template-columns: 1fr;
+  }
+}

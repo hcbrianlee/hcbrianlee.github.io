@@ -99,6 +99,28 @@ from sessions s
 left join events e on e.session_id = s.id
 group by s.id;
 
+-- Single-row table of live experimenter overrides for LLM request params,
+-- edited from /admin (see ADMIN_DASHBOARD_SECRET in .env.example). Every
+-- column is nullable -- null means "use the src/lib/models.ts default for
+-- that model." This is a temporary internal tool, expected to be removed
+-- once the experiment's actual parameters are settled; keeping it as one
+-- row rather than an events-style log keeps that removal a one-line drop.
+create table if not exists experiment_overrides (
+  id integer primary key default 1,
+  heavy_temperature numeric,
+  light_temperature numeric,
+  heavy_top_k integer,
+  light_top_k integer,
+  heavy_presence_penalty numeric,
+  light_presence_penalty numeric,
+  heavy_max_tokens integer,
+  light_max_tokens integer,
+  heavy_system_tone text,
+  light_system_tone text,
+  updated_at timestamptz not null default now(),
+  constraint experiment_overrides_singleton check (id = 1)
+);
+
 -- Row Level Security: this app talks to Supabase exclusively from Next.js
 -- API routes using the service role key, never from the browser, so RLS can
 -- stay default-deny. Enabling it here is a safety net in case the anon key
@@ -106,3 +128,4 @@ group by s.id;
 alter table conditions enable row level security;
 alter table sessions enable row level security;
 alter table events enable row level security;
+alter table experiment_overrides enable row level security;
