@@ -117,6 +117,8 @@ create table if not exists experiment_overrides (
   light_max_tokens integer,
   heavy_system_tone text,
   light_system_tone text,
+  heavy_system_prompt text,
+  light_system_prompt text,
   heavy_seed integer,
   light_seed integer,
   heavy_delay_base_sec numeric,
@@ -138,6 +140,8 @@ alter table experiment_overrides add column if not exists heavy_delay_jitter_sec
 alter table experiment_overrides add column if not exists light_delay_jitter_sec numeric;
 alter table experiment_overrides add column if not exists heavy_top_p numeric;
 alter table experiment_overrides add column if not exists light_top_p numeric;
+alter table experiment_overrides add column if not exists heavy_system_prompt text;
+alter table experiment_overrides add column if not exists light_system_prompt text;
 -- top_k never had an effect (OpenAI's API has no top_k param, and both
 -- models run on OpenAI) -- dropped rather than left as dead columns.
 alter table experiment_overrides drop column if exists heavy_top_k;

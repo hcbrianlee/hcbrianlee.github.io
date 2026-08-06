@@ -6,6 +6,7 @@ import { estimateImpact } from "@/lib/carbon";
 import { estimateCostCents } from "@/lib/pricing";
 import { getCumulativeUsage, getFixedPlan } from "@/lib/session";
 import { getExperimentOverrides } from "@/lib/overrides";
+import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
 import type { ChatStreamFrame, ConditionRow, ModelKey } from "@/lib/types";
 
 const DEFAULT_MAX_TOKENS = 1024;
@@ -48,6 +49,7 @@ export async function POST(req: NextRequest) {
     presencePenalty: number | null;
     maxTokens: number;
     systemTone: string | null;
+    systemPrompt: string;
     seed: number | null;
     delayBaseSec: number;
     delayJitterSec: number;
@@ -95,6 +97,7 @@ export async function POST(req: NextRequest) {
             presencePenalty: overrides.heavyPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
             maxTokens: overrides.heavyMaxTokens ?? DEFAULT_MAX_TOKENS,
             systemTone: overrides.heavySystemTone,
+            systemPrompt: overrides.heavySystemPrompt ?? DEFAULT_SYSTEM_PROMPT,
             seed: overrides.heavySeed,
             delayBaseSec: overrides.heavyDelayBaseSec ?? modelCfg.extraDelayBaseSec,
             delayJitterSec: overrides.heavyDelayJitterSec ?? modelCfg.extraDelayJitterSec,
@@ -105,6 +108,7 @@ export async function POST(req: NextRequest) {
             presencePenalty: overrides.lightPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
             maxTokens: overrides.lightMaxTokens ?? DEFAULT_MAX_TOKENS,
             systemTone: overrides.lightSystemTone,
+            systemPrompt: overrides.lightSystemPrompt ?? DEFAULT_SYSTEM_PROMPT,
             seed: overrides.lightSeed,
             delayBaseSec: overrides.lightDelayBaseSec ?? modelCfg.extraDelayBaseSec,
             delayJitterSec: overrides.lightDelayJitterSec ?? modelCfg.extraDelayJitterSec,
@@ -129,29 +133,14 @@ export async function POST(req: NextRequest) {
 
   // Heavy and light both call the same underlying model -- sampling
   // temperature/top_p and the artificial delay below are what actually make
-  // "heavy" and "light" behave differently. Both give one suggestion per
-  // response; the model is told not to mention or number that constraint so
-  // it reads as a natural single reply, not an enforced rule.
+  // "heavy" and "light" behave differently. effective.systemPrompt is the
+  // base prompt (DEFAULT_SYSTEM_PROMPT, or a full per-model override from
+  // /admin) with system_tone appended as an extra line, same as before.
   const systemMessage = {
     role: "system" as const,
-    content: [
-      "You are a creative-writing assistant with exactly one job: help this participant brainstorm,",
-      "refine, and polish captions for The New Yorker Cartoon Caption Contest.",
-      "",
-      "In scope: cartoon caption ideas, jokes, wordplay, comedic angles, tone, and feedback on captions",
-      "the participant has drafted.",
-      "",
-      "Out of scope: everything else -- general knowledge questions, coding help, writing unrelated to",
-      "a caption, personal advice, or any other topic. If the participant asks for something out of",
-      "scope, do not answer it, even partially. Reply with one short sentence declining and redirecting",
-      "them back to the caption task, for example: \"I'm just here to help with your contest caption --",
-      "want to try a different angle on the cartoon?\"",
-      "",
-      "Keep in-scope responses concise and focused on caption ideas. Give exactly one caption suggestion",
-      "per response -- never a list or multiple options. Do not mention, number, or otherwise call out",
-      "that you're limiting yourself to one; just respond naturally, as a collaborator would.",
-      ...(effective.systemTone ? ["", `Tone: ${effective.systemTone}`] : []),
-    ].join("\n"),
+    content: [effective.systemPrompt, ...(effective.systemTone ? ["", `Tone: ${effective.systemTone}`] : [])].join(
+      "\n"
+    ),
   };
 
   const startedAt = Date.now();

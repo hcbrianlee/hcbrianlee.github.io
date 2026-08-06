@@ -11,6 +11,7 @@ interface ModelDefaults {
   presencePenalty: number;
   maxTokens: number;
   systemTone: string;
+  systemPrompt: string;
   seed: number | null;
   delayBaseSec: number;
   delayJitterSec: number;
@@ -32,6 +33,8 @@ interface Overrides {
   lightMaxTokens: number | null;
   heavySystemTone: string | null;
   lightSystemTone: string | null;
+  heavySystemPrompt: string | null;
+  lightSystemPrompt: string | null;
   heavySeed: number | null;
   lightSeed: number | null;
   heavyDelayBaseSec: number | null;
@@ -104,6 +107,7 @@ function ModelColumn(props: {
   const presencePenalty = prefix === "heavy" ? overrides.heavyPresencePenalty : overrides.lightPresencePenalty;
   const maxTokens = prefix === "heavy" ? overrides.heavyMaxTokens : overrides.lightMaxTokens;
   const systemTone = prefix === "heavy" ? overrides.heavySystemTone : overrides.lightSystemTone;
+  const systemPrompt = prefix === "heavy" ? overrides.heavySystemPrompt : overrides.lightSystemPrompt;
   const seed = prefix === "heavy" ? overrides.heavySeed : overrides.lightSeed;
   const delayBaseSec = prefix === "heavy" ? overrides.heavyDelayBaseSec : overrides.lightDelayBaseSec;
   const delayJitterSec = prefix === "heavy" ? overrides.heavyDelayJitterSec : overrides.lightDelayJitterSec;
@@ -156,11 +160,32 @@ function ModelColumn(props: {
       />
 
       <div className="admin-field">
+        <label>
+          System prompt{" "}
+          <span className="admin-field-note">
+            (full replacement -- overwrites the built-in topic-scope guardrail and single-suggestion rule too, not
+            just style. Leave blank to use the default below.)
+          </span>
+        </label>
+        <textarea
+          rows={8}
+          value={systemPrompt ?? ""}
+          placeholder={defaults.systemPrompt}
+          onChange={(e) => onChange({ [`${prefix}SystemPrompt`]: e.target.value === "" ? null : e.target.value })}
+        />
+        {systemPrompt !== null && systemPrompt !== undefined && (
+          <button type="button" className="admin-reset-btn" onClick={() => onChange({ [`${prefix}SystemPrompt`]: null })}>
+            Reset to default
+          </button>
+        )}
+      </div>
+
+      <div className="admin-field">
         <label>System tone</label>
         <textarea
           rows={3}
           value={systemTone ?? ""}
-          placeholder={defaults.systemTone ? defaults.systemTone : "(no default -- appended as an extra system-prompt line if set)"}
+          placeholder={defaults.systemTone ? defaults.systemTone : "(no default -- appended as an extra line after the system prompt above, if set)"}
           onChange={(e) => onChange({ [`${prefix}SystemTone`]: e.target.value === "" ? null : e.target.value })}
         />
       </div>

@@ -15,6 +15,14 @@ export interface ExperimentOverrides {
   heavySystemTone: string | null;
   lightSystemTone: string | null;
   /**
+   * Full replacement for DEFAULT_SYSTEM_PROMPT (src/lib/prompts.ts) for that
+   * model. The system_tone line above still gets appended after whichever
+   * of these (custom or default) is in effect -- this replaces the main
+   * body, not the tone modifier.
+   */
+  heavySystemPrompt: string | null;
+  lightSystemPrompt: string | null;
+  /**
    * OpenAI only -- Anthropic's API has no seed param. Paired with
    * temperature: 0, this is OpenAI's "best effort" reproducibility knob:
    * same seed + same params + same prompt usually (not guaranteed) returns
@@ -48,6 +56,8 @@ const EMPTY_OVERRIDES: ExperimentOverrides = {
   lightMaxTokens: null,
   heavySystemTone: null,
   lightSystemTone: null,
+  heavySystemPrompt: null,
+  lightSystemPrompt: null,
   heavySeed: null,
   lightSeed: null,
   heavyDelayBaseSec: null,
@@ -73,6 +83,8 @@ export async function getExperimentOverrides(supabase: SupabaseClient): Promise<
     lightMaxTokens: data.light_max_tokens,
     heavySystemTone: data.heavy_system_tone,
     lightSystemTone: data.light_system_tone,
+    heavySystemPrompt: data.heavy_system_prompt,
+    lightSystemPrompt: data.light_system_prompt,
     heavySeed: data.heavy_seed,
     lightSeed: data.light_seed,
     heavyDelayBaseSec: data.heavy_delay_base_sec,
@@ -102,6 +114,8 @@ export async function saveExperimentOverrides(
     light_max_tokens: next.lightMaxTokens,
     heavy_system_tone: next.heavySystemTone,
     light_system_tone: next.lightSystemTone,
+    heavy_system_prompt: next.heavySystemPrompt,
+    light_system_prompt: next.lightSystemPrompt,
     heavy_seed: next.heavySeed,
     light_seed: next.lightSeed,
     heavy_delay_base_sec: next.heavyDelayBaseSec,
