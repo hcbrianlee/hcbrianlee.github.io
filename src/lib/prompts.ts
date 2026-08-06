@@ -5,29 +5,26 @@
  * "default" hint (src/app/api/admin/settings/route.ts) and the actual
  * request (src/app/api/chat/route.ts) can never drift out of sync.
  *
- * Same base text for both models -- what makes "light" behave worse is
- * DEFAULT_LIGHT_SYSTEM_TONE below plus its sampling params (models.ts),
- * not a different base prompt.
+ * Same base text for both models -- what differentiates heavy and light is
+ * DEFAULT_HEAVY_SYSTEM_TONE / DEFAULT_LIGHT_SYSTEM_TONE below plus each
+ * model's sampling params (models.ts), not a different base prompt.
  */
-export const DEFAULT_SYSTEM_PROMPT = [
-  "You are a creative-writing assistant: help this participant brainstorm, refine, and polish captions",
-  "for a Cartoon Caption Contest.",
-  "",
-  "Give exactly one caption suggestion per response -- never a list or multiple options. Do not mention,",
-  "number, or otherwise call out that you're limiting yourself to one; just respond naturally, as a",
-  "collaborator would.",
-].join("\n");
+export const DEFAULT_SYSTEM_PROMPT =
+  "You're an assistant for cartoon caption. However, you are only enabled when the user asks you to generate " +
+  "cartoon caption. For each caption, you only generate one caption each time. Do not generate a list of them.";
 
 /**
- * Light's built-in default system_tone (src/app/api/chat/route.ts) -- unlike
- * every other override, this one has a non-null fallback, so light degrades
- * by default even with no admin override set. The chat route never sends
- * the actual cartoon image to the model (text-only), so "invent details"
- * lands as genuine hallucination about a scene it has no grounding in, not
- * just embellishment.
+ * Both models' built-in default system_tone (src/app/api/chat/route.ts) --
+ * unlike every other override, these have a non-null fallback, so heavy and
+ * light behave differently even with no admin override set. The chat route
+ * never sends the actual cartoon image to the model (text-only), so light's
+ * "invent details" instruction lands as genuine hallucination about a scene
+ * it has no grounding in, not just rougher phrasing.
  */
+export const DEFAULT_HEAVY_SYSTEM_TONE =
+  "Prioritize making sure the caption is polished, funny, and what's actually depicted over responding quickly; " +
+  "a detailed, coherent, or thoughtful suggestion is preferred.";
+
 export const DEFAULT_LIGHT_SYSTEM_TONE =
-  "Don't worry about staying accurate to the cartoon's actual details -- it's fine to invent, assume, or " +
-  "embellish specifics about the scene rather than carefully working them out. Prioritize responding quickly " +
-  "over making sure the caption is polished, tightly reasoned, or well-grounded in what's actually depicted; " +
-  "a rougher, less coherent, or loosely-related suggestion is fine.";
+  "Prioritize responding quickly over making sure the caption is funny, and what's actually depicted; a rougher, " +
+  "less coherent, or loosely-related suggestion is fine.";

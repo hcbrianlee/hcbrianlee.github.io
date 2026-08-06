@@ -6,7 +6,7 @@ import { estimateImpact } from "@/lib/carbon";
 import { estimateCostCents } from "@/lib/pricing";
 import { getCumulativeUsage, getFixedPlan } from "@/lib/session";
 import { getExperimentOverrides } from "@/lib/overrides";
-import { DEFAULT_SYSTEM_PROMPT, DEFAULT_LIGHT_SYSTEM_TONE } from "@/lib/prompts";
+import { DEFAULT_SYSTEM_PROMPT, DEFAULT_HEAVY_SYSTEM_TONE, DEFAULT_LIGHT_SYSTEM_TONE } from "@/lib/prompts";
 import type { ChatStreamFrame, ConditionRow, ModelKey } from "@/lib/types";
 
 const DEFAULT_MAX_TOKENS = 1024;
@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
             topP: overrides.heavyTopP ?? modelCfg.topP,
             presencePenalty: overrides.heavyPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
             maxTokens: overrides.heavyMaxTokens ?? DEFAULT_MAX_TOKENS,
-            systemTone: overrides.heavySystemTone,
+            systemTone: overrides.heavySystemTone ?? DEFAULT_HEAVY_SYSTEM_TONE,
             systemPrompt: overrides.heavySystemPrompt ?? DEFAULT_SYSTEM_PROMPT,
             seed: overrides.heavySeed,
             delayBaseSec: overrides.heavyDelayBaseSec ?? modelCfg.extraDelayBaseSec,

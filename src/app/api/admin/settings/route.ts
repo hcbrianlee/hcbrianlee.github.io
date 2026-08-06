@@ -3,7 +3,7 @@ import { getSupabaseServerClient } from "@/lib/supabase";
 import { isAdminAuthorized } from "@/lib/adminAuth";
 import { getExperimentOverrides, saveExperimentOverrides, type ExperimentOverrides } from "@/lib/overrides";
 import { getModelConfig } from "@/lib/models";
-import { DEFAULT_SYSTEM_PROMPT, DEFAULT_LIGHT_SYSTEM_TONE } from "@/lib/prompts";
+import { DEFAULT_SYSTEM_PROMPT, DEFAULT_HEAVY_SYSTEM_TONE, DEFAULT_LIGHT_SYSTEM_TONE } from "@/lib/prompts";
 
 export const runtime = "nodejs";
 
@@ -20,7 +20,7 @@ function defaults() {
       // provider's own default) rather than model.ts.
       presencePenalty: 0,
       maxTokens: 1024,
-      systemTone: "" as string,
+      systemTone: DEFAULT_HEAVY_SYSTEM_TONE,
       systemPrompt: DEFAULT_SYSTEM_PROMPT,
       // No model.ts default -- unset means OpenAI/Anthropic pick their own
       // random seed per request, which is exactly what "no override" should mean.
