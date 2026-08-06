@@ -3,7 +3,7 @@ import { getSupabaseServerClient } from "@/lib/supabase";
 import { isAdminAuthorized } from "@/lib/adminAuth";
 import { getExperimentOverrides, saveExperimentOverrides, type ExperimentOverrides } from "@/lib/overrides";
 import { getModelConfig } from "@/lib/models";
-import { DEFAULT_SYSTEM_PROMPT } from "@/lib/prompts";
+import { DEFAULT_SYSTEM_PROMPT, DEFAULT_LIGHT_SYSTEM_TONE } from "@/lib/prompts";
 
 export const runtime = "nodejs";
 
@@ -34,7 +34,7 @@ function defaults() {
       topP: light.topP,
       presencePenalty: 0,
       maxTokens: 1024,
-      systemTone: "" as string,
+      systemTone: DEFAULT_LIGHT_SYSTEM_TONE,
       systemPrompt: DEFAULT_SYSTEM_PROMPT,
       seed: null as number | null,
       delayBaseSec: light.extraDelayBaseSec,
