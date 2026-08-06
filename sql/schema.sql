@@ -117,9 +117,17 @@ create table if not exists experiment_overrides (
   light_max_tokens integer,
   heavy_system_tone text,
   light_system_tone text,
+  heavy_seed integer,
+  light_seed integer,
   updated_at timestamptz not null default now(),
   constraint experiment_overrides_singleton check (id = 1)
 );
+
+-- `create table if not exists` above only helps on a first-ever run --
+-- these two columns were added after some projects already had the table,
+-- so pick them up explicitly on a re-run too.
+alter table experiment_overrides add column if not exists heavy_seed integer;
+alter table experiment_overrides add column if not exists light_seed integer;
 
 -- Row Level Security: this app talks to Supabase exclusively from Next.js
 -- API routes using the service role key, never from the browser, so RLS can

@@ -9,6 +9,8 @@ export async function streamOpenAI(params: {
   topP: number;
   presencePenalty: number | null;
   maxTokens: number;
+  /** OpenAI's "best effort" reproducibility knob -- paired with temperature 0, usually (not guaranteed) returns the same completion for the same seed+prompt+params. */
+  seed: number | null;
 }): Promise<{ textStream: AsyncIterable<string>; getUsage: () => UsageTotals }> {
   const client = new OpenAI({ apiKey: params.apiKey });
   const usage: UsageTotals = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
@@ -19,6 +21,7 @@ export async function streamOpenAI(params: {
     temperature: params.temperature,
     top_p: params.topP,
     ...(params.presencePenalty !== null ? { presence_penalty: params.presencePenalty } : {}),
+    ...(params.seed !== null ? { seed: params.seed } : {}),
     max_tokens: params.maxTokens,
     stream: true,
     stream_options: { include_usage: true },

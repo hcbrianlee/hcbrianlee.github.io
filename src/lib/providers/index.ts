@@ -13,6 +13,8 @@ export async function streamChat(params: {
   /** OpenAI only -- silently ignored for the "anthropic" provider (no equivalent param). */
   presencePenalty: number | null;
   maxTokens: number;
+  /** OpenAI only -- silently ignored for the "anthropic" provider (no equivalent param). */
+  seed: number | null;
 }): Promise<{ textStream: AsyncIterable<string>; getUsage: () => UsageTotals }> {
   if (params.provider === "anthropic") {
     const apiKey = process.env.ANTHROPIC_API_KEY;
@@ -38,5 +40,6 @@ export async function streamChat(params: {
     topP: params.topP,
     presencePenalty: params.presencePenalty,
     maxTokens: params.maxTokens,
+    seed: params.seed,
   });
 }

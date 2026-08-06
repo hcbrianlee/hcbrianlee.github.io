@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
     presencePenalty: number | null;
     maxTokens: number;
     systemTone: string | null;
+    seed: number | null;
   };
   try {
     supabase = getSupabaseServerClient();
@@ -94,6 +95,7 @@ export async function POST(req: NextRequest) {
             presencePenalty: overrides.heavyPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
             maxTokens: overrides.heavyMaxTokens ?? DEFAULT_MAX_TOKENS,
             systemTone: overrides.heavySystemTone,
+            seed: overrides.heavySeed,
           }
         : {
             temperature: overrides.lightTemperature ?? modelCfg.temperature,
@@ -102,6 +104,7 @@ export async function POST(req: NextRequest) {
             presencePenalty: overrides.lightPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
             maxTokens: overrides.lightMaxTokens ?? DEFAULT_MAX_TOKENS,
             systemTone: overrides.lightSystemTone,
+            seed: overrides.lightSeed,
           };
 
     const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
@@ -163,6 +166,7 @@ export async function POST(req: NextRequest) {
           topK: effective.topK,
           presencePenalty: effective.presencePenalty,
           maxTokens: effective.maxTokens,
+          seed: effective.seed,
         });
 
         for await (const delta of textStream) {

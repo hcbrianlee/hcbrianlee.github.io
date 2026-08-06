@@ -14,6 +14,16 @@ export interface ExperimentOverrides {
   /** Freeform text appended to that model's system prompt as a "Tone: ..." line. */
   heavySystemTone: string | null;
   lightSystemTone: string | null;
+  /**
+   * OpenAI only -- Anthropic's API has no seed param. Paired with
+   * temperature: 0, this is OpenAI's "best effort" reproducibility knob:
+   * same seed + same params + same prompt usually (not guaranteed) returns
+   * the same completion. Without it, gpt-4o-mini is not deterministic even
+   * at temperature 0 -- that's inherent to how OpenAI serves the model
+   * (MoE routing, floating-point non-associativity), not a bug here.
+   */
+  heavySeed: number | null;
+  lightSeed: number | null;
 }
 
 const EMPTY_OVERRIDES: ExperimentOverrides = {
@@ -27,6 +37,8 @@ const EMPTY_OVERRIDES: ExperimentOverrides = {
   lightMaxTokens: null,
   heavySystemTone: null,
   lightSystemTone: null,
+  heavySeed: null,
+  lightSeed: null,
 };
 
 /** Row -> ExperimentOverrides. Missing row (never saved yet) reads as all-null, i.e. every model default applies. */
@@ -46,6 +58,8 @@ export async function getExperimentOverrides(supabase: SupabaseClient): Promise<
     lightMaxTokens: data.light_max_tokens,
     heavySystemTone: data.heavy_system_tone,
     lightSystemTone: data.light_system_tone,
+    heavySeed: data.heavy_seed,
+    lightSeed: data.light_seed,
   };
 }
 
@@ -69,6 +83,8 @@ export async function saveExperimentOverrides(
     light_max_tokens: next.lightMaxTokens,
     heavy_system_tone: next.heavySystemTone,
     light_system_tone: next.lightSystemTone,
+    heavy_seed: next.heavySeed,
+    light_seed: next.lightSeed,
     updated_at: new Date().toISOString(),
   });
   if (error) throw new Error(`experiment_overrides save failed: ${error.message}`);

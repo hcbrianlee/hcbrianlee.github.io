@@ -12,6 +12,7 @@ interface ModelDefaults {
   presencePenalty: number;
   maxTokens: number;
   systemTone: string;
+  seed: number | null;
 }
 
 interface Defaults {
@@ -30,6 +31,8 @@ interface Overrides {
   lightMaxTokens: number | null;
   heavySystemTone: string | null;
   lightSystemTone: string | null;
+  heavySeed: number | null;
+  lightSeed: number | null;
 }
 
 type ModelPrefix = "heavy" | "light";
@@ -96,6 +99,7 @@ function ModelColumn(props: {
   const presencePenalty = prefix === "heavy" ? overrides.heavyPresencePenalty : overrides.lightPresencePenalty;
   const maxTokens = prefix === "heavy" ? overrides.heavyMaxTokens : overrides.lightMaxTokens;
   const systemTone = prefix === "heavy" ? overrides.heavySystemTone : overrides.lightSystemTone;
+  const seed = prefix === "heavy" ? overrides.heavySeed : overrides.lightSeed;
 
   return (
     <div className="admin-column">
@@ -152,6 +156,19 @@ function ModelColumn(props: {
           onChange={(e) => onChange({ [`${prefix}SystemTone`]: e.target.value === "" ? null : e.target.value })}
         />
       </div>
+
+      <NumberField
+        label="seed"
+        note={
+          defaults.provider === "anthropic"
+            ? "(no effect -- Anthropic has no seed param)"
+            : "(pair with temperature 0 for OpenAI's 'best effort' reproducibility -- not a hard guarantee)"
+        }
+        value={seed}
+        defaultValue={defaults.seed}
+        step={1}
+        onChange={(v) => onChange({ [`${prefix}Seed`]: v })}
+      />
     </div>
   );
 }

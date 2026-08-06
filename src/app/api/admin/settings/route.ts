@@ -21,6 +21,9 @@ function defaults() {
       presencePenalty: 0,
       maxTokens: 1024,
       systemTone: "" as string,
+      // No model.ts default -- unset means OpenAI/Anthropic pick their own
+      // random seed per request, which is exactly what "no override" should mean.
+      seed: null as number | null,
     },
     light: {
       provider: light.provider,
@@ -30,6 +33,7 @@ function defaults() {
       presencePenalty: 0,
       maxTokens: 1024,
       systemTone: "" as string,
+      seed: null as number | null,
     },
   };
 }
