@@ -6,6 +6,7 @@ export async function streamOpenAI(params: {
   model: string;
   messages: { role: "system" | "user" | "assistant"; content: string }[];
   temperature: number;
+  topP: number;
 }): Promise<{ textStream: AsyncIterable<string>; getUsage: () => UsageTotals }> {
   const client = new OpenAI({ apiKey: params.apiKey });
   const usage: UsageTotals = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
@@ -14,6 +15,7 @@ export async function streamOpenAI(params: {
     model: params.model,
     messages: params.messages,
     temperature: params.temperature,
+    top_p: params.topP,
     stream: true,
     stream_options: { include_usage: true },
   });

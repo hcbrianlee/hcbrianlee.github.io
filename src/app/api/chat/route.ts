@@ -125,6 +125,7 @@ export async function POST(req: NextRequest) {
           model: modelCfg.model,
           messages: [systemMessage, ...messages],
           temperature: modelCfg.temperature,
+          topP: modelCfg.topP,
         });
 
         for await (const delta of textStream) {

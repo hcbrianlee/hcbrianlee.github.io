@@ -31,6 +31,16 @@ export interface ModelConfig {
    * at Anthropic).
    */
   temperature: number;
+  /**
+   * Nucleus sampling threshold [0,1]. Lowering top_p on its own pulls
+   * output *toward* safer/more focused text -- the opposite of what light
+   * is going for -- so light pairs a raised temperature with only a mild
+   * top_p cut, just enough to cap the extreme tail (avoiding incoherent
+   * output) without cancelling out the variety the higher temperature is
+   * there to produce. Heavy stays at 1 (no restriction), consistent with
+   * its already-low temperature keeping it focused.
+   */
+  topP: number;
 }
 
 function envProvider(name: string, fallback: Provider): Provider {
@@ -51,6 +61,7 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
     suggestionCount: Number(process.env.MODEL_HEAVY_SUGGESTION_COUNT ?? 5),
     extraDelaySecPerToken: Number(process.env.MODEL_HEAVY_EXTRA_DELAY_SEC_PER_TOKEN ?? 0.5),
     temperature: Number(process.env.MODEL_HEAVY_TEMPERATURE ?? 0.7),
+    topP: Number(process.env.MODEL_HEAVY_TOP_P ?? 1.0),
   },
   light: {
     key: "light",
@@ -64,6 +75,7 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
     suggestionCount: Number(process.env.MODEL_LIGHT_SUGGESTION_COUNT ?? 2),
     extraDelaySecPerToken: 0,
     temperature: Number(process.env.MODEL_LIGHT_TEMPERATURE ?? 1.2),
+    topP: Number(process.env.MODEL_LIGHT_TOP_P ?? 0.9),
   },
 };
 
