@@ -25,11 +25,10 @@ export interface ExperimentOverrides {
   heavySystemTone: string | null;
   lightSystemTone: string | null;
   /**
-   * Full replacement for that model's default system prompt
-   * (DEFAULT_HEAVY_SYSTEM_PROMPT / DEFAULT_LIGHT_SYSTEM_PROMPT, src/lib/prompts.ts).
-   * The system_tone line above still gets appended after whichever of these
-   * (custom or default) is in effect -- this replaces the main body, not
-   * the tone modifier.
+   * The system prompt sent for that model, if any. There's no built-in
+   * default (see src/app/api/chat/route.ts) -- if this is null, no system
+   * message is sent at all. system_tone above still gets appended after it
+   * if both are set.
    */
   heavySystemPrompt: string | null;
   lightSystemPrompt: string | null;
@@ -37,9 +36,10 @@ export interface ExperimentOverrides {
    * OpenAI only -- Anthropic's API has no seed param. Paired with
    * temperature: 0, this is OpenAI's "best effort" reproducibility knob:
    * same seed + same params + same prompt usually (not guaranteed) returns
-   * the same completion. Without it, gpt-4o is not deterministic even at
-   * temperature 0 -- that's inherent to how OpenAI serves the model (MoE
-   * routing, floating-point non-associativity), not a bug here.
+   * the same completion. Neither gpt-4 nor gpt-4o-mini are deterministic
+   * even at temperature 0 without it -- that's inherent to how OpenAI
+   * serves these models (MoE routing, floating-point non-associativity),
+   * not a bug here.
    */
   heavySeed: number | null;
   lightSeed: number | null;

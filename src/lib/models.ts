@@ -13,12 +13,13 @@ export interface ModelConfig {
   /** Flat one-time price in cents to pick this model under the "fixed" pricing condition. */
   fixedPlanPriceCents: number;
   /**
-   * Both heavy and light call the same underlying model (gpt-4o) --
-   * this artificial delay (seconds) is what makes "heavy" still behave
-   * meaningfully slower. Applied once per response, after generation
-   * completes, as extraDelayBaseSec +/- extraDelayJitterSec (uniformly
-   * random). Not proportional to response length -- a flat, roughly
-   * 3-second-ish pause regardless of how much text came back. 0/0 for light.
+   * Heavy (gpt-4) and light (gpt-4o-mini) are genuinely different real
+   * models -- this artificial delay (seconds) is on top of that, further
+   * reinforcing "heavy takes longer." Applied once per response, after
+   * generation completes, as extraDelayBaseSec +/- extraDelayJitterSec
+   * (uniformly random). Not proportional to response length -- a flat,
+   * roughly 3-second-ish pause regardless of how much text came back.
+   * 0/0 for light.
    */
   extraDelayBaseSec: number;
   extraDelayJitterSec: number;
@@ -28,7 +29,7 @@ export interface ModelConfig {
    * out noticeably weaker or a bit off-topic, without ever prompting the
    * model to sandbag itself -- the quality variance is real, not staged.
    * OpenAI's scale is 0-2 (1.5 is toward the upper end of coherent for
-   * gpt-4o); Anthropic's is 0-1 (clamped in
+   * gpt-4o-mini); Anthropic's is 0-1 (clamped in
    * src/lib/providers/anthropic.ts if a light/heavy model is ever pointed
    * at Anthropic).
    */
@@ -55,7 +56,7 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
   heavy: {
     key: "heavy",
     provider: envProvider("MODEL_HEAVY_PROVIDER", "openai"),
-    model: process.env.MODEL_HEAVY_ID || "gpt-4o",
+    model: process.env.MODEL_HEAVY_ID || "gpt-4",
     label: "Heavy",
     description: "Consistently on-target, but takes noticeably longer to respond.",
     energyWhPer1kTokens: Number(process.env.MODEL_HEAVY_ENERGY_WH_PER_1K ?? 1.0),
@@ -69,7 +70,7 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
   light: {
     key: "light",
     provider: envProvider("MODEL_LIGHT_PROVIDER", "openai"),
-    model: process.env.MODEL_LIGHT_ID || "gpt-4o",
+    model: process.env.MODEL_LIGHT_ID || "gpt-4o-mini",
     label: "Light",
     description: "Faster, but occasionally a weaker or slightly off-topic suggestion slips in.",
     energyWhPer1kTokens: Number(process.env.MODEL_LIGHT_ENERGY_WH_PER_1K ?? 0.2),

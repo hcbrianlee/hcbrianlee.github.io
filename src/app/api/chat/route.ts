@@ -6,12 +6,6 @@ import { estimateImpact } from "@/lib/carbon";
 import { estimateCostCents } from "@/lib/pricing";
 import { getCumulativeUsage, getFixedPlan } from "@/lib/session";
 import { getExperimentOverrides } from "@/lib/overrides";
-import {
-  DEFAULT_HEAVY_SYSTEM_PROMPT,
-  DEFAULT_LIGHT_SYSTEM_PROMPT,
-  DEFAULT_HEAVY_SCHEDULING_PROMPT,
-  DEFAULT_LIGHT_SCHEDULING_PROMPT,
-} from "@/lib/prompts";
 import type { ChatStreamFrame, ConditionRow, ModelKey } from "@/lib/types";
 
 const DEFAULT_MAX_TOKENS = 1024;
@@ -93,11 +87,10 @@ export async function POST(req: NextRequest) {
 
     // Live experimenter overrides from /admin -- null fields fall back to
     // the src/lib/models.ts default for this model. See src/lib/overrides.ts.
+    // No built-in default system prompt for either task: heavySystemPrompt/
+    // lightSystemPrompt fall back to "" (no system message at all) rather
+    // than a hardcoded default -- see the systemMessage construction below.
     const overrides = await getExperimentOverrides(supabase);
-    const defaultHeavyPrompt =
-      overrides.activeTask === "scheduling" ? DEFAULT_HEAVY_SCHEDULING_PROMPT : DEFAULT_HEAVY_SYSTEM_PROMPT;
-    const defaultLightPrompt =
-      overrides.activeTask === "scheduling" ? DEFAULT_LIGHT_SCHEDULING_PROMPT : DEFAULT_LIGHT_SYSTEM_PROMPT;
     effective =
       modelKey === "heavy"
         ? {
@@ -106,7 +99,7 @@ export async function POST(req: NextRequest) {
             presencePenalty: overrides.heavyPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
             maxTokens: overrides.heavyMaxTokens ?? DEFAULT_MAX_TOKENS,
             systemTone: overrides.heavySystemTone,
-            systemPrompt: overrides.heavySystemPrompt ?? defaultHeavyPrompt,
+            systemPrompt: overrides.heavySystemPrompt ?? "",
             seed: overrides.heavySeed,
             delayBaseSec: overrides.heavyDelayBaseSec ?? modelCfg.extraDelayBaseSec,
             delayJitterSec: overrides.heavyDelayJitterSec ?? modelCfg.extraDelayJitterSec,
@@ -117,7 +110,7 @@ export async function POST(req: NextRequest) {
             presencePenalty: overrides.lightPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
             maxTokens: overrides.lightMaxTokens ?? DEFAULT_MAX_TOKENS,
             systemTone: overrides.lightSystemTone,
-            systemPrompt: overrides.lightSystemPrompt ?? defaultLightPrompt,
+            systemPrompt: overrides.lightSystemPrompt ?? "",
             seed: overrides.lightSeed,
             delayBaseSec: overrides.lightDelayBaseSec ?? modelCfg.extraDelayBaseSec,
             delayJitterSec: overrides.lightDelayJitterSec ?? modelCfg.extraDelayJitterSec,
@@ -140,18 +133,17 @@ export async function POST(req: NextRequest) {
     return jsonError(err instanceof Error ? err.message : "Failed to start generation", 500);
   }
 
-  // Heavy and light both call the same underlying model -- sampling
-  // temperature/top_p and the artificial delay below are what actually make
-  // "heavy" and "light" behave differently. effective.systemPrompt is that
-  // model's default (DEFAULT_HEAVY_SYSTEM_PROMPT / DEFAULT_LIGHT_SYSTEM_PROMPT,
-  // or a full per-model override from /admin) with system_tone appended as
-  // an extra line if the admin has set one.
-  const systemMessage = {
-    role: "system" as const,
-    content: [effective.systemPrompt, ...(effective.systemTone ? ["", `Tone: ${effective.systemTone}`] : [])].join(
-      "\n"
-    ),
-  };
+  // No built-in system prompt for either model or task -- effective.systemPrompt
+  // is only ever a per-model override set from /admin (empty by default), with
+  // system_tone appended as an extra line if the admin has set one. If neither
+  // is set, no system message is sent at all: the model gets no instructions
+  // about the task, the single-suggestion rule, or heavy/light framing --
+  // sampling params (temperature, top_p, delay, etc.) are the only thing
+  // differentiating heavy and light in that case.
+  const systemContent = [effective.systemPrompt, ...(effective.systemTone ? [`Tone: ${effective.systemTone}`] : [])]
+    .filter(Boolean)
+    .join("\n\n");
+  const systemMessages = systemContent ? [{ role: "system" as const, content: systemContent }] : [];
 
   const startedAt = Date.now();
 
@@ -176,7 +168,7 @@ export async function POST(req: NextRequest) {
         const { textStream, getUsage } = await streamChat({
           provider: modelCfg.provider,
           model: modelCfg.model,
-          messages: [systemMessage, ...messages],
+          messages: [...systemMessages, ...messages],
           temperature: effective.temperature,
           topP: effective.topP,
           presencePenalty: effective.presencePenalty,

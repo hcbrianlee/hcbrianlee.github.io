@@ -3,7 +3,6 @@ import { getSupabaseServerClient } from "@/lib/supabase";
 import { isAdminAuthorized } from "@/lib/adminAuth";
 import { getExperimentOverrides, saveExperimentOverrides, type ExperimentOverrides } from "@/lib/overrides";
 import { getModelConfig } from "@/lib/models";
-import { DEFAULT_HEAVY_SYSTEM_PROMPT, DEFAULT_LIGHT_SYSTEM_PROMPT } from "@/lib/prompts";
 
 export const runtime = "nodejs";
 
@@ -21,7 +20,9 @@ function defaults() {
       presencePenalty: 0,
       maxTokens: 1024,
       systemTone: "" as string,
-      systemPrompt: DEFAULT_HEAVY_SYSTEM_PROMPT,
+      // No built-in default for either task -- if this is unset, no system
+      // message is sent at all (see src/app/api/chat/route.ts).
+      systemPrompt: "" as string,
       // No model.ts default -- unset means OpenAI/Anthropic pick their own
       // random seed per request, which is exactly what "no override" should mean.
       seed: null as number | null,
@@ -35,7 +36,7 @@ function defaults() {
       presencePenalty: 0,
       maxTokens: 1024,
       systemTone: "" as string,
-      systemPrompt: DEFAULT_LIGHT_SYSTEM_PROMPT,
+      systemPrompt: "" as string,
       seed: null as number | null,
       delayBaseSec: light.extraDelayBaseSec,
       delayJitterSec: light.extraDelayJitterSec,

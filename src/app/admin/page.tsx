@@ -166,21 +166,16 @@ function ModelColumn(props: {
         <label>
           System prompt{" "}
           <span className="admin-field-note">
-            (full replacement -- overwrites the built-in topic-scope guardrail and single-suggestion rule too, not
-            just style. Leave blank to use the default below.)
+            (no built-in default -- if this is blank, no system message is sent at all, for either task. The model
+            gets no instructions about the puzzle/caption task, single-suggestion rule, or heavy/light framing.)
           </span>
         </label>
         <textarea
           rows={8}
           value={systemPrompt ?? ""}
-          placeholder={defaults.systemPrompt}
+          placeholder="(none -- no system message sent)"
           onChange={(e) => onChange({ [`${prefix}SystemPrompt`]: e.target.value === "" ? null : e.target.value })}
         />
-        {systemPrompt !== null && systemPrompt !== undefined && (
-          <button type="button" className="admin-reset-btn" onClick={() => onChange({ [`${prefix}SystemPrompt`]: null })}>
-            Reset to default
-          </button>
-        )}
       </div>
 
       <div className="admin-field">
@@ -188,7 +183,7 @@ function ModelColumn(props: {
         <textarea
           rows={3}
           value={systemTone ?? ""}
-          placeholder={defaults.systemTone ? defaults.systemTone : "(no default -- appended as an extra line after the system prompt above, if set)"}
+          placeholder="(no default -- appended as an extra line after the system prompt above, if both are set)"
           onChange={(e) => onChange({ [`${prefix}SystemTone`]: e.target.value === "" ? null : e.target.value })}
         />
       </div>
