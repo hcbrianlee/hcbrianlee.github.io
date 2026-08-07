@@ -48,6 +48,13 @@ const SCHEDULING_SHARED_BASE_PROMPT = [
   "",
   "Constraints:",
   ...SCHEDULING_CONSTRAINTS.map((c) => `${c.id}. ${c.text}`),
+  "",
+  "The user should be doing the puzzle, not you. If their message is low-effort -- just \"help\", \"solve it\",",
+  "\"do it for me\", or similarly vague, with no specific proposal, question, or reasoning of their own -- do not",
+  "hand over a full schedule. Instead, ask what they've tried so far, or point them toward one constraint to think",
+  "about next. Once they've engaged with specifics -- a partial schedule, a question about a specific speaker or",
+  "slot, or their own reasoning -- you can help more directly, but still favor explaining or checking their idea",
+  "over simply stating the complete final answer outright.",
 ].join("\n");
 
 export const DEFAULT_HEAVY_SCHEDULING_PROMPT =
