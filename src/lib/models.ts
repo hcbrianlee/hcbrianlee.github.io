@@ -13,9 +13,11 @@ export interface ModelConfig {
   /** Flat one-time price in cents to pick this model under the "fixed" pricing condition. */
   fixedPlanPriceCents: number;
   /**
-   * Heavy (gpt-4) and light (gpt-4o-mini) are genuinely different real
-   * models -- this artificial delay (seconds) is on top of that, further
-   * reinforcing "heavy takes longer." Applied once per response, after
+   * Heavy (gpt-4o) and light (gpt-4o-mini) are genuinely different real
+   * models -- same family/generation (OpenAI's own flagship/mini pair), so
+   * light is reliably the smaller sibling rather than an ambiguous
+   * cross-generation comparison. This artificial delay (seconds) is on top
+   * of that, further reinforcing "heavy takes longer." Applied once per
    * generation completes, as extraDelayBaseSec +/- extraDelayJitterSec
    * (uniformly random). Not proportional to response length -- a flat,
    * roughly 3-second-ish pause regardless of how much text came back.
@@ -56,7 +58,7 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
   heavy: {
     key: "heavy",
     provider: envProvider("MODEL_HEAVY_PROVIDER", "openai"),
-    model: process.env.MODEL_HEAVY_ID || "gpt-4",
+    model: process.env.MODEL_HEAVY_ID || "gpt-4o",
     label: "Heavy",
     description: "Consistently on-target, but takes noticeably longer to respond.",
     energyWhPer1kTokens: Number(process.env.MODEL_HEAVY_ENERGY_WH_PER_1K ?? 1.0),
