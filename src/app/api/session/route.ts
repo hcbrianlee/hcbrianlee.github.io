@@ -9,12 +9,14 @@ import {
   getConditions,
   getCumulativeUsage,
   getFixedPlan,
+  getScheduleSolved,
   getSocialProofPct,
 } from "@/lib/session";
 import { getInfoCopy, getPricingCopy } from "@/lib/conditions";
 import { getFixedPlanPriceCents } from "@/lib/pricing";
 import { getModelComparison } from "@/lib/carbon";
 import { getCartoonImageUrl, pickCartoonFilename } from "@/lib/cartoons";
+import { getExperimentOverrides } from "@/lib/overrides";
 import type { ConditionRow, SessionInfo } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -24,13 +26,16 @@ async function buildSessionInfo(
   sessionId: string,
   condition: ConditionRow,
   fixedCreditCents: number,
-  cartoonFilename: string
+  cartoonFilename: string,
+  startedAt: string
 ): Promise<SessionInfo> {
-  const [cumulative, socialProofPct, fixedPlan, captionSubmissions] = await Promise.all([
+  const [cumulative, socialProofPct, fixedPlan, captionSubmissions, scheduleSolved, overrides] = await Promise.all([
     getCumulativeUsage(supabase, sessionId),
     getSocialProofPct(supabase),
     getFixedPlan(supabase, sessionId),
     getCaptionSubmissions(supabase, sessionId),
+    getScheduleSolved(supabase, sessionId),
+    getExperimentOverrides(supabase),
   ]);
 
   return {
@@ -52,6 +57,9 @@ async function buildSessionInfo(
     captionSubmissions,
     maxCaptionSubmissions: MAX_CAPTION_SUBMISSIONS,
     modelComparison: getModelComparison(),
+    activeTask: overrides.activeTask,
+    sessionStartedAt: startedAt,
+    scheduleSolved,
   };
 }
 
@@ -73,7 +81,7 @@ export async function POST(req: NextRequest) {
       const { data: existing } = await supabase
         .from("sessions")
         .select(
-          "id, fixed_credit_cents, status, cartoon_filename, condition:conditions(id, code, info_variant, pricing_variant, default_model)"
+          "id, fixed_credit_cents, status, cartoon_filename, started_at, condition:conditions(id, code, info_variant, pricing_variant, default_model)"
         )
         .eq("id", existingSessionId)
         .maybeSingle();
@@ -81,7 +89,14 @@ export async function POST(req: NextRequest) {
       const condition = (existing as unknown as { condition: ConditionRow | null } | null)?.condition ?? null;
 
       if (existing && condition) {
-        const info = await buildSessionInfo(supabase, existing.id, condition, existing.fixed_credit_cents, existing.cartoon_filename);
+        const info = await buildSessionInfo(
+          supabase,
+          existing.id,
+          condition,
+          existing.fixed_credit_cents,
+          existing.cartoon_filename,
+          existing.started_at
+        );
         return NextResponse.json(info);
       }
       // Unknown session id (e.g. stale localStorage after a DB reset) -- fall
@@ -108,13 +123,17 @@ export async function POST(req: NextRequest) {
     const cartoonFilename = pickCartoonFilename(sessionId);
     const fixedCreditCents = Number(process.env.FIXED_CREDIT_CENTS ?? 300);
 
-    const { error: insertError } = await supabase.from("sessions").insert({
-      id: sessionId,
-      condition_id: condition.id,
-      participant_ref: participantRef ?? null,
-      fixed_credit_cents: fixedCreditCents,
-      cartoon_filename: cartoonFilename,
-    });
+    const { data: inserted, error: insertError } = await supabase
+      .from("sessions")
+      .insert({
+        id: sessionId,
+        condition_id: condition.id,
+        participant_ref: participantRef ?? null,
+        fixed_credit_cents: fixedCreditCents,
+        cartoon_filename: cartoonFilename,
+      })
+      .select("started_at")
+      .single();
     if (insertError) throw new Error(`sessions insert failed: ${insertError.message}`);
 
     await supabase.from("events").insert({
@@ -128,7 +147,14 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    const info = await buildSessionInfo(supabase, sessionId, condition, fixedCreditCents, cartoonFilename);
+    const info = await buildSessionInfo(
+      supabase,
+      sessionId,
+      condition,
+      fixedCreditCents,
+      cartoonFilename,
+      inserted.started_at
+    );
     return NextResponse.json(info);
   } catch (err) {
     console.error("POST /api/session failed", err);

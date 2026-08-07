@@ -6,7 +6,12 @@ import { estimateImpact } from "@/lib/carbon";
 import { estimateCostCents } from "@/lib/pricing";
 import { getCumulativeUsage, getFixedPlan } from "@/lib/session";
 import { getExperimentOverrides } from "@/lib/overrides";
-import { DEFAULT_HEAVY_SYSTEM_PROMPT, DEFAULT_LIGHT_SYSTEM_PROMPT } from "@/lib/prompts";
+import {
+  DEFAULT_HEAVY_SYSTEM_PROMPT,
+  DEFAULT_LIGHT_SYSTEM_PROMPT,
+  DEFAULT_HEAVY_SCHEDULING_PROMPT,
+  DEFAULT_LIGHT_SCHEDULING_PROMPT,
+} from "@/lib/prompts";
 import type { ChatStreamFrame, ConditionRow, ModelKey } from "@/lib/types";
 
 const DEFAULT_MAX_TOKENS = 1024;
@@ -89,6 +94,10 @@ export async function POST(req: NextRequest) {
     // Live experimenter overrides from /admin -- null fields fall back to
     // the src/lib/models.ts default for this model. See src/lib/overrides.ts.
     const overrides = await getExperimentOverrides(supabase);
+    const defaultHeavyPrompt =
+      overrides.activeTask === "scheduling" ? DEFAULT_HEAVY_SCHEDULING_PROMPT : DEFAULT_HEAVY_SYSTEM_PROMPT;
+    const defaultLightPrompt =
+      overrides.activeTask === "scheduling" ? DEFAULT_LIGHT_SCHEDULING_PROMPT : DEFAULT_LIGHT_SYSTEM_PROMPT;
     effective =
       modelKey === "heavy"
         ? {
@@ -97,7 +106,7 @@ export async function POST(req: NextRequest) {
             presencePenalty: overrides.heavyPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
             maxTokens: overrides.heavyMaxTokens ?? DEFAULT_MAX_TOKENS,
             systemTone: overrides.heavySystemTone,
-            systemPrompt: overrides.heavySystemPrompt ?? DEFAULT_HEAVY_SYSTEM_PROMPT,
+            systemPrompt: overrides.heavySystemPrompt ?? defaultHeavyPrompt,
             seed: overrides.heavySeed,
             delayBaseSec: overrides.heavyDelayBaseSec ?? modelCfg.extraDelayBaseSec,
             delayJitterSec: overrides.heavyDelayJitterSec ?? modelCfg.extraDelayJitterSec,
@@ -108,7 +117,7 @@ export async function POST(req: NextRequest) {
             presencePenalty: overrides.lightPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
             maxTokens: overrides.lightMaxTokens ?? DEFAULT_MAX_TOKENS,
             systemTone: overrides.lightSystemTone,
-            systemPrompt: overrides.lightSystemPrompt ?? DEFAULT_LIGHT_SYSTEM_PROMPT,
+            systemPrompt: overrides.lightSystemPrompt ?? defaultLightPrompt,
             seed: overrides.lightSeed,
             delayBaseSec: overrides.lightDelayBaseSec ?? modelCfg.extraDelayBaseSec,
             delayJitterSec: overrides.lightDelayJitterSec ?? modelCfg.extraDelayJitterSec,

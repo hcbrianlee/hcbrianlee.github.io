@@ -2,6 +2,8 @@ export type ModelKey = "light" | "heavy";
 export type Provider = "openai" | "anthropic";
 export type InfoVariant = "environmental" | "energy_usage" | "convenience" | "none";
 export type PricingVariant = "variable" | "fixed" | "free";
+/** Which task participants see -- global, toggled from /admin. See src/lib/overrides.ts: ActiveTask. */
+export type ActiveTask = "cartoon" | "scheduling";
 
 export interface CopyBlock {
   title: string;
@@ -41,6 +43,12 @@ export interface SessionInfo {
   maxCaptionSubmissions: number;
   /** Static per-1,000-token heavy vs. light comparison, for the environmental/energy_usage nudge under the model toggle. */
   modelComparison: ModelComparison;
+  /** Which task this session is doing -- global (not per-session), toggled from /admin. */
+  activeTask: ActiveTask;
+  /** ISO timestamp the session was created, used client-side as the scheduling task's timer reference point. */
+  sessionStartedAt: string;
+  /** True once a fully-correct schedule has been submitted for this session (scheduling task only). */
+  scheduleSolved: boolean;
 }
 
 export interface CaptionSubmission {

@@ -1,6 +1,16 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+export type ActiveTask = "cartoon" | "scheduling";
+
 export interface ExperimentOverrides {
+  /**
+   * Which task participants see: the cartoon caption contest, or the
+   * speaker-scheduling puzzle (src/lib/scheduling.ts). Global -- applies to
+   * every session, not per-participant like the randomized condition. This
+   * is a temporary dev-only switch for comparing how heavy/light differ
+   * across task types; expected to be removed once one task is settled on.
+   */
+  activeTask: ActiveTask;
   heavyTemperature: number | null;
   lightTemperature: number | null;
   /** Nucleus sampling threshold [0,1]. Supported by both OpenAI and Anthropic. */
@@ -47,6 +57,7 @@ export interface ExperimentOverrides {
 }
 
 const EMPTY_OVERRIDES: ExperimentOverrides = {
+  activeTask: "cartoon",
   heavyTemperature: null,
   lightTemperature: null,
   heavyTopP: null,
@@ -74,6 +85,7 @@ export async function getExperimentOverrides(supabase: SupabaseClient): Promise<
   if (!data) return EMPTY_OVERRIDES;
 
   return {
+    activeTask: data.active_task === "scheduling" ? "scheduling" : "cartoon",
     heavyTemperature: data.heavy_temperature,
     lightTemperature: data.light_temperature,
     heavyTopP: data.heavy_top_p,
@@ -105,6 +117,7 @@ export async function saveExperimentOverrides(
 
   const { error } = await supabase.from("experiment_overrides").upsert({
     id: 1,
+    active_task: next.activeTask,
     heavy_temperature: next.heavyTemperature,
     light_temperature: next.lightTemperature,
     heavy_top_p: next.heavyTopP,

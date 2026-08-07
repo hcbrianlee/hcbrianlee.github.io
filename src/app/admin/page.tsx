@@ -22,7 +22,10 @@ interface Defaults {
   light: ModelDefaults;
 }
 
+type ActiveTask = "cartoon" | "scheduling";
+
 interface Overrides {
+  activeTask: ActiveTask;
   heavyTemperature: number | null;
   lightTemperature: number | null;
   heavyTopP: number | null;
@@ -317,6 +320,23 @@ export default function AdminPage() {
         <p>Loading…</p>
       ) : (
         <>
+          <div className="admin-field admin-task-field">
+            <label>
+              Active task{" "}
+              <span className="admin-field-note">
+                (global -- applies to every session, not per-participant like the randomized condition. Temporary
+                dev tool for comparing heavy/light across task types.)
+              </span>
+            </label>
+            <select
+              value={overrides.activeTask}
+              onChange={(e) => handlePatch({ activeTask: e.target.value as ActiveTask })}
+            >
+              <option value="cartoon">Cartoon caption contest</option>
+              <option value="scheduling">Speaker scheduling puzzle</option>
+            </select>
+          </div>
+
           <div className="admin-columns">
             <ModelColumn prefix="heavy" defaults={defaults.heavy} overrides={overrides} onChange={handlePatch} />
             <ModelColumn prefix="light" defaults={defaults.light} overrides={overrides} onChange={handlePatch} />

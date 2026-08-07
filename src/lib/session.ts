@@ -93,6 +93,25 @@ export async function getCaptionSubmissions(
   return (data ?? []).map((row) => ({ text: row.caption_text as string, submittedAt: row.created_at as string }));
 }
 
+/**
+ * True once any fully-correct schedule has been submitted for this session
+ * (scheduling task only) -- sourced from schedule_submitted events' stored
+ * metadata.allCorrect (src/app/api/submit-schedule/route.ts), not
+ * re-validated here.
+ */
+export async function getScheduleSolved(supabase: SupabaseClient, sessionId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("metadata")
+    .eq("session_id", sessionId)
+    .eq("event_type", "schedule_submitted")
+    .eq("metadata->>allCorrect", "true")
+    .limit(1);
+
+  if (error) throw new Error(`schedule solved query failed: ${error.message}`);
+  return (data ?? []).length > 0;
+}
+
 export async function getConditions(supabase: SupabaseClient): Promise<ConditionRow[]> {
   const { data, error } = await supabase
     .from("conditions")

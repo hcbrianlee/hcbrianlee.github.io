@@ -53,6 +53,7 @@ create table if not exists events (
     'response_received',
     'fixed_plan_selected',
     'caption_submitted',
+    'schedule_submitted',
     'donation_submitted',
     'session_ended'
   )),
@@ -107,6 +108,7 @@ group by s.id;
 -- row rather than an events-style log keeps that removal a one-line drop.
 create table if not exists experiment_overrides (
   id integer primary key default 1,
+  active_task text not null default 'cartoon' check (active_task in ('cartoon', 'scheduling')),
   heavy_temperature numeric,
   light_temperature numeric,
   heavy_top_p numeric,
@@ -146,6 +148,26 @@ alter table experiment_overrides add column if not exists light_system_prompt te
 -- models run on OpenAI) -- dropped rather than left as dead columns.
 alter table experiment_overrides drop column if exists heavy_top_k;
 alter table experiment_overrides drop column if exists light_top_k;
+alter table experiment_overrides add column if not exists active_task text not null default 'cartoon';
+alter table experiment_overrides drop constraint if exists experiment_overrides_active_task_check;
+alter table experiment_overrides add constraint experiment_overrides_active_task_check
+  check (active_task in ('cartoon', 'scheduling'));
+
+-- Same "alter existing table" pattern for events.event_type -- the inline
+-- check on create table only takes effect on a brand new table, so an
+-- existing table's constraint needs to be replaced explicitly to add
+-- 'schedule_submitted'.
+alter table events drop constraint if exists events_event_type_check;
+alter table events add constraint events_event_type_check check (event_type in (
+  'session_started',
+  'prompt_submitted',
+  'response_received',
+  'fixed_plan_selected',
+  'caption_submitted',
+  'schedule_submitted',
+  'donation_submitted',
+  'session_ended'
+));
 
 -- Row Level Security: this app talks to Supabase exclusively from Next.js
 -- API routes using the service role key, never from the browser, so RLS can
