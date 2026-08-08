@@ -351,6 +351,7 @@ export default function Home() {
           <FixedPlanPicker
             options={session.fixedPlanOptions}
             fixedCreditCents={session.fixedCreditCents}
+            activeTask={session.activeTask}
             infoVariant={session.condition.infoVariant}
             infoCopy={session.infoCopy}
             modelComparison={session.modelComparison}

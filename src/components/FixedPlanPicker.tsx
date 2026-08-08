@@ -2,18 +2,30 @@
 
 import { modelCaption } from "@/components/ModelPicker";
 import { formatCents } from "@/lib/format";
-import type { CopyBlock, InfoVariant, ModelComparison, ModelKey } from "@/lib/types";
+import type { ActiveTask, CopyBlock, InfoVariant, ModelComparison, ModelKey } from "@/lib/types";
+
+const TASK_BLURB: Record<ActiveTask, string> = {
+  cartoon: "🏆 A panel of judges will rate captions for funniness — the caption with the most votes wins $100.",
+  scheduling:
+    "🏆 Assign each of the 6 speakers to a time slot so every constraint is satisfied — solve it as fast as you can.",
+  staffScheduling:
+    "🧩 This week's staffing puzzle, as written, has no valid solution. You'll need to figure out which rule is " +
+    "the real blocker, decide whether to relax it, explain your reasoning, and submit a schedule that satisfies " +
+    "everything else — a human judge reviews your schedule, the rule you relaxed, and your rationale afterward.",
+};
 
 export function FixedPlanPicker(props: {
   options: { heavy: number; light: number };
   fixedCreditCents: number;
+  activeTask: ActiveTask;
   infoVariant: InfoVariant;
   infoCopy: CopyBlock | null;
   modelComparison: ModelComparison;
   submitting: boolean;
   onSelect: (model: ModelKey) => void;
 }) {
-  const { options, fixedCreditCents, infoVariant, infoCopy, modelComparison, submitting, onSelect } = props;
+  const { options, fixedCreditCents, activeTask, infoVariant, infoCopy, modelComparison, submitting, onSelect } =
+    props;
   const showCaptions = infoVariant === "environmental" || infoVariant === "energy_usage" || infoVariant === "convenience";
   const heavyCaption = showCaptions ? modelCaption(infoVariant, "heavy", modelComparison) : null;
   const lightCaption = showCaptions ? modelCaption(infoVariant, "light", modelComparison) : null;
@@ -21,9 +33,7 @@ export function FixedPlanPicker(props: {
   return (
     <div className="plan-picker">
       <h2>Choose your model for this session</h2>
-      <div className="chat-nudge plan-picker-task">
-        🏆 A panel of judges will rate captions for funniness — the caption with the most votes wins $100.
-      </div>
+      <div className="chat-nudge plan-picker-task">{TASK_BLURB[activeTask]}</div>
       <p>
         This condition charges a flat, one-time price instead of per-message pricing. Pick heavy or light now — that
         choice covers every message for the rest of this session, charged once from your {formatCents(fixedCreditCents)}{" "}
