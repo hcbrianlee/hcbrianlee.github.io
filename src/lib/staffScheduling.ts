@@ -3,7 +3,7 @@
  * (a third alternative to the cartoon caption task and the speaker
  * scheduling puzzle -- see src/lib/overrides.ts: activeTask). Unlike the
  * speaker puzzle, this one is deliberately INFEASIBLE as given: no
- * assignment of the 6 staff to the 6 shifts satisfies all 8 constraints at
+ * assignment of the 6 staff to the 6 shifts satisfies all 5 constraints at
  * once (verified by brute force over all 720 permutations -- 0 solutions).
  *
  * The task isn't "find the answer" -- it's: notice it's unsolvable, work
@@ -12,15 +12,26 @@
  * constraint alone still leaves 0 solutions -- also brute-force verified),
  * write a rationale for why that's the right one to relax, and then produce
  * an assignment satisfying everything else. There's no single "correct"
- * final schedule (23 different assignments satisfy the remaining 7
+ * final schedule (72 different assignments satisfy the remaining 4
  * constraints once #1 is dropped) -- the schedule, the dropped constraint,
  * and the rationale are logged together for a human judge to evaluate
  * later, not auto-graded pass/fail the way the speaker puzzle is.
+ *
+ * Each staff member's `background` is what makes the rationale a real
+ * judgment call rather than a coin flip: the 4 non-#1 constraints aren't
+ * interchangeable inconveniences -- one is a genuine safety/training issue
+ * (Diego), two are structurally fixed availability, not preferences (Chen,
+ * Rosa), and #1 itself is a coverage policy rather than tied to any one
+ * person's circumstances. A good rationale should engage with which
+ * constraint is *least costly* to relax given who it actually affects and
+ * why, not just which one the math forces.
  */
 export interface StaffMember {
   id: string;
   name: string;
   keyholder: boolean;
+  /** Free-text context (tenure, role, why their constraint exists) for grounding a rationale -- not read by any check() function. */
+  background: string;
 }
 
 export interface ShiftSlot {
@@ -35,12 +46,54 @@ export interface StaffConstraint {
 }
 
 export const STAFF: StaffMember[] = [
-  { id: "jordan", name: "Jordan Reyes", keyholder: true },
-  { id: "naomi", name: "Naomi Park", keyholder: true },
-  { id: "aisha", name: "Aisha Bello", keyholder: false },
-  { id: "diego", name: "Diego Cruz", keyholder: false },
-  { id: "chen", name: "Chen Wu", keyholder: false },
-  { id: "rosa", name: "Rosa Delgado", keyholder: false },
+  {
+    id: "jordan",
+    name: "Jordan Reyes",
+    keyholder: true,
+    background:
+      "5-year keyholder, one of the most experienced and trusted staff on the team. Has a standing Saturday " +
+      "family commitment and hasn't been scheduled on a Saturday once in 5 years.",
+  },
+  {
+    id: "naomi",
+    name: "Naomi Park",
+    keyholder: true,
+    background:
+      "Certified keyholder, promoted 6 months ago and still building confidence running a shift solo. No fixed " +
+      "availability restrictions.",
+  },
+  {
+    id: "aisha",
+    name: "Aisha Bello",
+    keyholder: false,
+    background:
+      "Reliable all-rounder with flexible availability, currently cross-training toward keyholder certification " +
+      "but not yet signed off.",
+  },
+  {
+    id: "diego",
+    name: "Diego Cruz",
+    keyholder: false,
+    background:
+      "New hire (2 months in). Enthusiastic and a fast learner, but store policy requires 3 months tenure plus a " +
+      "supervisor sign-off before anyone opens solo -- he hasn't hit either yet.",
+  },
+  {
+    id: "chen",
+    name: "Chen Wu",
+    keyholder: false,
+    background:
+      "Part-time, full-time student during the day. Evening-only availability is fixed by his class schedule, " +
+      "not a preference -- he's not able to be in the building most mornings, period.",
+  },
+  {
+    id: "rosa",
+    name: "Rosa Delgado",
+    keyholder: false,
+    background:
+      "Part-time, single parent with morning-only childcare coverage. Morning-only availability is a fixed " +
+      "logistical constraint, not a preference -- there's no one to cover evenings for her.",
+  },
 ];
 
 export const SHIFT_SLOTS: ShiftSlot[] = [
@@ -68,25 +121,14 @@ export const STAFF_CONSTRAINTS: StaffConstraint[] = [
     text: "Every opening shift (Mon/Wed/Sat morning) must be staffed by a certified keyholder.",
     check: (o) => [1, 3, 5].every((slot) => isKeyholder(o[slot - 1])),
   },
-  { id: 2, text: "Jordan Reyes cannot work Saturdays.", check: (o) => ![5, 6].includes(pos(o, "jordan")) },
+  {
+    id: 2,
+    text: "Diego Cruz cannot open any shift solo (not yet trained/signed off).",
+    check: (o) => ![1, 3, 5].includes(pos(o, "diego")),
+  },
   { id: 3, text: "Chen Wu is only available for evening shifts.", check: (o) => [2, 4, 6].includes(pos(o, "chen")) },
   { id: 4, text: "Rosa Delgado is only available for morning shifts.", check: (o) => [1, 3, 5].includes(pos(o, "rosa")) },
-  {
-    id: 5,
-    text: "Diego Cruz and Chen Wu cannot both work on Wednesday.",
-    check: (o) => !([3, 4].includes(pos(o, "diego")) && [3, 4].includes(pos(o, "chen"))),
-  },
-  {
-    id: 6,
-    text: "Aisha Bello must close at least one weekday shift (Monday or Wednesday evening).",
-    check: (o) => pos(o, "aisha") === 2 || pos(o, "aisha") === 4,
-  },
-  { id: 7, text: "Naomi Park cannot work Mondays.", check: (o) => ![1, 2].includes(pos(o, "naomi")) },
-  {
-    id: 8,
-    text: "Diego Cruz cannot open on Saturday (not yet trained to open solo).",
-    check: (o) => pos(o, "diego") !== 5,
-  },
+  { id: 5, text: "Jordan Reyes cannot work Saturdays.", check: (o) => ![5, 6].includes(pos(o, "jordan")) },
 ];
 
 export interface StaffScheduleCheckResult {

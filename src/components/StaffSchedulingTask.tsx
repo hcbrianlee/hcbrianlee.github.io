@@ -92,11 +92,12 @@ export function StaffSchedulingTask(props: {
     return (
       <div className="scheduling-panel">
         <div className="chat-nudge">
-          🧩 This week&apos;s staffing puzzle, as written, has <strong>no valid solution</strong> -- 8 rules that all
-          have to hold, but can&apos;t all hold at once. Figure out which single rule is the real blocker, decide
-          whether to relax it, explain your reasoning, then build a schedule that satisfies everything else. Your
-          schedule, the rule you relax, and your rationale all get reviewed by a human judge afterward -- there&apos;s
-          no single &quot;correct&quot; answer here. The timer starts when you click below.
+          🧩 This week&apos;s staffing puzzle, as written, has <strong>no valid solution</strong> -- 5 rules that all
+          have to hold, but can&apos;t all hold at once. Read each staff member&apos;s background below, figure out
+          which single rule is the real blocker, decide whether to relax it, explain your reasoning, then build a
+          schedule that satisfies everything else. Your schedule, the rule you relax, and your rationale all get
+          reviewed by a human judge afterward -- there&apos;s no single &quot;correct&quot; answer here. The timer
+          starts when you click below.
         </div>
         <button className="caption-submit-btn" disabled={starting} onClick={onStart}>
           {starting ? "Starting…" : "Start puzzle"}
@@ -117,7 +118,22 @@ export function StaffSchedulingTask(props: {
       </div>
 
       <div className="scheduling-constraints">
-        <strong>Rules (all 8 must hold, except the one you relax below)</strong>
+        <strong>Staff</strong>
+        <ul className="staff-background-list">
+          {STAFF.map((s) => (
+            <li key={s.id}>
+              <strong>
+                {s.name}
+                {s.keyholder ? " (keyholder)" : ""}
+              </strong>
+              <span>{s.background}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div className="scheduling-constraints">
+        <strong>Rules (all 5 must hold, except the one you relax below)</strong>
         <ol>
           {STAFF_CONSTRAINTS.map((c) => {
             const result = results?.find((r) => r.id === c.id);
