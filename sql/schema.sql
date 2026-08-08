@@ -128,6 +128,8 @@ create table if not exists experiment_overrides (
   light_delay_base_sec numeric,
   heavy_delay_jitter_sec numeric,
   light_delay_jitter_sec numeric,
+  heavy_reasoning_effort text,
+  light_reasoning_effort text,
   updated_at timestamptz not null default now(),
   constraint experiment_overrides_singleton check (id = 1)
 );
@@ -150,6 +152,10 @@ alter table experiment_overrides add column if not exists light_system_prompt te
 alter table experiment_overrides drop column if exists heavy_top_k;
 alter table experiment_overrides drop column if exists light_top_k;
 alter table experiment_overrides add column if not exists active_task text not null default 'cartoon';
+-- Reasoning-model-only knob (o1/o3/o4-* via /admin) -- no effect on a
+-- standard chat model like light (gpt-4o-mini).
+alter table experiment_overrides add column if not exists heavy_reasoning_effort text;
+alter table experiment_overrides add column if not exists light_reasoning_effort text;
 alter table experiment_overrides drop constraint if exists experiment_overrides_active_task_check;
 alter table experiment_overrides add constraint experiment_overrides_active_task_check
   check (active_task in ('cartoon', 'scheduling'));

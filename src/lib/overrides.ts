@@ -54,6 +54,9 @@ export interface ExperimentOverrides {
   lightDelayBaseSec: number | null;
   heavyDelayJitterSec: number | null;
   lightDelayJitterSec: number | null;
+  /** Reasoning models only ("low" | "medium" | "high") -- see src/lib/providers/openai.ts isReasoningModel. No effect on a standard chat model. */
+  heavyReasoningEffort: string | null;
+  lightReasoningEffort: string | null;
 }
 
 const EMPTY_OVERRIDES: ExperimentOverrides = {
@@ -76,6 +79,8 @@ const EMPTY_OVERRIDES: ExperimentOverrides = {
   lightDelayBaseSec: null,
   heavyDelayJitterSec: null,
   lightDelayJitterSec: null,
+  heavyReasoningEffort: null,
+  lightReasoningEffort: null,
 };
 
 /** Row -> ExperimentOverrides. Missing row (never saved yet) reads as all-null, i.e. every model default applies. */
@@ -104,6 +109,8 @@ export async function getExperimentOverrides(supabase: SupabaseClient): Promise<
     lightDelayBaseSec: data.light_delay_base_sec,
     heavyDelayJitterSec: data.heavy_delay_jitter_sec,
     lightDelayJitterSec: data.light_delay_jitter_sec,
+    heavyReasoningEffort: data.heavy_reasoning_effort,
+    lightReasoningEffort: data.light_reasoning_effort,
   };
 }
 
@@ -136,6 +143,8 @@ export async function saveExperimentOverrides(
     light_delay_base_sec: next.lightDelayBaseSec,
     heavy_delay_jitter_sec: next.heavyDelayJitterSec,
     light_delay_jitter_sec: next.lightDelayJitterSec,
+    heavy_reasoning_effort: next.heavyReasoningEffort,
+    light_reasoning_effort: next.lightReasoningEffort,
     updated_at: new Date().toISOString(),
   });
   if (error) throw new Error(`experiment_overrides save failed: ${error.message}`);

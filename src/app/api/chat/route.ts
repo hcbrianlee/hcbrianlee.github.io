@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { getModelConfig } from "@/lib/models";
 import { streamChat } from "@/lib/providers";
+import { isReasoningModel } from "@/lib/providers/openai";
 import { estimateImpact } from "@/lib/carbon";
 import { estimateCostCents } from "@/lib/pricing";
 import { getCumulativeUsage, getFixedPlan } from "@/lib/session";
@@ -9,6 +10,11 @@ import { getExperimentOverrides } from "@/lib/overrides";
 import type { ChatStreamFrame, ConditionRow, ModelKey } from "@/lib/types";
 
 const DEFAULT_MAX_TOKENS = 1024;
+// Reasoning models spend part of max_completion_tokens on invisible
+// internal reasoning before producing any visible answer -- 1024 is prone
+// to truncating the response to nothing on a multi-step task like the
+// scheduling puzzle, so reasoning models get a larger default budget.
+const DEFAULT_MAX_TOKENS_REASONING = 4096;
 const DEFAULT_PRESENCE_PENALTY = 0;
 
 export const runtime = "nodejs";
@@ -52,6 +58,7 @@ export async function POST(req: NextRequest) {
     seed: number | null;
     delayBaseSec: number;
     delayJitterSec: number;
+    reasoningEffort: string | null;
   };
   try {
     supabase = getSupabaseServerClient();
@@ -91,29 +98,32 @@ export async function POST(req: NextRequest) {
     // lightSystemPrompt fall back to "" (no system message at all) rather
     // than a hardcoded default -- see the systemMessage construction below.
     const overrides = await getExperimentOverrides(supabase);
+    const defaultMaxTokens = isReasoningModel(modelCfg.model) ? DEFAULT_MAX_TOKENS_REASONING : DEFAULT_MAX_TOKENS;
     effective =
       modelKey === "heavy"
         ? {
             temperature: overrides.heavyTemperature ?? modelCfg.temperature,
             topP: overrides.heavyTopP ?? modelCfg.topP,
             presencePenalty: overrides.heavyPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
-            maxTokens: overrides.heavyMaxTokens ?? DEFAULT_MAX_TOKENS,
+            maxTokens: overrides.heavyMaxTokens ?? defaultMaxTokens,
             systemTone: overrides.heavySystemTone,
             systemPrompt: overrides.heavySystemPrompt ?? "",
             seed: overrides.heavySeed,
             delayBaseSec: overrides.heavyDelayBaseSec ?? modelCfg.extraDelayBaseSec,
             delayJitterSec: overrides.heavyDelayJitterSec ?? modelCfg.extraDelayJitterSec,
+            reasoningEffort: overrides.heavyReasoningEffort ?? modelCfg.reasoningEffort,
           }
         : {
             temperature: overrides.lightTemperature ?? modelCfg.temperature,
             topP: overrides.lightTopP ?? modelCfg.topP,
             presencePenalty: overrides.lightPresencePenalty ?? DEFAULT_PRESENCE_PENALTY,
-            maxTokens: overrides.lightMaxTokens ?? DEFAULT_MAX_TOKENS,
+            maxTokens: overrides.lightMaxTokens ?? defaultMaxTokens,
             systemTone: overrides.lightSystemTone,
             systemPrompt: overrides.lightSystemPrompt ?? "",
             seed: overrides.lightSeed,
             delayBaseSec: overrides.lightDelayBaseSec ?? modelCfg.extraDelayBaseSec,
             delayJitterSec: overrides.lightDelayJitterSec ?? modelCfg.extraDelayJitterSec,
+            reasoningEffort: overrides.lightReasoningEffort ?? modelCfg.reasoningEffort,
           };
 
     const lastUserMessage = [...messages].reverse().find((m) => m.role === "user");
@@ -174,6 +184,7 @@ export async function POST(req: NextRequest) {
           presencePenalty: effective.presencePenalty,
           maxTokens: effective.maxTokens,
           seed: effective.seed,
+          reasoningEffort: effective.reasoningEffort,
         });
 
         for await (const delta of textStream) {

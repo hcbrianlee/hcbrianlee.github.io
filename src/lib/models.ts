@@ -47,6 +47,13 @@ export interface ModelConfig {
    * already-low temperature keeping it focused.
    */
   topP: number;
+  /**
+   * Reasoning-model-only knob ("low" | "medium" | "high") -- ignored for
+   * standard chat models like light (gpt-4o-mini). Only meaningful for
+   * heavy now that it's an o-series reasoning model (see providers/openai.ts
+   * isReasoningModel). Null lets the API use its own default.
+   */
+  reasoningEffort: string | null;
 }
 
 function envProvider(name: string, fallback: Provider): Provider {
@@ -58,16 +65,30 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
   heavy: {
     key: "heavy",
     provider: envProvider("MODEL_HEAVY_PROVIDER", "openai"),
-    model: process.env.MODEL_HEAVY_ID || "gpt-4o",
+    // o4-mini: an actual OpenAI reasoning model (see providers/openai.ts
+    // isReasoningModel), chosen over o3 for cost/latency -- it reasons
+    // before answering (unlike gpt-4o), which is what the scheduling task
+    // needs, while staying cheaper and faster than o3 to actually run.
+    model: process.env.MODEL_HEAVY_ID || "o4-mini",
     label: "Heavy",
     description: "Consistently on-target, but takes noticeably longer to respond.",
-    energyWhPer1kTokens: Number(process.env.MODEL_HEAVY_ENERGY_WH_PER_1K ?? 1.0),
-    pricePerThousandTokensCents: Number(process.env.MODEL_HEAVY_PRICE_CENTS_PER_1K ?? 2),
+    // NOTE: energyWhPer1kTokens and pricePerThousandTokensCents below are
+    // sourced from o3's published stats, not o4-mini's -- see .env.example
+    // for the full rationale. This is a deliberate mismatch: the nudge copy
+    // participants see reflects o3-level cost/impact, while generation
+    // actually runs on the cheaper/faster o4-mini.
+    energyWhPer1kTokens: Number(process.env.MODEL_HEAVY_ENERGY_WH_PER_1K ?? 15),
+    pricePerThousandTokensCents: Number(process.env.MODEL_HEAVY_PRICE_CENTS_PER_1K ?? 13),
     fixedPlanPriceCents: Number(process.env.MODEL_HEAVY_FIXED_PLAN_CENTS ?? 200),
     extraDelayBaseSec: Number(process.env.MODEL_HEAVY_EXTRA_DELAY_BASE_SEC ?? 3),
     extraDelayJitterSec: Number(process.env.MODEL_HEAVY_EXTRA_DELAY_JITTER_SEC ?? 1),
+    // Ignored by o4-mini (reasoning models reject temperature/top_p via the
+    // API) -- kept here only so light's fallback logic and /admin's shared
+    // NumberField code stay uniform. See reasoningEffort below for the
+    // param that actually does something on heavy now.
     temperature: Number(process.env.MODEL_HEAVY_TEMPERATURE ?? 0.7),
     topP: Number(process.env.MODEL_HEAVY_TOP_P ?? 1.0),
+    reasoningEffort: process.env.MODEL_HEAVY_REASONING_EFFORT || "high",
   },
   light: {
     key: "light",
@@ -82,6 +103,7 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
     extraDelayJitterSec: 0,
     temperature: Number(process.env.MODEL_LIGHT_TEMPERATURE ?? 1.5),
     topP: Number(process.env.MODEL_LIGHT_TOP_P ?? 0.5),
+    reasoningEffort: null,
   },
 };
 

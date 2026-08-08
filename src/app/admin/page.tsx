@@ -6,6 +6,7 @@ const ADMIN_KEY_STORAGE = "gn_admin_key";
 
 interface ModelDefaults {
   provider: string;
+  isReasoning: boolean;
   temperature: number;
   topP: number;
   presencePenalty: number;
@@ -15,6 +16,7 @@ interface ModelDefaults {
   seed: number | null;
   delayBaseSec: number;
   delayJitterSec: number;
+  reasoningEffort: string | null;
 }
 
 interface Defaults {
@@ -44,6 +46,8 @@ interface Overrides {
   lightDelayBaseSec: number | null;
   heavyDelayJitterSec: number | null;
   lightDelayJitterSec: number | null;
+  heavyReasoningEffort: string | null;
+  lightReasoningEffort: string | null;
 }
 
 type ModelPrefix = "heavy" | "light";
@@ -131,6 +135,10 @@ function ModelColumn(props: {
   const seed = prefix === "heavy" ? overrides.heavySeed : overrides.lightSeed;
   const delayBaseSec = prefix === "heavy" ? overrides.heavyDelayBaseSec : overrides.lightDelayBaseSec;
   const delayJitterSec = prefix === "heavy" ? overrides.heavyDelayJitterSec : overrides.lightDelayJitterSec;
+  const reasoningEffort = prefix === "heavy" ? overrides.heavyReasoningEffort : overrides.lightReasoningEffort;
+  const reasoningNote = defaults.isReasoning
+    ? "(no effect -- this is a reasoning model; the API rejects this param. Use reasoning effort below instead.)"
+    : undefined;
 
   return (
     <div className="admin-column">
@@ -140,6 +148,7 @@ function ModelColumn(props: {
 
       <NumberField
         label="Temperature"
+        note={reasoningNote}
         value={temperature}
         defaultValue={defaults.temperature}
         step={0.05}
@@ -150,7 +159,10 @@ function ModelColumn(props: {
 
       <NumberField
         label="top_p"
-        note="nucleus sampling -- narrows the candidate token pool before temperature reweights it; supported by both providers"
+        note={
+          reasoningNote ??
+          "nucleus sampling -- narrows the candidate token pool before temperature reweights it; supported by both providers"
+        }
         value={topP}
         defaultValue={defaults.topP}
         step={0.05}
@@ -161,7 +173,10 @@ function ModelColumn(props: {
 
       <NumberField
         label="presence_penalty"
-        note={defaults.provider === "anthropic" ? "(no effect -- Anthropic has no presence_penalty param)" : undefined}
+        note={
+          reasoningNote ??
+          (defaults.provider === "anthropic" ? "(no effect -- Anthropic has no presence_penalty param)" : undefined)
+        }
         value={presencePenalty}
         defaultValue={defaults.presencePenalty}
         step={0.1}
@@ -169,6 +184,38 @@ function ModelColumn(props: {
         max={2}
         onChange={(v) => onChange({ [`${prefix}PresencePenalty`]: v })}
       />
+
+      {defaults.isReasoning && (
+        <div className="admin-field">
+          <label>
+            Reasoning effort{" "}
+            <span className="admin-field-note">
+              (reasoning models only -- how much internal reasoning the model does before answering; higher costs
+              more tokens/time but is more reliable on multi-step tasks like the scheduling puzzle)
+            </span>
+          </label>
+          <div className="admin-field-row">
+            <select
+              value={reasoningEffort ?? ""}
+              onChange={(e) => onChange({ [`${prefix}ReasoningEffort`]: e.target.value === "" ? null : e.target.value })}
+            >
+              <option value="">default ({defaults.reasoningEffort ?? "API default"})</option>
+              <option value="low">low</option>
+              <option value="medium">medium</option>
+              <option value="high">high</option>
+            </select>
+            {reasoningEffort !== null && (
+              <button
+                type="button"
+                className="admin-reset-btn"
+                onClick={() => onChange({ [`${prefix}ReasoningEffort`]: null })}
+              >
+                Reset
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       <NumberField
         label="max_tokens"
@@ -217,9 +264,10 @@ function ModelColumn(props: {
       <NumberField
         label="seed"
         note={
-          defaults.provider === "anthropic"
+          reasoningNote ??
+          (defaults.provider === "anthropic"
             ? "(no effect -- Anthropic has no seed param)"
-            : "(pair with temperature 0 for OpenAI's 'best effort' reproducibility -- not a hard guarantee)"
+            : "(pair with temperature 0 for OpenAI's 'best effort' reproducibility -- not a hard guarantee)")
         }
         value={seed}
         defaultValue={defaults.seed}
