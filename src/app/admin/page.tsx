@@ -24,7 +24,7 @@ interface Defaults {
   light: ModelDefaults;
 }
 
-type ActiveTask = "cartoon" | "scheduling";
+type ActiveTask = "cartoon" | "scheduling" | "staffScheduling";
 
 interface Overrides {
   activeTask: ActiveTask;
@@ -66,6 +66,22 @@ const SUGGESTED_SCHEDULING_PROMPT: Record<ModelPrefix, string> = {
   light:
     "You're helping with a 6-speaker scheduling puzzle. Give your best answer quickly based on the constraints " +
     "provided, without re-checking each one individually.",
+};
+
+// Same rationale as SUGGESTED_SCHEDULING_PROMPT above, for the staffScheduling
+// task -- which additionally requires recognizing the constraint set is
+// infeasible and identifying which single rule is the actual blocker before
+// proposing a relaxation, not just satisfying a solvable set.
+const SUGGESTED_STAFF_SCHEDULING_PROMPT: Record<ModelPrefix, string> = {
+  heavy:
+    "You're helping with a staff-scheduling puzzle. The rules as given may not all be satisfiable at once -- don't " +
+    "assume a full solution exists. Systematically check whether every rule can hold simultaneously; if not, " +
+    "identify which single rule is the actual structural blocker (not just any rule that seems inconvenient) and " +
+    "explain why removing it, specifically, is what makes the rest solvable. Verify your reasoning before answering, " +
+    "even if it takes longer.",
+  light:
+    "You're helping with a staff-scheduling puzzle. Give your best guess at a schedule and a plausible rule to drop " +
+    "quickly, without systematically checking whether the rules can all hold at once first.",
 };
 
 async function callApi(key: string, method: "GET" | "POST", body?: Partial<Overrides>) {
@@ -124,7 +140,9 @@ function ModelColumn(props: {
   onChange: (patch: Partial<Overrides>) => void;
 }) {
   const { prefix, defaults, overrides, onChange } = props;
-  const isScheduling = overrides.activeTask === "scheduling";
+  const isScheduling = overrides.activeTask === "scheduling" || overrides.activeTask === "staffScheduling";
+  const suggestedPrompt =
+    overrides.activeTask === "staffScheduling" ? SUGGESTED_STAFF_SCHEDULING_PROMPT : SUGGESTED_SCHEDULING_PROMPT;
   const label = prefix === "heavy" ? "Heavy" : "Light";
   const temperature = prefix === "heavy" ? overrides.heavyTemperature : overrides.lightTemperature;
   const topP = prefix === "heavy" ? overrides.heavyTopP : overrides.lightTopP;
@@ -244,7 +262,7 @@ function ModelColumn(props: {
           <button
             type="button"
             className="admin-reset-btn"
-            onClick={() => onChange({ [`${prefix}SystemPrompt`]: SUGGESTED_SCHEDULING_PROMPT[prefix] })}
+            onClick={() => onChange({ [`${prefix}SystemPrompt`]: suggestedPrompt[prefix] })}
           >
             Fill suggested {label.toLowerCase()} scheduling text
           </button>
@@ -403,6 +421,7 @@ export default function AdminPage() {
             >
               <option value="cartoon">Cartoon caption contest</option>
               <option value="scheduling">Speaker scheduling puzzle</option>
+              <option value="staffScheduling">Staff scheduling (infeasible, judged)</option>
             </select>
           </div>
 

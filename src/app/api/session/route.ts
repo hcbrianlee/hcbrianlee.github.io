@@ -11,6 +11,8 @@ import {
   getFixedPlan,
   getScheduleSolved,
   getScheduleStartedAt,
+  getStaffScheduleSolved,
+  getStaffScheduleStartedAt,
   getSocialProofPct,
 } from "@/lib/session";
 import { getInfoCopy, getPricingCopy } from "@/lib/conditions";
@@ -30,16 +32,27 @@ async function buildSessionInfo(
   cartoonFilename: string,
   startedAt: string
 ): Promise<SessionInfo> {
-  const [cumulative, socialProofPct, fixedPlan, captionSubmissions, scheduleSolved, scheduleStartedAt, overrides] =
-    await Promise.all([
-      getCumulativeUsage(supabase, sessionId),
-      getSocialProofPct(supabase),
-      getFixedPlan(supabase, sessionId),
-      getCaptionSubmissions(supabase, sessionId),
-      getScheduleSolved(supabase, sessionId),
-      getScheduleStartedAt(supabase, sessionId),
-      getExperimentOverrides(supabase),
-    ]);
+  const [
+    cumulative,
+    socialProofPct,
+    fixedPlan,
+    captionSubmissions,
+    scheduleSolved,
+    scheduleStartedAt,
+    staffScheduleSolved,
+    staffScheduleStartedAt,
+    overrides,
+  ] = await Promise.all([
+    getCumulativeUsage(supabase, sessionId),
+    getSocialProofPct(supabase),
+    getFixedPlan(supabase, sessionId),
+    getCaptionSubmissions(supabase, sessionId),
+    getScheduleSolved(supabase, sessionId),
+    getScheduleStartedAt(supabase, sessionId),
+    getStaffScheduleSolved(supabase, sessionId),
+    getStaffScheduleStartedAt(supabase, sessionId),
+    getExperimentOverrides(supabase),
+  ]);
 
   return {
     sessionId,
@@ -64,6 +77,8 @@ async function buildSessionInfo(
     sessionStartedAt: startedAt,
     scheduleStartedAt,
     scheduleSolved,
+    staffScheduleStartedAt,
+    staffScheduleSolved,
   };
 }
 

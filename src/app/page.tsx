@@ -10,6 +10,7 @@ import { FixedPlanPicker } from "@/components/FixedPlanPicker";
 import { CartoonImage } from "@/components/CartoonImage";
 import { CaptionSubmit } from "@/components/CaptionSubmit";
 import { SchedulingTask } from "@/components/SchedulingTask";
+import { StaffSchedulingTask } from "@/components/StaffSchedulingTask";
 import { FinishSection } from "@/components/FinishSection";
 import type { ChatMessage, ChatStreamFrame, CumulativeUsage, ModelKey, SessionInfo } from "@/lib/types";
 
@@ -32,6 +33,8 @@ export default function Home() {
   const [captionSubmitting, setCaptionSubmitting] = useState(false);
   const [scheduleSubmitting, setScheduleSubmitting] = useState(false);
   const [scheduleStarting, setScheduleStarting] = useState(false);
+  const [staffScheduleSubmitting, setStaffScheduleSubmitting] = useState(false);
+  const [staffScheduleStarting, setStaffScheduleStarting] = useState(false);
 
   const [donateOpen, setDonateOpen] = useState(false);
   const [donateSubmitting, setDonateSubmitting] = useState(false);
@@ -236,6 +239,48 @@ export default function Home() {
     }
   }
 
+  async function handleStartStaffSchedule() {
+    if (!session || staffScheduleStarting || session.staffScheduleStartedAt) return;
+    setStaffScheduleStarting(true);
+    try {
+      const res = await fetch("/api/start-staff-schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: session.sessionId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? "Failed to start puzzle");
+      setSession((prev) => (prev ? { ...prev, staffScheduleStartedAt: data.startedAt } : prev));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to start puzzle");
+    } finally {
+      setStaffScheduleStarting(false);
+    }
+  }
+
+  async function handleSubmitStaffSchedule(schedule: string[], droppedConstraintId: number, rationale: string) {
+    if (!session || staffScheduleSubmitting) return null;
+    setStaffScheduleSubmitting(true);
+    try {
+      const res = await fetch("/api/submit-staff-schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: session.sessionId, schedule, droppedConstraintId, rationale }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? "Failed to submit schedule");
+      if (data.allCorrect) {
+        setSession((prev) => (prev ? { ...prev, staffScheduleSolved: true } : prev));
+      }
+      return data as { results: { id: number; text: string; satisfied: boolean }[]; allCorrect: boolean; elapsedMs: number };
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to submit schedule");
+      return null;
+    } finally {
+      setStaffScheduleSubmitting(false);
+    }
+  }
+
   async function handleDonateSubmit(donationCents: number) {
     if (!session) return;
     setDonateSubmitting(true);
@@ -323,6 +368,15 @@ export default function Home() {
                 onStart={handleStartSchedule}
                 onSubmit={handleSubmitSchedule}
               />
+            ) : session.activeTask === "staffScheduling" ? (
+              <StaffSchedulingTask
+                startedAt={session.staffScheduleStartedAt}
+                solved={session.staffScheduleSolved}
+                submitting={staffScheduleSubmitting}
+                starting={staffScheduleStarting}
+                onStart={handleStartStaffSchedule}
+                onSubmit={handleSubmitStaffSchedule}
+              />
             ) : (
               <>
                 <CartoonImage cartoonImageUrl={session.cartoonImageUrl} />
@@ -335,7 +389,11 @@ export default function Home() {
               </>
             )}
 
-            {(session.activeTask === "scheduling" ? session.scheduleSolved : session.captionSubmissions.length > 0) && (
+            {(session.activeTask === "scheduling"
+              ? session.scheduleSolved
+              : session.activeTask === "staffScheduling"
+                ? session.staffScheduleSolved
+                : session.captionSubmissions.length > 0) && (
               <FinishSection sessionEnded={sessionEnded} onDonateClick={() => setDonateOpen(true)} />
             )}
 

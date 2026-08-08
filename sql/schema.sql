@@ -55,6 +55,8 @@ create table if not exists events (
     'caption_submitted',
     'schedule_started',
     'schedule_submitted',
+    'staff_schedule_started',
+    'staff_schedule_submitted',
     'donation_submitted',
     'session_ended'
   )),
@@ -109,7 +111,7 @@ group by s.id;
 -- row rather than an events-style log keeps that removal a one-line drop.
 create table if not exists experiment_overrides (
   id integer primary key default 1,
-  active_task text not null default 'cartoon' check (active_task in ('cartoon', 'scheduling')),
+  active_task text not null default 'cartoon' check (active_task in ('cartoon', 'scheduling', 'staffScheduling')),
   heavy_temperature numeric,
   light_temperature numeric,
   heavy_top_p numeric,
@@ -158,12 +160,13 @@ alter table experiment_overrides add column if not exists heavy_reasoning_effort
 alter table experiment_overrides add column if not exists light_reasoning_effort text;
 alter table experiment_overrides drop constraint if exists experiment_overrides_active_task_check;
 alter table experiment_overrides add constraint experiment_overrides_active_task_check
-  check (active_task in ('cartoon', 'scheduling'));
+  check (active_task in ('cartoon', 'scheduling', 'staffScheduling'));
 
 -- Same "alter existing table" pattern for events.event_type -- the inline
 -- check on create table only takes effect on a brand new table, so an
 -- existing table's constraint needs to be replaced explicitly to add
--- 'schedule_started' / 'schedule_submitted'.
+-- 'schedule_started' / 'schedule_submitted' / 'staff_schedule_started' /
+-- 'staff_schedule_submitted'.
 alter table events drop constraint if exists events_event_type_check;
 alter table events add constraint events_event_type_check check (event_type in (
   'session_started',
@@ -173,6 +176,8 @@ alter table events add constraint events_event_type_check check (event_type in (
   'caption_submitted',
   'schedule_started',
   'schedule_submitted',
+  'staff_schedule_started',
+  'staff_schedule_submitted',
   'donation_submitted',
   'session_ended'
 ));

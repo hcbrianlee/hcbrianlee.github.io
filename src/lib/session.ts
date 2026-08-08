@@ -133,6 +133,45 @@ export async function getScheduleSolved(supabase: SupabaseClient, sessionId: str
   return (data ?? []).length > 0;
 }
 
+/** Same as getScheduleStartedAt but for the staffScheduling task (see /api/start-staff-schedule). */
+export async function getStaffScheduleStartedAt(supabase: SupabaseClient, sessionId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("created_at")
+    .eq("session_id", sessionId)
+    .eq("event_type", "staff_schedule_started")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw new Error(`staff schedule started query failed: ${error.message}`);
+  return (data?.created_at as string | undefined) ?? null;
+}
+
+/**
+ * True once any staff_schedule_submitted event for this session has
+ * allCorrect: true -- meaning the participant reached an assignment
+ * satisfying every constraint except the one they chose to relax, with a
+ * rationale attached. "Correct" here isn't "the right answer" (there isn't
+ * one -- 23 different assignments qualify once the right constraint is
+ * dropped, and other constraints could be dropped instead) -- it's just
+ * "produced a complete, consistent submission," which is what unlocks
+ * FinishSection. Whether it was actually a *good* choice is for a human
+ * judge reviewing staff_schedule_submitted events directly, not this app.
+ */
+export async function getStaffScheduleSolved(supabase: SupabaseClient, sessionId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("metadata")
+    .eq("session_id", sessionId)
+    .eq("event_type", "staff_schedule_submitted")
+    .eq("metadata->>allCorrect", "true")
+    .limit(1);
+
+  if (error) throw new Error(`staff schedule solved query failed: ${error.message}`);
+  return (data ?? []).length > 0;
+}
+
 export async function getConditions(supabase: SupabaseClient): Promise<ConditionRow[]> {
   const { data, error } = await supabase
     .from("conditions")

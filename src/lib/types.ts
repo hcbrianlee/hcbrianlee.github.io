@@ -3,7 +3,7 @@ export type Provider = "openai" | "anthropic";
 export type InfoVariant = "environmental" | "energy_usage" | "convenience" | "none";
 export type PricingVariant = "variable" | "fixed" | "free";
 /** Which task participants see -- global, toggled from /admin. See src/lib/overrides.ts: ActiveTask. */
-export type ActiveTask = "cartoon" | "scheduling";
+export type ActiveTask = "cartoon" | "scheduling" | "staffScheduling";
 
 export interface CopyBlock {
   title: string;
@@ -55,6 +55,15 @@ export interface SessionInfo {
   scheduleStartedAt: string | null;
   /** True once a fully-correct schedule has been submitted for this session (scheduling task only). */
   scheduleSolved: boolean;
+  /** Same as scheduleStartedAt but for the staffScheduling task. See /api/start-staff-schedule. */
+  staffScheduleStartedAt: string | null;
+  /**
+   * True once a complete, internally-consistent submission (schedule +
+   * relaxed constraint + rationale) has been made for the staffScheduling
+   * task -- NOT a claim that the relaxed constraint or rationale were the
+   * right choice. See src/lib/session.ts getStaffScheduleSolved.
+   */
+  staffScheduleSolved: boolean;
 }
 
 export interface CaptionSubmission {
