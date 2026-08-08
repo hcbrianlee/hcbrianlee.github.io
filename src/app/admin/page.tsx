@@ -48,6 +48,22 @@ interface Overrides {
 
 type ModelPrefix = "heavy" | "light";
 
+// Suggested text only -- never sent unless the admin fills it in here and
+// clicks Save. Addresses a specific, diagnosed failure mode: standard chat
+// models (gpt-4o/gpt-4o-mini) are unreliable at exact multi-constraint
+// satisfaction puzzles in one pass unless explicitly told to verify each
+// constraint step-by-step. Scoped to the scheduling task only -- does not
+// reintroduce topic framing, effort-gating, or caption-task text.
+const SUGGESTED_SCHEDULING_PROMPT: Record<ModelPrefix, string> = {
+  heavy:
+    "You're helping with a 6-speaker scheduling puzzle. Before giving a final answer, check your proposed schedule " +
+    "against every constraint you've been given, one at a time, and confirm each is actually satisfied -- even if " +
+    "that takes longer. If any constraint fails, revise the schedule and re-check all of them again before answering.",
+  light:
+    "You're helping with a 6-speaker scheduling puzzle. Give your best answer quickly based on the constraints " +
+    "provided, without re-checking each one individually.",
+};
+
 async function callApi(key: string, method: "GET" | "POST", body?: Partial<Overrides>) {
   const res = await fetch("/api/admin/settings", {
     method,
@@ -104,6 +120,7 @@ function ModelColumn(props: {
   onChange: (patch: Partial<Overrides>) => void;
 }) {
   const { prefix, defaults, overrides, onChange } = props;
+  const isScheduling = overrides.activeTask === "scheduling";
   const label = prefix === "heavy" ? "Heavy" : "Light";
   const temperature = prefix === "heavy" ? overrides.heavyTemperature : overrides.lightTemperature;
   const topP = prefix === "heavy" ? overrides.heavyTopP : overrides.lightTopP;
@@ -176,6 +193,15 @@ function ModelColumn(props: {
           placeholder="(none -- no system message sent)"
           onChange={(e) => onChange({ [`${prefix}SystemPrompt`]: e.target.value === "" ? null : e.target.value })}
         />
+        {isScheduling && (
+          <button
+            type="button"
+            className="admin-reset-btn"
+            onClick={() => onChange({ [`${prefix}SystemPrompt`]: SUGGESTED_SCHEDULING_PROMPT[prefix] })}
+          >
+            Fill suggested {label.toLowerCase()} scheduling text
+          </button>
+        )}
       </div>
 
       <div className="admin-field">
