@@ -29,6 +29,11 @@ export interface SchedulingConstraint {
   check: (order: string[]) => boolean;
 }
 
+export interface DistractorNote {
+  id: number;
+  text: string;
+}
+
 export const SPEAKERS: Speaker[] = [
   { id: "amara", name: "Dr. Amara Chen" },
   { id: "liam", name: "Prof. Liam Osei" },
@@ -79,6 +84,45 @@ export const SCHEDULING_CONSTRAINTS: SchedulingConstraint[] = [
   { id: 11, text: "Dr. Tomás Alves must present after Dr. Priya Nair.", check: (o) => pos(o, "tomas") > pos(o, "priya") },
   { id: 12, text: "Dr. Amara Chen must present in the morning (before 1:00 PM).", check: (o) => pos(o, "amara") <= 3 },
 ];
+
+/**
+ * Plausible-sounding but load-bearing-nothing facts, mixed into the
+ * displayed list alongside SCHEDULING_CONSTRAINTS via SCHEDULING_DISPLAY_ITEMS
+ * below with no label distinguishing them -- checkSchedule() below never
+ * reads this array, so these never affect correctness. The point is
+ * deliberately not stated anywhere in the UI: telling which of the 15
+ * displayed items are real constraints and which are noise is on the
+ * participant (and whichever model they lean on) to work out themselves,
+ * ideally by noticing none of these actually restricts any speaker's slot --
+ * a naive "treat every line as a constraint" approach (from a person or a
+ * model) risks either overconstraining the search or wasting effort
+ * reasoning about irrelevant details.
+ */
+export const DISTRACTOR_NOTES: DistractorNote[] = [
+  { id: 101, text: "Prof. Sofia Ruiz's talk is titled \"Resilient Networks at Scale.\"" },
+  { id: 102, text: "The auditorium seats up to 300 attendees." },
+  { id: 103, text: "This is the fourth consecutive year the speaker series has run in this format." },
+];
+
+export type SchedulingDisplayItem =
+  | ({ kind: "constraint" } & SchedulingConstraint)
+  | ({ kind: "note" } & DistractorNote);
+
+/**
+ * Real constraints and distractor notes interleaved into one fixed display
+ * order -- not grouped by type or otherwise visually distinguishable, so the
+ * UI can render a single flat list. Positions for the 3 notes were chosen by
+ * hand to avoid an obvious cluster at the start or end.
+ */
+export const SCHEDULING_DISPLAY_ITEMS: SchedulingDisplayItem[] = (() => {
+  const items: SchedulingDisplayItem[] = SCHEDULING_CONSTRAINTS.map((c) => ({ kind: "constraint", ...c }));
+  const notes = DISTRACTOR_NOTES.map((n) => ({ kind: "note" as const, ...n }));
+  const withNotes = [...items];
+  withNotes.splice(3, 0, notes[0]);
+  withNotes.splice(8, 0, notes[1]);
+  withNotes.splice(13, 0, notes[2]);
+  return withNotes;
+})();
 
 export interface ScheduleCheckResult {
   id: number;

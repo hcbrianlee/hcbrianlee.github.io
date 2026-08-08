@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { SPEAKERS, TIME_SLOTS, SCHEDULING_CONSTRAINTS } from "@/lib/scheduling";
+import { SPEAKERS, TIME_SLOTS, SCHEDULING_DISPLAY_ITEMS } from "@/lib/scheduling";
 
 interface ConstraintResult {
   id: number;
@@ -102,12 +102,15 @@ export function SchedulingTask(props: {
       <div className="scheduling-constraints">
         <strong>Constraints</strong>
         <ol>
-          {SCHEDULING_CONSTRAINTS.map((c) => {
-            const result = results?.find((r) => r.id === c.id);
+          {SCHEDULING_DISPLAY_ITEMS.map((item) => {
+            if (item.kind === "note") {
+              return <li key={`note-${item.id}`}>{item.text}</li>;
+            }
+            const result = results?.find((r) => r.id === item.id);
             return (
-              <li key={c.id} className={result ? (result.satisfied ? "satisfied" : "violated") : ""}>
+              <li key={item.id} className={result ? (result.satisfied ? "satisfied" : "violated") : ""}>
                 {result && <span className="constraint-mark">{result.satisfied ? "✅" : "❌"}</span>}
-                {c.text}
+                {item.text}
               </li>
             );
           })}
