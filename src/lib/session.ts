@@ -94,6 +94,27 @@ export async function getCaptionSubmissions(
 }
 
 /**
+ * When this session's scheduling-puzzle timer began, or null if the
+ * participant hasn't clicked "Start" yet (see /api/start-schedule). Sourced
+ * from the earliest schedule_started event for this session -- distinct from
+ * sessions.started_at, which is stamped at session creation (page load), not
+ * when the participant is actually ready to begin the puzzle.
+ */
+export async function getScheduleStartedAt(supabase: SupabaseClient, sessionId: string): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("created_at")
+    .eq("session_id", sessionId)
+    .eq("event_type", "schedule_started")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) throw new Error(`schedule started query failed: ${error.message}`);
+  return (data?.created_at as string | undefined) ?? null;
+}
+
+/**
  * True once any fully-correct schedule has been submitted for this session
  * (scheduling task only) -- sourced from schedule_submitted events' stored
  * metadata.allCorrect (src/app/api/submit-schedule/route.ts), not

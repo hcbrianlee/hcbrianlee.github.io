@@ -23,12 +23,14 @@ function formatElapsed(ms: number): string {
 }
 
 export function SchedulingTask(props: {
-  sessionStartedAt: string;
+  startedAt: string | null;
   solved: boolean;
   submitting: boolean;
+  starting: boolean;
+  onStart: () => void;
   onSubmit: (schedule: string[]) => Promise<SubmitResult | null>;
 }) {
-  const { sessionStartedAt, solved, submitting, onSubmit } = props;
+  const { startedAt, solved, submitting, starting, onStart, onSubmit } = props;
   const [assignments, setAssignments] = useState<string[]>(Array(TIME_SLOTS.length).fill(""));
   const [results, setResults] = useState<ConstraintResult[] | null>(null);
   const [solvedMs, setSolvedMs] = useState<number | null>(null);
@@ -36,13 +38,13 @@ export function SchedulingTask(props: {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (solved) return;
-    const start = new Date(sessionStartedAt).getTime();
+    if (solved || !startedAt) return;
+    const start = new Date(startedAt).getTime();
     const tick = () => setElapsed(Date.now() - start);
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
-  }, [sessionStartedAt, solved]);
+  }, [startedAt, solved]);
 
   function handleSlotChange(slotIndex: number, speakerId: string) {
     setAssignments((prev) => {
@@ -71,6 +73,20 @@ export function SchedulingTask(props: {
 
   const usedSpeakerIds = new Set(assignments.filter(Boolean));
   const isSolved = solved || solvedMs !== null;
+
+  if (!startedAt && !isSolved) {
+    return (
+      <div className="scheduling-panel">
+        <div className="chat-nudge">
+          🏆 Assign each of the 6 speakers to a time slot so every constraint is satisfied — solve it as fast as you
+          can. The timer starts as soon as you click below, so take a moment first if you want.
+        </div>
+        <button className="caption-submit-btn" disabled={starting} onClick={onStart}>
+          {starting ? "Starting…" : "Start puzzle"}
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="scheduling-panel">

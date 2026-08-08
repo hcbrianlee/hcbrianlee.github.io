@@ -53,6 +53,7 @@ create table if not exists events (
     'response_received',
     'fixed_plan_selected',
     'caption_submitted',
+    'schedule_started',
     'schedule_submitted',
     'donation_submitted',
     'session_ended'
@@ -156,7 +157,7 @@ alter table experiment_overrides add constraint experiment_overrides_active_task
 -- Same "alter existing table" pattern for events.event_type -- the inline
 -- check on create table only takes effect on a brand new table, so an
 -- existing table's constraint needs to be replaced explicitly to add
--- 'schedule_submitted'.
+-- 'schedule_started' / 'schedule_submitted'.
 alter table events drop constraint if exists events_event_type_check;
 alter table events add constraint events_event_type_check check (event_type in (
   'session_started',
@@ -164,6 +165,7 @@ alter table events add constraint events_event_type_check check (event_type in (
   'response_received',
   'fixed_plan_selected',
   'caption_submitted',
+  'schedule_started',
   'schedule_submitted',
   'donation_submitted',
   'session_ended'

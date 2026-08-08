@@ -10,6 +10,7 @@ import {
   getCumulativeUsage,
   getFixedPlan,
   getScheduleSolved,
+  getScheduleStartedAt,
   getSocialProofPct,
 } from "@/lib/session";
 import { getInfoCopy, getPricingCopy } from "@/lib/conditions";
@@ -29,14 +30,16 @@ async function buildSessionInfo(
   cartoonFilename: string,
   startedAt: string
 ): Promise<SessionInfo> {
-  const [cumulative, socialProofPct, fixedPlan, captionSubmissions, scheduleSolved, overrides] = await Promise.all([
-    getCumulativeUsage(supabase, sessionId),
-    getSocialProofPct(supabase),
-    getFixedPlan(supabase, sessionId),
-    getCaptionSubmissions(supabase, sessionId),
-    getScheduleSolved(supabase, sessionId),
-    getExperimentOverrides(supabase),
-  ]);
+  const [cumulative, socialProofPct, fixedPlan, captionSubmissions, scheduleSolved, scheduleStartedAt, overrides] =
+    await Promise.all([
+      getCumulativeUsage(supabase, sessionId),
+      getSocialProofPct(supabase),
+      getFixedPlan(supabase, sessionId),
+      getCaptionSubmissions(supabase, sessionId),
+      getScheduleSolved(supabase, sessionId),
+      getScheduleStartedAt(supabase, sessionId),
+      getExperimentOverrides(supabase),
+    ]);
 
   return {
     sessionId,
@@ -59,6 +62,7 @@ async function buildSessionInfo(
     modelComparison: getModelComparison(),
     activeTask: overrides.activeTask,
     sessionStartedAt: startedAt,
+    scheduleStartedAt,
     scheduleSolved,
   };
 }

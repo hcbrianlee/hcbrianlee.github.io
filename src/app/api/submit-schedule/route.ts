@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase";
+import { getScheduleStartedAt } from "@/lib/session";
 import { checkSchedule, SPEAKERS } from "@/lib/scheduling";
 
 export const runtime = "nodejs";
@@ -18,7 +19,7 @@ export async function POST(req: NextRequest) {
 
     const { data: session, error: sessionErr } = await supabase
       .from("sessions")
-      .select("id, status, started_at")
+      .select("id, status")
       .eq("id", sessionId)
       .maybeSingle();
 
@@ -27,6 +28,11 @@ export async function POST(req: NextRequest) {
     }
     if (session.status !== "active") {
       return NextResponse.json({ error: "Session has already ended" }, { status: 409 });
+    }
+
+    const scheduleStartedAt = await getScheduleStartedAt(supabase, sessionId);
+    if (!scheduleStartedAt) {
+      return NextResponse.json({ error: "Puzzle hasn't been started yet" }, { status: 409 });
     }
 
     let results;
@@ -40,10 +46,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Elapsed time is computed server-side from sessions.started_at, not
+    // Elapsed time is computed server-side from the schedule_started event
+    // (when the participant clicked "Start", not session creation), never
     // trusted from a client-supplied timer -- same principle as token usage
     // and response timing elsewhere in this app.
-    const elapsedMs = Date.now() - new Date(session.started_at).getTime();
+    const elapsedMs = Date.now() - new Date(scheduleStartedAt).getTime();
 
     const { error: insertErr } = await supabase.from("events").insert({
       session_id: sessionId,

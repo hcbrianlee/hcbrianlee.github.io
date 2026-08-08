@@ -31,6 +31,7 @@ export default function Home() {
   const [planSubmitting, setPlanSubmitting] = useState(false);
   const [captionSubmitting, setCaptionSubmitting] = useState(false);
   const [scheduleSubmitting, setScheduleSubmitting] = useState(false);
+  const [scheduleStarting, setScheduleStarting] = useState(false);
 
   const [donateOpen, setDonateOpen] = useState(false);
   const [donateSubmitting, setDonateSubmitting] = useState(false);
@@ -193,6 +194,25 @@ export default function Home() {
     }
   }
 
+  async function handleStartSchedule() {
+    if (!session || scheduleStarting || session.scheduleStartedAt) return;
+    setScheduleStarting(true);
+    try {
+      const res = await fetch("/api/start-schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: session.sessionId }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? "Failed to start puzzle");
+      setSession((prev) => (prev ? { ...prev, scheduleStartedAt: data.startedAt } : prev));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to start puzzle");
+    } finally {
+      setScheduleStarting(false);
+    }
+  }
+
   async function handleSubmitSchedule(schedule: string[]) {
     if (!session || scheduleSubmitting) return null;
     setScheduleSubmitting(true);
@@ -296,9 +316,11 @@ export default function Home() {
           <>
             {session.activeTask === "scheduling" ? (
               <SchedulingTask
-                sessionStartedAt={session.sessionStartedAt}
+                startedAt={session.scheduleStartedAt}
                 solved={session.scheduleSolved}
                 submitting={scheduleSubmitting}
+                starting={scheduleStarting}
+                onStart={handleStartSchedule}
                 onSubmit={handleSubmitSchedule}
               />
             ) : (

@@ -45,8 +45,14 @@ export interface SessionInfo {
   modelComparison: ModelComparison;
   /** Which task this session is doing -- global (not per-session), toggled from /admin. */
   activeTask: ActiveTask;
-  /** ISO timestamp the session was created, used client-side as the scheduling task's timer reference point. */
+  /** ISO timestamp the session was created (page load) -- not the scheduling timer's reference point, see scheduleStartedAt. */
   sessionStartedAt: string;
+  /**
+   * ISO timestamp the participant clicked "Start" on the scheduling puzzle
+   * (scheduling task only), or null if they haven't yet -- the timer doesn't
+   * run until this is set. See /api/start-schedule.
+   */
+  scheduleStartedAt: string | null;
   /** True once a fully-correct schedule has been submitted for this session (scheduling task only). */
   scheduleSolved: boolean;
 }
