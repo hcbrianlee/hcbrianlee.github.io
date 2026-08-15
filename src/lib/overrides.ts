@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type ActiveTask = "cartoon" | "scheduling" | "staffScheduling" | "adCaption" | "negotiation";
+export type ActiveTask = "cartoon" | "scheduling" | "staffScheduling" | "adCaption" | "tripPlanning";
 
 export interface ExperimentOverrides {
   /**
@@ -90,7 +90,7 @@ export async function getExperimentOverrides(supabase: SupabaseClient): Promise<
   if (!data) return EMPTY_OVERRIDES;
 
   return {
-    activeTask: (["scheduling", "staffScheduling", "adCaption", "negotiation"] as const).includes(data.active_task)
+    activeTask: (["scheduling", "staffScheduling", "adCaption", "tripPlanning"] as const).includes(data.active_task)
       ? data.active_task
       : "cartoon",
     heavyTemperature: data.heavy_temperature,

@@ -12,7 +12,7 @@ import { CaptionSubmit } from "@/components/CaptionSubmit";
 import { SchedulingTask } from "@/components/SchedulingTask";
 import { StaffSchedulingTask } from "@/components/StaffSchedulingTask";
 import { ProductPanel } from "@/components/ProductPanel";
-import { NegotiationTask } from "@/components/NegotiationTask";
+import { TripPlanningTask } from "@/components/TripPlanningTask";
 import { FinishSection } from "@/components/FinishSection";
 import type { ChatMessage, ChatStreamFrame, CumulativeUsage, ModelKey, SessionInfo } from "@/lib/types";
 
@@ -34,7 +34,7 @@ export default function Home() {
   const [planSubmitting, setPlanSubmitting] = useState(false);
   const [captionSubmitting, setCaptionSubmitting] = useState(false);
   const [adCaptionSubmitting, setAdCaptionSubmitting] = useState(false);
-  const [negotiationSubmitting, setNegotiationSubmitting] = useState(false);
+  const [tripPlanSubmitting, setTripPlanSubmitting] = useState(false);
   const [scheduleSubmitting, setScheduleSubmitting] = useState(false);
   const [scheduleStarting, setScheduleStarting] = useState(false);
   const [staffScheduleSubmitting, setStaffScheduleSubmitting] = useState(false);
@@ -262,22 +262,22 @@ export default function Home() {
     }
   }
 
-  async function handleSubmitNegotiation(memoText: string) {
-    if (!session || negotiationSubmitting) return;
-    setNegotiationSubmitting(true);
+  async function handleSubmitTripPlan(itineraryText: string) {
+    if (!session || tripPlanSubmitting) return;
+    setTripPlanSubmitting(true);
     try {
-      const res = await fetch("/api/submit-negotiation", {
+      const res = await fetch("/api/submit-trip-plan", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: session.sessionId, memoText }),
+        body: JSON.stringify({ sessionId: session.sessionId, itineraryText }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data?.error ?? "Failed to submit memo");
-      setSession((prev) => (prev ? { ...prev, negotiationSubmissions: data.submissions } : prev));
+      if (!res.ok) throw new Error(data?.error ?? "Failed to submit itinerary");
+      setSession((prev) => (prev ? { ...prev, tripPlanSubmissions: data.submissions } : prev));
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to submit memo");
+      alert(err instanceof Error ? err.message : "Failed to submit itinerary");
     } finally {
-      setNegotiationSubmitting(false);
+      setTripPlanSubmitting(false);
     }
   }
 
@@ -432,12 +432,12 @@ export default function Home() {
                   itemLabel="ad caption"
                 />
               </>
-            ) : session.activeTask === "negotiation" ? (
-              <NegotiationTask
-                submissions={session.negotiationSubmissions}
-                maxSubmissions={session.maxNegotiationSubmissions}
-                submitting={negotiationSubmitting}
-                onSubmit={handleSubmitNegotiation}
+            ) : session.activeTask === "tripPlanning" ? (
+              <TripPlanningTask
+                submissions={session.tripPlanSubmissions}
+                maxSubmissions={session.maxTripPlanSubmissions}
+                submitting={tripPlanSubmitting}
+                onSubmit={handleSubmitTripPlan}
               />
             ) : (
               <>
@@ -457,8 +457,8 @@ export default function Home() {
                 ? session.staffScheduleSolved
                 : session.activeTask === "adCaption"
                   ? session.adCaptionSubmissions.length > 0
-                  : session.activeTask === "negotiation"
-                    ? session.negotiationSubmissions.length > 0
+                  : session.activeTask === "tripPlanning"
+                    ? session.tripPlanSubmissions.length > 0
                     : session.captionSubmissions.length > 0) && (
               <FinishSection sessionEnded={sessionEnded} onDonateClick={() => setDonateOpen(true)} />
             )}

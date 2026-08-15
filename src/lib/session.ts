@@ -111,19 +111,19 @@ export async function getAdCaptionSubmissions(supabase: SupabaseClient, sessionI
 }
 
 /**
- * Every negotiation strategy memo submitted so far (negotiation task),
- * oldest first -- same pattern as getCaptionSubmissions, reusing the same
- * caption_text column for the free-text memo body.
+ * Every trip itinerary submitted so far (tripPlanning task), oldest first --
+ * same pattern as getCaptionSubmissions, reusing the same caption_text
+ * column for the free-text itinerary body.
  */
-export async function getNegotiationSubmissions(supabase: SupabaseClient, sessionId: string): Promise<CaptionSubmission[]> {
+export async function getTripPlanSubmissions(supabase: SupabaseClient, sessionId: string): Promise<CaptionSubmission[]> {
   const { data, error } = await supabase
     .from("events")
     .select("caption_text, created_at")
     .eq("session_id", sessionId)
-    .eq("event_type", "negotiation_submitted")
+    .eq("event_type", "trip_plan_submitted")
     .order("created_at", { ascending: true });
 
-  if (error) throw new Error(`negotiation submissions query failed: ${error.message}`);
+  if (error) throw new Error(`trip plan submissions query failed: ${error.message}`);
 
   return (data ?? []).map((row) => ({ text: row.caption_text as string, submittedAt: row.created_at as string }));
 }

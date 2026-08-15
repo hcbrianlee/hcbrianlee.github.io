@@ -3,7 +3,7 @@ export type Provider = "openai" | "anthropic";
 export type InfoVariant = "environmental" | "energy_usage" | "convenience" | "none";
 export type PricingVariant = "variable" | "fixed" | "free";
 /** Which task participants see -- global, toggled from /admin. See src/lib/overrides.ts: ActiveTask. */
-export type ActiveTask = "cartoon" | "scheduling" | "staffScheduling" | "adCaption" | "negotiation";
+export type ActiveTask = "cartoon" | "scheduling" | "staffScheduling" | "adCaption" | "tripPlanning";
 
 export interface CopyBlock {
   title: string;
@@ -70,10 +70,10 @@ export interface SessionInfo {
   adCaptionSubmissions: CaptionSubmission[];
   /** Most ad captions a single session may submit (see /api/submit-ad-caption). */
   maxAdCaptionSubmissions: number;
-  /** All negotiation strategy memos submitted so far (negotiation task), oldest first. Capped at maxNegotiationSubmissions. */
-  negotiationSubmissions: CaptionSubmission[];
-  /** Most negotiation memos a single session may submit (see /api/submit-negotiation). */
-  maxNegotiationSubmissions: number;
+  /** All trip itineraries submitted so far (tripPlanning task), oldest first. Capped at maxTripPlanSubmissions. */
+  tripPlanSubmissions: CaptionSubmission[];
+  /** Most trip itineraries a single session may submit (see /api/submit-trip-plan). */
+  maxTripPlanSubmissions: number;
 }
 
 export interface CaptionSubmission {

@@ -7,7 +7,7 @@ import {
   MAX_CAPTION_SUBMISSIONS,
   getCaptionSubmissions,
   getAdCaptionSubmissions,
-  getNegotiationSubmissions,
+  getTripPlanSubmissions,
   getConditions,
   getCumulativeUsage,
   getFixedPlan,
@@ -22,7 +22,7 @@ import { getFixedPlanPriceCents } from "@/lib/pricing";
 import { getModelComparison } from "@/lib/carbon";
 import { getCartoonImageUrl, pickCartoonFilename } from "@/lib/cartoons";
 import { getAdProductImageUrl, MAX_AD_CAPTION_SUBMISSIONS } from "@/lib/adTask";
-import { MAX_NEGOTIATION_SUBMISSIONS } from "@/lib/negotiation";
+import { MAX_TRIP_PLAN_SUBMISSIONS } from "@/lib/tripPlanning";
 import { getExperimentOverrides } from "@/lib/overrides";
 import type { ConditionRow, SessionInfo } from "@/lib/types";
 
@@ -46,7 +46,7 @@ async function buildSessionInfo(
     staffScheduleSolved,
     staffScheduleStartedAt,
     adCaptionSubmissions,
-    negotiationSubmissions,
+    tripPlanSubmissions,
     overrides,
   ] = await Promise.all([
     getCumulativeUsage(supabase, sessionId),
@@ -58,7 +58,7 @@ async function buildSessionInfo(
     getStaffScheduleSolved(supabase, sessionId),
     getStaffScheduleStartedAt(supabase, sessionId),
     getAdCaptionSubmissions(supabase, sessionId),
-    getNegotiationSubmissions(supabase, sessionId),
+    getTripPlanSubmissions(supabase, sessionId),
     getExperimentOverrides(supabase),
   ]);
 
@@ -90,8 +90,8 @@ async function buildSessionInfo(
     adProductImageUrl: getAdProductImageUrl(),
     adCaptionSubmissions,
     maxAdCaptionSubmissions: MAX_AD_CAPTION_SUBMISSIONS,
-    negotiationSubmissions,
-    maxNegotiationSubmissions: MAX_NEGOTIATION_SUBMISSIONS,
+    tripPlanSubmissions,
+    maxTripPlanSubmissions: MAX_TRIP_PLAN_SUBMISSIONS,
   };
 }
 

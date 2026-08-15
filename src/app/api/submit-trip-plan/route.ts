@@ -1,21 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase";
-import { getNegotiationSubmissions } from "@/lib/session";
-import { MAX_NEGOTIATION_SUBMISSIONS } from "@/lib/negotiation";
+import { getTripPlanSubmissions } from "@/lib/session";
+import { MAX_TRIP_PLAN_SUBMISSIONS } from "@/lib/tripPlanning";
 
 export const runtime = "nodejs";
 
-const MAX_MEMO_LENGTH = 6000;
+const MAX_ITINERARY_LENGTH = 6000;
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   const sessionId: string | undefined = body?.sessionId;
-  const memoText: string | undefined = body?.memoText;
+  const itineraryText: string | undefined = body?.itineraryText;
 
-  if (!sessionId || typeof memoText !== "string" || memoText.trim().length === 0) {
-    return NextResponse.json({ error: "sessionId and a non-empty memoText are required" }, { status: 400 });
+  if (!sessionId || typeof itineraryText !== "string" || itineraryText.trim().length === 0) {
+    return NextResponse.json({ error: "sessionId and a non-empty itineraryText are required" }, { status: 400 });
   }
-  const trimmed = memoText.trim().slice(0, MAX_MEMO_LENGTH);
+  const trimmed = itineraryText.trim().slice(0, MAX_ITINERARY_LENGTH);
 
   try {
     const supabase = getSupabaseServerClient();
@@ -33,25 +33,25 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Session has already ended" }, { status: 409 });
     }
 
-    const existing = await getNegotiationSubmissions(supabase, sessionId);
-    if (existing.length >= MAX_NEGOTIATION_SUBMISSIONS) {
+    const existing = await getTripPlanSubmissions(supabase, sessionId);
+    if (existing.length >= MAX_TRIP_PLAN_SUBMISSIONS) {
       return NextResponse.json(
-        { error: `You've already submitted the maximum of ${MAX_NEGOTIATION_SUBMISSIONS} memos.` },
+        { error: `You've already submitted the maximum of ${MAX_TRIP_PLAN_SUBMISSIONS} itineraries.` },
         { status: 409 }
       );
     }
 
     const { error: insertErr } = await supabase.from("events").insert({
       session_id: sessionId,
-      event_type: "negotiation_submitted",
+      event_type: "trip_plan_submitted",
       caption_text: trimmed,
     });
-    if (insertErr) throw new Error(`negotiation_submitted insert failed: ${insertErr.message}`);
+    if (insertErr) throw new Error(`trip_plan_submitted insert failed: ${insertErr.message}`);
 
-    const submissions = await getNegotiationSubmissions(supabase, sessionId);
+    const submissions = await getTripPlanSubmissions(supabase, sessionId);
     return NextResponse.json({ submissions });
   } catch (err) {
-    console.error("POST /api/submit-negotiation failed", err);
+    console.error("POST /api/submit-trip-plan failed", err);
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Unknown error" },
       { status: 500 }

@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { NEGOTIATION_SCENARIO } from "@/lib/negotiation";
+import { TRIP_PLANNING_SCENARIO } from "@/lib/tripPlanning";
 import type { CaptionSubmission } from "@/lib/types";
 
-export function NegotiationTask(props: {
+export function TripPlanningTask(props: {
   submissions: CaptionSubmission[];
   maxSubmissions: number;
   submitting: boolean;
-  onSubmit: (memoText: string) => void;
+  onSubmit: (itineraryText: string) => void;
 }) {
   const { submissions, maxSubmissions, submitting, onSubmit } = props;
   const [showPrivateFacts, setShowPrivateFacts] = useState(true);
@@ -26,14 +26,14 @@ export function NegotiationTask(props: {
   return (
     <div className="scheduling-panel">
       <div className="chat-nudge">
-        🤝 Chat with the AI to develop a negotiation strategy. It only knows what you actually tell it -- deciding
-        what to share, when, and how much of the draft to trust is on you. When you&apos;re ready, write your final
-        strategy memo below and submit it for review.
+        🧳 Chat with the AI to plan a weekend trip. It only knows what you actually tell it -- deciding what to
+        share, when, and how much of the draft itinerary to trust is on you. When you&apos;re ready, write your
+        final itinerary below and submit it for review.
       </div>
 
       <div className="scheduling-constraints">
-        <strong>{NEGOTIATION_SCENARIO.title}</strong>
-        <p style={{ margin: "0 0 10px" }}>{NEGOTIATION_SCENARIO.publicBrief}</p>
+        <strong>{TRIP_PLANNING_SCENARIO.title}</strong>
+        <p style={{ margin: "0 0 10px" }}>{TRIP_PLANNING_SCENARIO.publicBrief}</p>
 
         <button type="button" className="admin-reset-btn" onClick={() => setShowPrivateFacts((v) => !v)}>
           {showPrivateFacts ? "Hide" : "Show"} your private facts (never sent to the AI automatically)
@@ -41,7 +41,7 @@ export function NegotiationTask(props: {
 
         {showPrivateFacts && (
           <ul className="staff-background-list" style={{ marginTop: 10 }}>
-            {NEGOTIATION_SCENARIO.privateFacts.map((fact) => (
+            {TRIP_PLANNING_SCENARIO.privateFacts.map((fact) => (
               <li key={fact}>
                 <span>{fact}</span>
               </li>
@@ -53,7 +53,7 @@ export function NegotiationTask(props: {
       {submissions.length > 0 && (
         <div className="caption-submitted-list">
           <span className="caption-submitted-label">
-            Your submitted memos ({submissions.length}/{maxSubmissions})
+            Your submitted itineraries ({submissions.length}/{maxSubmissions})
           </span>
           {submissions.map((s, i) => (
             <div className="caption-submitted-item" key={s.submittedAt}>
@@ -66,25 +66,25 @@ export function NegotiationTask(props: {
       )}
 
       {atLimit ? (
-        <p className="caption-submit-limit">You&apos;ve submitted the maximum of {maxSubmissions} memos.</p>
+        <p className="caption-submit-limit">You&apos;ve submitted the maximum of {maxSubmissions} itineraries.</p>
       ) : !expanded ? (
         <button className="caption-reveal-btn" onClick={() => setExpanded(true)}>
-          {submissions.length > 0 ? "✍️ Submit a revised memo" : "✍️ Ready? Write your negotiation strategy memo"}
+          {submissions.length > 0 ? "✍️ Submit a revised itinerary" : "✍️ Ready? Write your final itinerary"}
         </button>
       ) : (
         <div className="caption-form">
-          <label htmlFor="negotiation-input">Your negotiation strategy memo</label>
+          <label htmlFor="trip-plan-input">Your final trip itinerary</label>
           <textarea
-            id="negotiation-input"
+            id="trip-plan-input"
             rows={10}
             autoFocus
-            placeholder="Write your final negotiation strategy here, then submit it..."
+            placeholder="Write your final weekend itinerary here, then submit it..."
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             maxLength={6000}
           />
           <button className="caption-submit-btn" disabled={!draft.trim() || submitting} onClick={handleSubmit}>
-            {submitting ? "Submitting..." : "Submit memo"}
+            {submitting ? "Submitting..." : "Submit itinerary"}
           </button>
         </div>
       )}
