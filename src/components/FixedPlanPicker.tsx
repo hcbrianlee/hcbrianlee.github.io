@@ -12,6 +12,10 @@ const TASK_BLURB: Record<ActiveTask, string> = {
     "🧩 This week's staffing puzzle, as written, has no valid solution. You'll need to figure out which rule is " +
     "the real blocker, decide whether to relax it, explain your reasoning, and submit a schedule that satisfies " +
     "everything else — a human judge reviews your schedule, the rule you relaxed, and your rationale afterward.",
+  adCaption: "📣 Write an ad caption for a product — a human judge reviews submissions afterward, no auto-grading.",
+  negotiation:
+    "🤝 Chat with the AI to develop a negotiation strategy, then submit your final memo — a human judge reviews " +
+    "it afterward against private information only you had access to.",
 };
 
 export function FixedPlanPicker(props: {

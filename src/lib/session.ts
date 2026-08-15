@@ -94,6 +94,41 @@ export async function getCaptionSubmissions(
 }
 
 /**
+ * Every ad caption idea submitted so far (adCaption task), oldest first --
+ * same pattern as getCaptionSubmissions, just a different event_type.
+ */
+export async function getAdCaptionSubmissions(supabase: SupabaseClient, sessionId: string): Promise<CaptionSubmission[]> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("caption_text, created_at")
+    .eq("session_id", sessionId)
+    .eq("event_type", "ad_caption_submitted")
+    .order("created_at", { ascending: true });
+
+  if (error) throw new Error(`ad caption submissions query failed: ${error.message}`);
+
+  return (data ?? []).map((row) => ({ text: row.caption_text as string, submittedAt: row.created_at as string }));
+}
+
+/**
+ * Every negotiation strategy memo submitted so far (negotiation task),
+ * oldest first -- same pattern as getCaptionSubmissions, reusing the same
+ * caption_text column for the free-text memo body.
+ */
+export async function getNegotiationSubmissions(supabase: SupabaseClient, sessionId: string): Promise<CaptionSubmission[]> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("caption_text, created_at")
+    .eq("session_id", sessionId)
+    .eq("event_type", "negotiation_submitted")
+    .order("created_at", { ascending: true });
+
+  if (error) throw new Error(`negotiation submissions query failed: ${error.message}`);
+
+  return (data ?? []).map((row) => ({ text: row.caption_text as string, submittedAt: row.created_at as string }));
+}
+
+/**
  * When this session's scheduling-puzzle timer began, or null if the
  * participant hasn't clicked "Start" yet (see /api/start-schedule). Sourced
  * from the earliest schedule_started event for this session -- distinct from

@@ -3,7 +3,7 @@ export type Provider = "openai" | "anthropic";
 export type InfoVariant = "environmental" | "energy_usage" | "convenience" | "none";
 export type PricingVariant = "variable" | "fixed" | "free";
 /** Which task participants see -- global, toggled from /admin. See src/lib/overrides.ts: ActiveTask. */
-export type ActiveTask = "cartoon" | "scheduling" | "staffScheduling";
+export type ActiveTask = "cartoon" | "scheduling" | "staffScheduling" | "adCaption" | "negotiation";
 
 export interface CopyBlock {
   title: string;
@@ -64,6 +64,16 @@ export interface SessionInfo {
    * right choice. See src/lib/session.ts getStaffScheduleSolved.
    */
   staffScheduleSolved: boolean;
+  /** Env-configured product image URL (adCaption task), or null if AD_PRODUCT_IMAGE_URL isn't set. */
+  adProductImageUrl: string | null;
+  /** All ad caption ideas submitted so far (adCaption task), oldest first. Capped at maxAdCaptionSubmissions. */
+  adCaptionSubmissions: CaptionSubmission[];
+  /** Most ad captions a single session may submit (see /api/submit-ad-caption). */
+  maxAdCaptionSubmissions: number;
+  /** All negotiation strategy memos submitted so far (negotiation task), oldest first. Capped at maxNegotiationSubmissions. */
+  negotiationSubmissions: CaptionSubmission[];
+  /** Most negotiation memos a single session may submit (see /api/submit-negotiation). */
+  maxNegotiationSubmissions: number;
 }
 
 export interface CaptionSubmission {

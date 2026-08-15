@@ -508,6 +508,32 @@ button {
   color: #10a37f;
 }
 
+.product-info {
+  margin-top: 14px;
+  font-size: 13.5px;
+  color: #33334a;
+}
+
+.product-info h3 {
+  margin: 0 0 2px;
+  font-size: 16px;
+}
+
+.product-tagline {
+  margin: 0 0 8px;
+  font-style: italic;
+  color: #666;
+}
+
+.product-info ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.product-price {
+  font-weight: 600;
+}
+
 /* Model picker */
 
 .model-picker {

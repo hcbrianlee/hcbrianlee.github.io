@@ -8,8 +8,14 @@ export function CaptionSubmit(props: {
   maxSubmissions: number;
   submitting: boolean;
   onSubmit: (captionText: string) => void;
+  /** What the caption is for, e.g. "this cartoon" (default) or "this product". */
+  subjectLabel?: string;
+  /** Singular item name, e.g. "caption" (default) or "ad caption". */
+  itemLabel?: string;
 }) {
   const { submissions, maxSubmissions, submitting, onSubmit } = props;
+  const subjectLabel = props.subjectLabel ?? "this cartoon";
+  const itemLabel = props.itemLabel ?? "caption";
   const [expanded, setExpanded] = useState(false);
   const [draft, setDraft] = useState("");
   const atLimit = submissions.length >= maxSubmissions;
@@ -26,7 +32,7 @@ export function CaptionSubmit(props: {
       {submissions.length > 0 && (
         <div className="caption-submitted-list">
           <span className="caption-submitted-label">
-            Your submitted captions ({submissions.length}/{maxSubmissions})
+            Your submitted {itemLabel}s ({submissions.length}/{maxSubmissions})
           </span>
           {submissions.map((s, i) => (
             <div className="caption-submitted-item" key={s.submittedAt}>
@@ -40,28 +46,28 @@ export function CaptionSubmit(props: {
 
       {atLimit ? (
         <p className="caption-submit-limit">
-          You&apos;ve submitted the maximum of {maxSubmissions} caption ideas.
+          You&apos;ve submitted the maximum of {maxSubmissions} {itemLabel} ideas.
         </p>
       ) : !expanded ? (
         <button className="caption-reveal-btn" onClick={() => setExpanded(true)}>
-          {submissions.length > 0 ? "✍️ Add another caption idea" : "✍️ Ready? Write your final caption"}
+          {submissions.length > 0 ? `✍️ Add another ${itemLabel} idea` : `✍️ Ready? Write your final ${itemLabel}`}
         </button>
       ) : (
         <div className="caption-form">
           <label htmlFor="caption-input">
-            {submissions.length > 0 ? "Another caption idea for this cartoon" : "Your caption for this cartoon"}
+            {submissions.length > 0 ? `Another ${itemLabel} idea for ${subjectLabel}` : `Your ${itemLabel} for ${subjectLabel}`}
           </label>
           <textarea
             id="caption-input"
             rows={2}
             autoFocus
-            placeholder="Write your caption idea here, then submit it..."
+            placeholder={`Write your ${itemLabel} idea here, then submit it...`}
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
             maxLength={500}
           />
           <button className="caption-submit-btn" disabled={!draft.trim() || submitting} onClick={handleSubmit}>
-            {submitting ? "Submitting..." : "Submit caption"}
+            {submitting ? "Submitting..." : `Submit ${itemLabel}`}
           </button>
         </div>
       )}

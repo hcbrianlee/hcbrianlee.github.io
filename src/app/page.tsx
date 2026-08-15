@@ -11,6 +11,8 @@ import { CartoonImage } from "@/components/CartoonImage";
 import { CaptionSubmit } from "@/components/CaptionSubmit";
 import { SchedulingTask } from "@/components/SchedulingTask";
 import { StaffSchedulingTask } from "@/components/StaffSchedulingTask";
+import { ProductPanel } from "@/components/ProductPanel";
+import { NegotiationTask } from "@/components/NegotiationTask";
 import { FinishSection } from "@/components/FinishSection";
 import type { ChatMessage, ChatStreamFrame, CumulativeUsage, ModelKey, SessionInfo } from "@/lib/types";
 
@@ -31,6 +33,8 @@ export default function Home() {
 
   const [planSubmitting, setPlanSubmitting] = useState(false);
   const [captionSubmitting, setCaptionSubmitting] = useState(false);
+  const [adCaptionSubmitting, setAdCaptionSubmitting] = useState(false);
+  const [negotiationSubmitting, setNegotiationSubmitting] = useState(false);
   const [scheduleSubmitting, setScheduleSubmitting] = useState(false);
   const [scheduleStarting, setScheduleStarting] = useState(false);
   const [staffScheduleSubmitting, setStaffScheduleSubmitting] = useState(false);
@@ -239,6 +243,44 @@ export default function Home() {
     }
   }
 
+  async function handleSubmitAdCaption(captionText: string) {
+    if (!session || adCaptionSubmitting) return;
+    setAdCaptionSubmitting(true);
+    try {
+      const res = await fetch("/api/submit-ad-caption", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: session.sessionId, captionText }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? "Failed to submit caption");
+      setSession((prev) => (prev ? { ...prev, adCaptionSubmissions: data.submissions } : prev));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to submit caption");
+    } finally {
+      setAdCaptionSubmitting(false);
+    }
+  }
+
+  async function handleSubmitNegotiation(memoText: string) {
+    if (!session || negotiationSubmitting) return;
+    setNegotiationSubmitting(true);
+    try {
+      const res = await fetch("/api/submit-negotiation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: session.sessionId, memoText }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? "Failed to submit memo");
+      setSession((prev) => (prev ? { ...prev, negotiationSubmissions: data.submissions } : prev));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to submit memo");
+    } finally {
+      setNegotiationSubmitting(false);
+    }
+  }
+
   async function handleStartStaffSchedule() {
     if (!session || staffScheduleStarting || session.staffScheduleStartedAt) return;
     setStaffScheduleStarting(true);
@@ -378,6 +420,25 @@ export default function Home() {
                 onStart={handleStartStaffSchedule}
                 onSubmit={handleSubmitStaffSchedule}
               />
+            ) : session.activeTask === "adCaption" ? (
+              <>
+                <ProductPanel imageUrl={session.adProductImageUrl} />
+                <CaptionSubmit
+                  submissions={session.adCaptionSubmissions}
+                  maxSubmissions={session.maxAdCaptionSubmissions}
+                  submitting={adCaptionSubmitting}
+                  onSubmit={handleSubmitAdCaption}
+                  subjectLabel="this product"
+                  itemLabel="ad caption"
+                />
+              </>
+            ) : session.activeTask === "negotiation" ? (
+              <NegotiationTask
+                submissions={session.negotiationSubmissions}
+                maxSubmissions={session.maxNegotiationSubmissions}
+                submitting={negotiationSubmitting}
+                onSubmit={handleSubmitNegotiation}
+              />
             ) : (
               <>
                 <CartoonImage cartoonImageUrl={session.cartoonImageUrl} />
@@ -394,7 +455,11 @@ export default function Home() {
               ? session.scheduleSolved
               : session.activeTask === "staffScheduling"
                 ? session.staffScheduleSolved
-                : session.captionSubmissions.length > 0) && (
+                : session.activeTask === "adCaption"
+                  ? session.adCaptionSubmissions.length > 0
+                  : session.activeTask === "negotiation"
+                    ? session.negotiationSubmissions.length > 0
+                    : session.captionSubmissions.length > 0) && (
               <FinishSection sessionEnded={sessionEnded} onDonateClick={() => setDonateOpen(true)} />
             )}
 
