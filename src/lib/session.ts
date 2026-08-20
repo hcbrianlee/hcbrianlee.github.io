@@ -185,16 +185,22 @@ export async function getStaffScheduleSolved(supabase: SupabaseClient, sessionId
   return (data ?? []).length > 0;
 }
 
+/**
+ * Only active=true rows -- rows retired by a redesign (see sql/schema.sql)
+ * stay in the table so existing `sessions.condition_id` references keep
+ * resolving, but new session assignment must never draw from them.
+ */
 export async function getConditions(supabase: SupabaseClient): Promise<ConditionRow[]> {
   const { data, error } = await supabase
     .from("conditions")
     .select("id, code, info_variant, pricing_variant, default_model")
+    .eq("active", true)
     .order("id", { ascending: true });
 
   if (error) throw new Error(`conditions query failed: ${error.message}`);
   if (!data || data.length === 0) {
     throw new Error(
-      "No rows in `conditions`. Run sql/schema.sql then sql/seed_conditions.sql against your Supabase project."
+      "No active rows in `conditions`. Run sql/schema.sql then sql/seed_conditions.sql against your Supabase project."
     );
   }
   return data as ConditionRow[];

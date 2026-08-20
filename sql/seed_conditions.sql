@@ -13,18 +13,19 @@
 -- Run this after sql/schema.sql. Re-running this file is safe: it upserts
 -- on the unique `code` column.
 
-insert into conditions (code, info_variant, pricing_variant, default_model)
+insert into conditions (code, info_variant, pricing_variant, default_model, active)
 values
-  ('V0',   'none',                 'variable', 'light'),
-  ('VT',   'token',                'variable', 'light'),
-  ('VE',   'environmental',        'variable', 'light'),
-  ('VE_T', 'environmental_token',  'variable', 'light'),
+  ('V0',   'none',                 'variable', 'light', true),
+  ('VT',   'token',                'variable', 'light', true),
+  ('VE',   'environmental',        'variable', 'light', true),
+  ('VE_T', 'environmental_token',  'variable', 'light', true),
 
-  ('F0',   'none',                 'flat',     'light'),
-  ('FT',   'token',                'flat',     'light'),
-  ('FE',   'environmental',        'flat',     'light'),
-  ('FE_T', 'environmental_token',  'flat',     'light')
+  ('F0',   'none',                 'flat',     'light', true),
+  ('FT',   'token',                'flat',     'light', true),
+  ('FE',   'environmental',        'flat',     'light', true),
+  ('FE_T', 'environmental_token',  'flat',     'light', true)
 on conflict (code) do update set
   info_variant = excluded.info_variant,
   pricing_variant = excluded.pricing_variant,
-  default_model = excluded.default_model;
+  default_model = excluded.default_model,
+  active = true;

@@ -19,24 +19,35 @@ create table if not exists conditions (
   info_variant text not null check (info_variant in ('none', 'token', 'environmental', 'environmental_token')),
   pricing_variant text not null check (pricing_variant in ('variable', 'flat')),
   default_model text not null default 'light' check (default_model in ('light', 'heavy')),
+  -- False for conditions retired by a redesign (see below) -- existing
+  -- `sessions` rows may still reference them by id, so they're never
+  -- deleted, just excluded from new random assignment. getConditions()
+  -- (src/lib/session.ts) only selects active=true rows.
+  active boolean not null default true,
   created_at timestamptz not null default now()
 );
 
 -- `create table if not exists` above only helps on a first-ever run --
--- existing projects need the constraints replaced explicitly. This DELETES
--- all existing conditions rows first (the old codes/values don't fit the
--- new matrix at all) -- if any `sessions` rows still reference them, this
--- will fail on the foreign key rather than silently orphan/corrupt
--- anything; if that happens and you need to keep that session data,
--- resolve it manually (e.g. re-point or archive those sessions) before
--- re-running this.
-delete from conditions;
+-- existing projects need this applied explicitly.
+alter table conditions add column if not exists active boolean not null default true;
+
+-- 2026-08 redesign: 2 pricing arms (variable/flat) x 4 info arms
+-- (none/token/environmental/environmental_token) = 8 cells, replacing the
+-- old 3-pricing x 4-info design. Any pre-redesign rows are RETIRED
+-- (active=false), never deleted -- sessions created under the old design
+-- still reference them by id, and `sessions.condition_id references
+-- conditions(id)` has no cascade. The CHECK constraints below are
+-- widened (union of old + new values), not narrowed, specifically so
+-- retired rows keep passing them; only sql/seed_conditions.sql's new 8
+-- rows are active, so new sessions only ever draw from those.
+update conditions set active = false
+  where code not in ('V0', 'VT', 'VE', 'VE_T', 'F0', 'FT', 'FE', 'FE_T');
 alter table conditions drop constraint if exists conditions_info_variant_check;
 alter table conditions add constraint conditions_info_variant_check
-  check (info_variant in ('none', 'token', 'environmental', 'environmental_token'));
+  check (info_variant in ('none', 'token', 'environmental', 'environmental_token', 'energy_usage', 'convenience'));
 alter table conditions drop constraint if exists conditions_pricing_variant_check;
 alter table conditions add constraint conditions_pricing_variant_check
-  check (pricing_variant in ('variable', 'flat'));
+  check (pricing_variant in ('variable', 'flat', 'fixed', 'free'));
 
 -- One row per participant session. The condition is assigned once, at
 -- creation time, via a deterministic hash of the session id -- see
