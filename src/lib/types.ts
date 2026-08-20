@@ -1,7 +1,14 @@
 export type ModelKey = "light" | "heavy";
 export type Provider = "openai" | "anthropic";
-export type InfoVariant = "environmental" | "energy_usage" | "convenience" | "none";
-export type PricingVariant = "variable" | "fixed" | "free";
+/**
+ * "token" shows the participant's own running token count (no $/CO2
+ * framing); "environmental" shows CO2 impact (per-response comparison
+ * under the model toggle, plus the running total in the sidebar);
+ * "environmental_token" shows both together.
+ */
+export type InfoVariant = "none" | "token" | "environmental" | "environmental_token";
+/** "flat" replaces the old "free" name -- same behavior (no budget, no per-message charge), renamed for the 2026-08 redesign. The old "fixed" (pick once upfront) pricing condition was dropped entirely. */
+export type PricingVariant = "variable" | "flat";
 /** Which task participants see -- global, toggled from /admin. See src/lib/overrides.ts: ActiveTask. */
 export type ActiveTask = "cartoon" | "scheduling" | "staffScheduling" | "adCaption" | "tripPlanning";
 
@@ -26,22 +33,19 @@ export interface SessionInfo {
     pricingVariant: PricingVariant;
     defaultModel: ModelKey;
   };
-  infoCopy: CopyBlock | null;
   pricingCopy: CopyBlock | null;
   fixedCreditCents: number;
   socialProofPct: number | null;
   cumulative: CumulativeUsage;
-  /** Only meaningful when condition.pricingVariant === "fixed". Null until a plan has been picked via /api/select-plan. */
-  fixedPlan: { model: ModelKey; costCents: number } | null;
-  /** Flat one-time prices for each model, for the "fixed" plan-picker screen. */
-  fixedPlanOptions: { heavy: number; light: number };
+  /** Only meaningful when condition.pricingVariant === "variable" -- true once cumulative.spentCents >= fixedCreditCents, at which point /api/chat rejects further generations for this session. Always false under "flat" (no budget to exhaust). */
+  budgetExhausted: boolean;
   /** Hotlinked image URL for this session's assigned cartoon (chosen once, deterministically, at session creation). */
   cartoonImageUrl: string;
   /** All caption ideas submitted so far for this cartoon, oldest first. Capped at maxCaptionSubmissions. */
   captionSubmissions: CaptionSubmission[];
   /** Most captions a single session may submit (see /api/submit-caption). */
   maxCaptionSubmissions: number;
-  /** Static per-1,000-token heavy vs. light comparison, for the environmental/energy_usage nudge under the model toggle. */
+  /** Static per-1,000-token heavy vs. light comparison, for the environmental / environmental_token nudge under the model toggle. */
   modelComparison: ModelComparison;
   /** Which task this session is doing -- global (not per-session), toggled from /admin. */
   activeTask: ActiveTask;
@@ -96,7 +100,7 @@ export interface CumulativeUsage {
   totalTokens: number;
   co2G: number;
   waterMl: number;
-  /** Always 0 for the "free" pricing condition. */
+  /** Always 0 under "flat" pricing. */
   spentCents: number;
 }
 

@@ -27,12 +27,13 @@ sql/seed_conditions.sql   seeds the info x pricing condition matrix
 src/lib/                  assignment, condition copy, model config, carbon estimator, provider clients
 src/app/api/session       POST: create or resume a session, assigns a condition
 src/app/api/chat          POST: streams a chat completion, logs prompt + response events
-src/app/api/select-plan   POST: "fixed" pricing only -- pay the flat one-time price for heavy or light
 src/app/api/submit-caption  POST: records the participant's final caption for their assigned cartoon
 src/app/api/donate        POST: records the end-of-session donation, closes the session
 src/lib/cartoons.ts       cartoon filename manifest + deterministic per-session pick + hotlink URL builder
 src/app/page.tsx          the chat UI (client component)
-src/components/           Sidebar, ModelPicker, MessageList, Composer, DonationModal, FixedPlanPicker, CaptionBox
+src/components/           Sidebar, ModelPicker, MessageList, Composer, DonationModal, CaptionSubmit, and
+                          per-task components (SchedulingTask, StaffSchedulingTask, ProductPanel,
+                          TripPlanningTask) -- see src/app/admin for the task/condition toggle
 ```
 
 ## Setup
@@ -41,21 +42,14 @@ src/components/           Sidebar, ModelPicker, MessageList, Composer, DonationM
    - `sql/schema.sql`
    - `sql/seed_conditions.sql`
 
-   If you already ran `schema.sql` before these features were wired up, also run whichever of
-   these you're missing, once each (new projects don't need them, they're already folded into
-   `schema.sql`):
-   - `sql/migration_add_cost_tracking.sql` — adds the cost column + view for "variable" pricing
-   - `sql/migration_add_fixed_plans.sql` — adds the `fixed_plan_selected` event type + view update
-     for the "fixed" pricing pre-chat plan picker
-   - `sql/migration_add_cartoons_and_captions.sql` — adds `cartoon_filename` / `final_caption` on
-     `sessions` and the `caption_submitted` event type
+   `schema.sql` is safe to re-run against an existing project -- it applies its own migrations
+   idempotently (see the `alter table ... add/drop column/constraint if exists` statements near
+   the bottom of the file) rather than relying on separate one-off migration files.
 
-   The seed file ships all 4 info variants (environmental / energy_usage / convenience / none)
-   x 3 pricing variants (variable / fixed / free) = 12 conditions. The design doc mentions
-   targeting "9 conditions" but was unresolved on whether "convenience" (speed) is a 4th info
-   arm — trim the `convenience_*` rows in `sql/seed_conditions.sql` to collapse to 3x3=9 if
-   that's the design you land on. Condition count isn't hardcoded anywhere else — the assignment
-   hash always mods by however many rows are in `conditions`.
+   The seed file ships the 2026-08 redesign's matrix: 2 pricing arms (variable / flat) x 4 info
+   arms (none / token / environmental / environmental_token) = 8 conditions (codes V0/VT/VE/VE_T/
+   F0/FT/FE/FE_T). Condition count isn't hardcoded anywhere else — the assignment hash always mods
+   by however many rows are in `conditions`, so resizing the matrix is just editing this file.
 
 2. **Copy `.env.example` to `.env.local`** and fill in:
    - `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` (Project Settings → API in Supabase)
@@ -85,14 +79,12 @@ sidebar, live social-norm stat ("x% of responses used the light model"), end-of-
 flow (capped at remaining, post-spend credit), full event log for later analysis.
 
 Pricing conditions actually charge, differently per variant:
-- **free**: never charges, regardless of model choice.
+- **flat**: never charges, no budget cap, regardless of model choice.
 - **variable**: every response deducts `(tokens / 1000) * price-per-1k-tokens` from the credit
-  (see `src/lib/pricing.ts`, prices in `.env.example`) — the per-token price is shown up front.
-- **fixed**: before the first message, a plan-picker screen (`FixedPlanPicker`) asks the
-  participant to choose heavy or light for a flat one-time price (`$2.00` / `$1.00` by default),
-  charged once. That model is then locked for the rest of the session — the picker in the header
-  becomes a plain "Your plan: Heavy" label, and `/api/chat` rejects requests for the other model
-  server-side, not just in the UI.
+  (see `src/lib/pricing.ts`, prices in `.env.example`) — the per-token price is shown up front,
+  and once cumulative spend reaches the participation credit, `/api/chat` rejects further
+  generations for the session server-side (a real hard stop, not just a running total the
+  participant can watch climb past).
 
 Cartoon display and caption submission: each session gets one cartoon, picked once via the same
 deterministic hash-mod-N scheme as condition assignment (`src/lib/cartoons.ts`), and shown for the

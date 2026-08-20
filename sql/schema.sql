@@ -5,16 +5,38 @@ create extension if not exists pgcrypto;
 
 -- One row per experimental cell: info framing x pricing framing.
 -- Kept data-driven (not hardcoded in the app) so the condition matrix can be
--- resized (e.g. 9 vs 12 cells) without a code change -- session assignment
--- always hashes into `select count(*) from conditions`.
+-- resized without a code change -- session assignment always hashes into
+-- `select count(*) from conditions`.
+--
+-- 2026-08 redesign: 2 pricing arms (variable/flat) x 4 info arms
+-- (none/token/environmental/environmental_token) = 8 cells. The old
+-- "fixed" pricing arm (pick heavy/light once for a flat upfront price) and
+-- the old "energy_usage"/"convenience" info arms were dropped; "free" was
+-- renamed "flat" (same behavior, new name). See sql/seed_conditions.sql.
 create table if not exists conditions (
   id serial primary key,
   code text unique not null,
-  info_variant text not null check (info_variant in ('environmental', 'energy_usage', 'convenience', 'none')),
-  pricing_variant text not null check (pricing_variant in ('variable', 'fixed', 'free')),
+  info_variant text not null check (info_variant in ('none', 'token', 'environmental', 'environmental_token')),
+  pricing_variant text not null check (pricing_variant in ('variable', 'flat')),
   default_model text not null default 'light' check (default_model in ('light', 'heavy')),
   created_at timestamptz not null default now()
 );
+
+-- `create table if not exists` above only helps on a first-ever run --
+-- existing projects need the constraints replaced explicitly. This DELETES
+-- all existing conditions rows first (the old codes/values don't fit the
+-- new matrix at all) -- if any `sessions` rows still reference them, this
+-- will fail on the foreign key rather than silently orphan/corrupt
+-- anything; if that happens and you need to keep that session data,
+-- resolve it manually (e.g. re-point or archive those sessions) before
+-- re-running this.
+delete from conditions;
+alter table conditions drop constraint if exists conditions_info_variant_check;
+alter table conditions add constraint conditions_info_variant_check
+  check (info_variant in ('none', 'token', 'environmental', 'environmental_token'));
+alter table conditions drop constraint if exists conditions_pricing_variant_check;
+alter table conditions add constraint conditions_pricing_variant_check
+  check (pricing_variant in ('variable', 'flat'));
 
 -- One row per participant session. The condition is assigned once, at
 -- creation time, via a deterministic hash of the session id -- see

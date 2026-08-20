@@ -6,7 +6,6 @@ import { ModelPicker } from "@/components/ModelPicker";
 import { MessageList } from "@/components/MessageList";
 import { Composer } from "@/components/Composer";
 import { DonationModal } from "@/components/DonationModal";
-import { FixedPlanPicker } from "@/components/FixedPlanPicker";
 import { CartoonImage } from "@/components/CartoonImage";
 import { CaptionSubmit } from "@/components/CaptionSubmit";
 import { SchedulingTask } from "@/components/SchedulingTask";
@@ -31,7 +30,6 @@ export default function Home() {
   const [selectedModel, setSelectedModel] = useState<ModelKey>("light");
   const [sending, setSending] = useState(false);
 
-  const [planSubmitting, setPlanSubmitting] = useState(false);
   const [captionSubmitting, setCaptionSubmitting] = useState(false);
   const [adCaptionSubmitting, setAdCaptionSubmitting] = useState(false);
   const [tripPlanSubmitting, setTripPlanSubmitting] = useState(false);
@@ -88,7 +86,7 @@ export default function Home() {
           setDebugConditionCode(info.condition.code);
         }
         setSession(info);
-        setSelectedModel(info.fixedPlan?.model ?? info.condition.defaultModel);
+        setSelectedModel(info.condition.defaultModel);
       } catch (err) {
         setLoadError(err instanceof Error ? err.message : "Failed to start session");
       } finally {
@@ -99,7 +97,7 @@ export default function Home() {
 
   async function handleSend() {
     const text = draft.trim();
-    if (!text || !session || sending || sessionEnded) return;
+    if (!text || !session || sending || sessionEnded || session.budgetExhausted) return;
 
     const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", content: text };
     const assistantId = crypto.randomUUID();
@@ -115,6 +113,21 @@ export default function Home() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId: session.sessionId, modelKey: selectedModel, messages: historyForRequest }),
       });
+
+      // Rejections (unknown session, budget exhausted, etc.) come back as a
+      // single JSON error object, not the NDJSON stream -- handle that
+      // before treating the body as a frame stream.
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const message = data?.error ?? "Failed to generate a response.";
+        setMessages((prev) =>
+          prev.map((m) => (m.id === assistantId ? { ...m, content: `Error: ${message}`, pending: false } : m))
+        );
+        if (res.status === 402) {
+          setSession((prev) => (prev ? { ...prev, budgetExhausted: true } : prev));
+        }
+        return;
+      }
 
       if (!res.body) throw new Error("No response body from server");
 
@@ -140,7 +153,17 @@ export default function Home() {
             const snapshot = accumulated;
             setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: snapshot } : m)));
           } else if (frame.type === "done") {
-            setSession((prev) => (prev ? { ...prev, cumulative: frame.cumulative } : prev));
+            setSession((prev) =>
+              prev
+                ? {
+                    ...prev,
+                    cumulative: frame.cumulative,
+                    budgetExhausted:
+                      prev.condition.pricingVariant === "variable" &&
+                      frame.cumulative.spentCents >= prev.fixedCreditCents,
+                  }
+                : prev
+            );
             setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, pending: false } : m)));
           } else if (frame.type === "error") {
             const message = frame.message;
@@ -156,29 +179,6 @@ export default function Home() {
       );
     } finally {
       setSending(false);
-    }
-  }
-
-  async function handleSelectPlan(model: ModelKey) {
-    if (!session || planSubmitting) return;
-    setPlanSubmitting(true);
-    try {
-      const res = await fetch("/api/select-plan", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId: session.sessionId, modelKey: model }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data?.error ?? "Failed to select plan");
-
-      setSession((prev) =>
-        prev ? { ...prev, fixedPlan: { model: data.model, costCents: data.costCents }, cumulative: data.cumulative } : prev
-      );
-      setSelectedModel(data.model);
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to select plan");
-    } finally {
-      setPlanSubmitting(false);
     }
   }
 
@@ -369,8 +369,6 @@ export default function Home() {
     );
   }
 
-  const needsPlanSelection = session.condition.pricingVariant === "fixed" && !session.fixedPlan;
-
   return (
     <div className="app-shell">
       <Sidebar
@@ -378,6 +376,8 @@ export default function Home() {
         socialProofPct={session.socialProofPct}
         fixedCreditCents={session.fixedCreditCents}
         pricingCopy={session.pricingCopy}
+        infoVariant={session.condition.infoVariant}
+        pricingVariant={session.condition.pricingVariant}
         onNewChat={handleNewChat}
       />
 
@@ -389,19 +389,7 @@ export default function Home() {
           </div>
         )}
 
-        {needsPlanSelection ? (
-          <FixedPlanPicker
-            options={session.fixedPlanOptions}
-            fixedCreditCents={session.fixedCreditCents}
-            activeTask={session.activeTask}
-            infoVariant={session.condition.infoVariant}
-            infoCopy={session.infoCopy}
-            modelComparison={session.modelComparison}
-            submitting={planSubmitting}
-            onSelect={handleSelectPlan}
-          />
-        ) : (
-          <>
+        <>
             {session.activeTask === "scheduling" ? (
               <SchedulingTask
                 startedAt={session.scheduleStartedAt}
@@ -465,23 +453,28 @@ export default function Home() {
 
             <MessageList messages={messages} />
 
+            {session.budgetExhausted && (
+              <div className="budget-exhausted-banner">
+                You&apos;ve used your full participation credit for this session -- you can&apos;t send more
+                messages, but you can still finish up the task below.
+              </div>
+            )}
+
             <Composer
               value={draft}
               onChange={setDraft}
               onSend={handleSend}
-              disabled={sending || sessionEnded}
+              disabled={sending || sessionEnded || session.budgetExhausted}
               topContent={
                 <ModelPicker
                   selected={selectedModel}
                   onChange={setSelectedModel}
                   infoVariant={session.condition.infoVariant}
                   modelComparison={session.modelComparison}
-                  locked={session.condition.pricingVariant === "fixed"}
                 />
               }
             />
           </>
-        )}
       </main>
 
       {donateOpen && (

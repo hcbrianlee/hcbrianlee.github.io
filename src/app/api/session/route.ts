@@ -10,15 +10,13 @@ import {
   getTripPlanSubmissions,
   getConditions,
   getCumulativeUsage,
-  getFixedPlan,
   getScheduleSolved,
   getScheduleStartedAt,
   getStaffScheduleSolved,
   getStaffScheduleStartedAt,
   getSocialProofPct,
 } from "@/lib/session";
-import { getInfoCopy, getPricingCopy } from "@/lib/conditions";
-import { getFixedPlanPriceCents } from "@/lib/pricing";
+import { getPricingCopy } from "@/lib/conditions";
 import { getModelComparison } from "@/lib/carbon";
 import { getCartoonImageUrl, pickCartoonFilename } from "@/lib/cartoons";
 import { getAdProductImageUrl, MAX_AD_CAPTION_SUBMISSIONS } from "@/lib/adTask";
@@ -39,7 +37,6 @@ async function buildSessionInfo(
   const [
     cumulative,
     socialProofPct,
-    fixedPlan,
     captionSubmissions,
     scheduleSolved,
     scheduleStartedAt,
@@ -51,7 +48,6 @@ async function buildSessionInfo(
   ] = await Promise.all([
     getCumulativeUsage(supabase, sessionId),
     getSocialProofPct(supabase),
-    getFixedPlan(supabase, sessionId),
     getCaptionSubmissions(supabase, sessionId),
     getScheduleSolved(supabase, sessionId),
     getScheduleStartedAt(supabase, sessionId),
@@ -70,13 +66,11 @@ async function buildSessionInfo(
       pricingVariant: condition.pricing_variant,
       defaultModel: condition.default_model,
     },
-    infoCopy: getInfoCopy(condition.info_variant),
     pricingCopy: getPricingCopy(condition.pricing_variant),
     fixedCreditCents,
     socialProofPct,
     cumulative,
-    fixedPlan,
-    fixedPlanOptions: { heavy: getFixedPlanPriceCents("heavy"), light: getFixedPlanPriceCents("light") },
+    budgetExhausted: condition.pricing_variant === "variable" && cumulative.spentCents >= fixedCreditCents,
     cartoonImageUrl: getCartoonImageUrl(cartoonFilename),
     captionSubmissions,
     maxCaptionSubmissions: MAX_CAPTION_SUBMISSIONS,

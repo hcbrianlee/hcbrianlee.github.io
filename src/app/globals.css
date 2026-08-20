@@ -170,6 +170,18 @@ button {
   border-radius: 4px;
 }
 
+.budget-exhausted-banner {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 10px 16px;
+  background: #fdecea;
+  border: 1px solid #f3b4ac;
+  border-radius: 8px;
+  color: #7a2620;
+  font-size: 13px;
+  text-align: center;
+}
+
 /* ---------- Main column ---------- */
 
 .main {

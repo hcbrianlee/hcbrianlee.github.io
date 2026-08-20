@@ -1,29 +1,29 @@
--- Seeds the 4 (info framing) x 3 (pricing framing) condition matrix from the
--- experimental design doc. The doc itself was unsure whether "convenience
--- (speed)" should be a 4th info arm or dropped to land on exactly 9 cells --
--- this seed keeps all 4 so the full 2x2x... design is available; delete the
--- 'convenience' rows below (or edit this file) to collapse to the 3x3 = 9
--- cell version before running it, if that's the design you land on.
+-- Seeds the 2 (pricing) x 4 (info) = 8-cell condition matrix from the
+-- 2026-08 experimental redesign:
 --
--- Re-running this file is safe: it upserts on the unique `code` column.
+--                  none   token   environmental   environmental_token
+-- variable (budget)  V0     VT         VE                VE_T
+-- flat (no budget)   F0     FT         FE                FE_T
+--
+-- Codes use underscores (VE_T, FE_T) rather than the design doc's literal
+-- "VE+T"/"FE+T" -- a "+" in a condition code would get decoded as a space
+-- if ever passed through a URL query string (?condition=...), which is
+-- exactly how the debug-forced-condition path works (see page.tsx).
+--
+-- Run this after sql/schema.sql. Re-running this file is safe: it upserts
+-- on the unique `code` column.
 
 insert into conditions (code, info_variant, pricing_variant, default_model)
 values
-  ('environmental_variable', 'environmental', 'variable', 'light'),
-  ('environmental_fixed',    'environmental', 'fixed',    'light'),
-  ('environmental_free',     'environmental', 'free',     'light'),
+  ('V0',   'none',                 'variable', 'light'),
+  ('VT',   'token',                'variable', 'light'),
+  ('VE',   'environmental',        'variable', 'light'),
+  ('VE_T', 'environmental_token',  'variable', 'light'),
 
-  ('energy_usage_variable',  'energy_usage',  'variable', 'light'),
-  ('energy_usage_fixed',     'energy_usage',  'fixed',    'light'),
-  ('energy_usage_free',      'energy_usage',  'free',     'light'),
-
-  ('convenience_variable',   'convenience',   'variable', 'light'),
-  ('convenience_fixed',      'convenience',   'fixed',    'light'),
-  ('convenience_free',       'convenience',   'free',     'light'),
-
-  ('none_variable',          'none',          'variable', 'light'),
-  ('none_fixed',             'none',          'fixed',    'light'),
-  ('none_free',              'none',          'free',     'light')
+  ('F0',   'none',                 'flat',     'light'),
+  ('FT',   'token',                'flat',     'light'),
+  ('FE',   'environmental',        'flat',     'light'),
+  ('FE_T', 'environmental_token',  'flat',     'light')
 on conflict (code) do update set
   info_variant = excluded.info_variant,
   pricing_variant = excluded.pricing_variant,

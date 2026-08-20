@@ -1,56 +1,34 @@
-import type { CopyBlock, InfoVariant, PricingVariant } from "./types";
+import type { CopyBlock, PricingVariant } from "./types";
 
 /**
- * Nudge copy lives in code (not the DB) so wording can be iterated on and
- * reviewed like any other UI copy. The `conditions` table only stores which
- * variant a session was assigned to.
+ * The info_variant nudge itself is no longer static prose -- it's the live
+ * numeric stat blocks in the sidebar (token count, CO2 used) plus the
+ * per-model CO2 comparison under the model toggle (see ModelPicker.tsx
+ * modelCaption()). There's nothing left for a getInfoCopy()-style function
+ * to return, so it was removed along with the "fixed" pricing condition
+ * that was its only consumer.
  */
-export function getInfoCopy(variant: InfoVariant): CopyBlock | null {
-  switch (variant) {
-    case "environmental":
-      return {
-        title: "Lower environmental impact",
-        body: "The light model emits less greenhouse gas and uses less water to cool the servers that run it than the heavy model.",
-      };
-    case "energy_usage":
-      return {
-        title: "Lower computational load",
-        body: "The light model requires fewer computational resources — it's more efficient and uses less computer power per response than the heavy model.",
-      };
-    case "convenience":
-      return {
-        title: "Faster responses",
-        body: "The light model responds faster than the heavy model, so you spend less time waiting.",
-      };
-    case "none":
-    default:
-      return null;
-  }
-}
 
 /**
- * Null means: show nothing in the sidebar for this variant.
- * - "fixed" already explains its pricing on the pre-chat plan-picker screen
- *   (heavy/light, one flat price each) -- repeating it in the sidebar
- *   afterward is redundant, so it shows nothing here.
- * - "variable" and "free" both get a short note; "free" deliberately does
- *   not mention cost at all (there's nothing to say about it), just that
- *   the model can be switched anytime.
+ * Null means: show nothing in the sidebar's pricing note.
+ * "variable" discloses the hard stop explicitly -- V0 (design doc, 2026-08)
+ * specifies participants literally cannot send more messages once their
+ * budget is used up, so that needs to be stated up front, not discovered
+ * mid-session. "flat" has nothing to disclose (no budget, no per-message
+ * cost) beyond the model toggle being freely switchable.
  */
 export function getPricingCopy(variant: PricingVariant): CopyBlock | null {
   switch (variant) {
     case "variable":
       return {
         title: "Pay per use",
-        body: "Heavy model: $0.02 per 1,000 tokens. Light model: $0.01 per 1,000 tokens, charged against your participation credit. You can toggle between the light and heavy model anytime in the chat below.",
+        body: "Heavy model: $0.02 per 1,000 tokens. Light model: $0.01 per 1,000 tokens, charged against your participation credit. Once your credit runs out, you won't be able to send more messages for the rest of this session. You can toggle between the light and heavy model anytime.",
       };
-    case "fixed":
-      return null;
-    case "free":
+    case "flat":
     default:
       return {
-        title: "Switch models anytime",
-        body: "You can toggle between the light and heavy model anytime in the chat below.",
+        title: "Unlimited use",
+        body: "There's no per-message cost and no budget cap for this session. You can toggle between the light and heavy model anytime in the chat below.",
       };
   }
 }

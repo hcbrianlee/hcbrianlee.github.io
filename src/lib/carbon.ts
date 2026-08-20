@@ -70,8 +70,8 @@ function perThousandTokens(modelKey: ModelKey): ImpactEstimate {
 /**
  * Static heavy vs. light comparison per 1,000 tokens -- no load factor,
  * since this is a reference figure shown alongside the model picker, not a
- * measurement of one specific response. Used for the environmental/
- * energy_usage nudge copy under each model toggle.
+ * measurement of one specific response. Used for the environmental /
+ * environmental_token nudge copy under each model toggle.
  */
 export function getModelComparison(): ModelComparison {
   const heavy = perThousandTokens("heavy");

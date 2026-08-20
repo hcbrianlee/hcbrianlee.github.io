@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { CaptionSubmission, CumulativeUsage, ConditionRow, ModelKey } from "./types";
+import type { CaptionSubmission, CumulativeUsage, ConditionRow } from "./types";
 
 /** Most caption ideas a single session may submit for its cartoon. */
 export const MAX_CAPTION_SUBMISSIONS = 10;
@@ -47,28 +47,6 @@ export async function getSocialProofPct(supabase: SupabaseClient): Promise<numbe
 
   if (!totalCount || totalCount < 10) return null;
   return Math.round(((lightCount ?? 0) / totalCount) * 100);
-}
-
-/**
- * The "fixed" pricing condition asks participants to pick heavy or light
- * once, up front, for a flat fee -- see /api/select-plan. Returns null until
- * that choice has been made for this session.
- */
-export async function getFixedPlan(
-  supabase: SupabaseClient,
-  sessionId: string
-): Promise<{ model: ModelKey; costCents: number } | null> {
-  const { data, error } = await supabase
-    .from("events")
-    .select("model, estimated_cost_cents")
-    .eq("session_id", sessionId)
-    .eq("event_type", "fixed_plan_selected")
-    .maybeSingle();
-
-  if (error) throw new Error(`fixed plan query failed: ${error.message}`);
-  if (!data || !data.model) return null;
-
-  return { model: data.model as ModelKey, costCents: Number(data.estimated_cost_cents ?? 0) };
 }
 
 /**

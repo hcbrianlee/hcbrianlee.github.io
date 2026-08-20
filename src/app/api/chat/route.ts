@@ -5,7 +5,7 @@ import { streamChat } from "@/lib/providers";
 import { isReasoningModel } from "@/lib/providers/openai";
 import { estimateImpact } from "@/lib/carbon";
 import { estimateCostCents } from "@/lib/pricing";
-import { getCumulativeUsage, getFixedPlan } from "@/lib/session";
+import { getCumulativeUsage } from "@/lib/session";
 import { getExperimentOverrides } from "@/lib/overrides";
 import type { ChatStreamFrame, ConditionRow, ModelKey } from "@/lib/types";
 
@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
 
     const { data: session, error: sessionErr } = await supabase
       .from("sessions")
-      .select("id, status, condition:conditions(pricing_variant)")
+      .select("id, status, fixed_credit_cents, condition:conditions(pricing_variant)")
       .eq("id", sessionId)
       .maybeSingle();
 
@@ -78,15 +78,18 @@ export async function POST(req: NextRequest) {
 
     const condition = (session as unknown as { condition: Pick<ConditionRow, "pricing_variant"> | null })
       .condition;
-    pricingVariant = condition?.pricing_variant ?? "free";
+    pricingVariant = condition?.pricing_variant ?? "flat";
 
-    if (pricingVariant === "fixed") {
-      const plan = await getFixedPlan(supabase, sessionId);
-      if (!plan) {
-        return jsonError("Choose a model plan before chatting", 400);
-      }
-      if (plan.model !== modelKey) {
-        return jsonError(`Your plan only covers the ${plan.model} model this session`, 400);
+    // Hard budget stop (design doc, 2026-08): under "variable" pricing,
+    // once cumulative spend reaches the participation credit, the
+    // participant literally cannot send more messages -- not just a
+    // running total they can watch climb past it. Checked server-side
+    // (never trust a client-side gate for this), before generating so an
+    // over-budget request is rejected without ever calling the model.
+    if (pricingVariant === "variable") {
+      const cumulative = await getCumulativeUsage(supabase, sessionId);
+      if (cumulative.spentCents >= session.fixed_credit_cents) {
+        return jsonError("You've used your full participation credit for this session.", 402);
       }
     }
 

@@ -23,7 +23,10 @@ export function modelCaption(variant: InfoVariant, model: ModelKey, comparison: 
     </>
   );
 
-  if (variant === "environmental") {
+  // "environmental_token" reuses the exact same per-model CO2 comparison as
+  // "environmental" -- the token half of that condition is shown separately,
+  // in the sidebar's running-token-count block (see Sidebar.tsx), not here.
+  if (variant === "environmental" || variant === "environmental_token") {
     if (model === "light") {
       return (
         <>
@@ -41,26 +44,6 @@ export function modelCaption(variant: InfoVariant, model: ModelKey, comparison: 
       </>
     );
   }
-  if (variant === "energy_usage") {
-    if (model === "light") {
-      return (
-        <>
-          {lead}, that&apos;s <strong>{formatWh(scaledDeltaEnergyWh)}</strong> saved per token.
-        </>
-      );
-    }
-    return (
-      <>
-        {lead}, that&apos;s <strong>{formatWh(scaledHeavyEnergyWh)}</strong> used per token.
-      </>
-    );
-  }
-  if (variant === "convenience") {
-    if (model === "light") {
-      return <>Faster — but sometimes, the suggestion may be a bit off.</>;
-    }
-    return <>Consistently on-target — but takes noticeably longer to respond.</>;
-  }
   return null;
 }
 
@@ -69,23 +52,9 @@ export function ModelPicker(props: {
   onChange: (model: ModelKey) => void;
   infoVariant: InfoVariant;
   modelComparison: ModelComparison;
-  /** Set once a "fixed" plan has been paid for -- the toggle becomes a plain label instead of switchable buttons. */
-  locked?: boolean;
 }) {
-  const { selected, onChange, infoVariant, modelComparison, locked } = props;
-  const showCaptions = infoVariant === "environmental" || infoVariant === "energy_usage" || infoVariant === "convenience";
-
-  if (locked) {
-    return (
-      <div className="model-picker-bar">
-        <div className="model-picker">
-          <div className="locked-plan-label">
-            Your plan: <b>{selected === "heavy" ? "Heavy" : "Light"}</b> (locked for this session)
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const { selected, onChange, infoVariant, modelComparison } = props;
+  const showCaptions = infoVariant === "environmental" || infoVariant === "environmental_token";
 
   if (showCaptions) {
     const lightCaption = modelCaption(infoVariant, "light", modelComparison);

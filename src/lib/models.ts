@@ -10,8 +10,6 @@ export interface ModelConfig {
   energyWhPer1kTokens: number;
   /** Price per 1,000 tokens in cents, used for the "variable" pricing condition. Matches the copy in conditions.ts. */
   pricePerThousandTokensCents: number;
-  /** Flat one-time price in cents to pick this model under the "fixed" pricing condition. */
-  fixedPlanPriceCents: number;
   /**
    * Heavy (gpt-4o) and light (gpt-4o-mini) are genuinely different real
    * models -- same family/generation (OpenAI's own flagship/mini pair), so
@@ -79,7 +77,6 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
     // actually runs on the cheaper/faster o4-mini.
     energyWhPer1kTokens: Number(process.env.MODEL_HEAVY_ENERGY_WH_PER_1K ?? 15),
     pricePerThousandTokensCents: Number(process.env.MODEL_HEAVY_PRICE_CENTS_PER_1K ?? 13),
-    fixedPlanPriceCents: Number(process.env.MODEL_HEAVY_FIXED_PLAN_CENTS ?? 200),
     extraDelayBaseSec: Number(process.env.MODEL_HEAVY_EXTRA_DELAY_BASE_SEC ?? 3),
     extraDelayJitterSec: Number(process.env.MODEL_HEAVY_EXTRA_DELAY_JITTER_SEC ?? 1),
     // Ignored by o4-mini (reasoning models reject temperature/top_p via the
@@ -98,7 +95,6 @@ export const MODELS: Record<ModelKey, ModelConfig> = {
     description: "Faster, but occasionally a weaker or slightly off-topic suggestion slips in.",
     energyWhPer1kTokens: Number(process.env.MODEL_LIGHT_ENERGY_WH_PER_1K ?? 0.2),
     pricePerThousandTokensCents: Number(process.env.MODEL_LIGHT_PRICE_CENTS_PER_1K ?? 1),
-    fixedPlanPriceCents: Number(process.env.MODEL_LIGHT_FIXED_PLAN_CENTS ?? 100),
     extraDelayBaseSec: 0,
     extraDelayJitterSec: 0,
     temperature: Number(process.env.MODEL_LIGHT_TEMPERATURE ?? 1.5),
