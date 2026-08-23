@@ -9,6 +9,33 @@ export function formatGrams(g: number): string {
   return `${(g / 1_000_000).toFixed(1)} metric tons`;
 }
 
+function formatGramsAsUnit(g: number, unit: "mg" | "g" | "kg" | "metric tons"): string {
+  switch (unit) {
+    case "mg":
+      return `${(g * 1000).toFixed(0)} mg`;
+    case "g":
+      return `${g.toFixed(1)} g`;
+    case "kg":
+      return `${(g / 1000).toFixed(1)} kg`;
+    case "metric tons":
+      return `${(g / 1_000_000).toFixed(1)} metric tons`;
+  }
+}
+
+/**
+ * Formats two related gram values (e.g. heavy vs. light model CO2) in the
+ * SAME unit, rather than each independently picking its own best-fit unit
+ * via formatGrams -- otherwise a smaller and larger value can end up in
+ * different units (e.g. "34 mg" vs "2.6 g"), which reads as inconsistent
+ * when shown side by side for direct comparison. The unit is chosen from
+ * the smaller of the two values.
+ */
+export function formatGramsPair(a: number, b: number): [string, string] {
+  const smaller = Math.min(a, b);
+  const unit = smaller < 1 ? "mg" : smaller < 1000 ? "g" : smaller < 1_000_000 ? "kg" : "metric tons";
+  return [formatGramsAsUnit(a, unit), formatGramsAsUnit(b, unit)];
+}
+
 export function formatMl(ml: number): string {
   if (ml < 1000) return `${ml.toFixed(0)} mL`;
   if (ml < 1_000_000) return `${(ml / 1000).toFixed(2)} L`;

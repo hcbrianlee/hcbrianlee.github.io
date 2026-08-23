@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import type { InfoVariant, ModelKey } from "@/lib/types";
-import { formatGrams } from "@/lib/format";
+import { formatGramsPair } from "@/lib/format";
 
 export interface AvgResponseImpact {
   heavy: { tokens: number; co2G: number };
@@ -23,6 +23,12 @@ export function modelCaption(variant: InfoVariant, model: ModelKey, avg: AvgResp
 
   if (!showTokens && !showCo2) return null;
 
+  // Heavy and light are shown side by side for direct comparison, so their
+  // CO2 figures need the same unit -- formatGrams alone would pick units
+  // independently per value (e.g. heavy in g, light in mg).
+  const [heavyCo2, lightCo2] = formatGramsPair(avg.heavy.co2G, avg.light.co2G);
+  const co2Str = model === "heavy" ? heavyCo2 : lightCo2;
+
   return (
     <>
       {showTokens && (
@@ -33,7 +39,7 @@ export function modelCaption(variant: InfoVariant, model: ModelKey, avg: AvgResp
       {showTokens && showCo2 && " and "}
       {showCo2 && (
         <>
-          ~<strong>{formatGrams(stats.co2G)}</strong> CO₂
+          ~<strong>{co2Str}</strong> CO₂
         </>
       )}{" "}
       per response, on average.

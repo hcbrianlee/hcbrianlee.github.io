@@ -75,7 +75,7 @@ async function buildSessionInfo(
       pricingVariant: condition.pricing_variant,
       defaultModel: condition.default_model,
     },
-    pricingCopy: getPricingCopy(condition.pricing_variant, maxTokensPerSession),
+    pricingCopy: getPricingCopy(maxTokensPerSession),
     fixedCreditCents,
     maxTokensPerSession,
     socialProofPct,
