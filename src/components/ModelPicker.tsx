@@ -1,64 +1,58 @@
 "use client";
 
 import type { ReactNode } from "react";
-import type { InfoVariant, ModelComparison, ModelKey } from "@/lib/types";
-import { formatGrams, formatMlPrecise, formatUserCount, formatWh } from "@/lib/format";
+import type { InfoVariant, ModelKey } from "@/lib/types";
+import { formatGrams } from "@/lib/format";
 
-// "900 million" is OpenAI's own reported ChatGPT weekly-active-user figure,
-// used here as the hypothetical group size in the "if everyone did this"
-// framing. Note this app itself does not have 900 million users -- this
-// number is illustrative scale-of-impact copy, not a factual claim about
-// this platform's actual usage.
-export function modelCaption(variant: InfoVariant, model: ModelKey, comparison: ModelComparison): ReactNode {
-  const n = comparison.scaleUsers;
-  const nDisplay = formatUserCount(n);
-  // Per-token, not per-1,000 -- comparison.* fields are per-1,000-tokens.
-  const scaledDeltaEnergyWh = (comparison.deltaEnergyWh / 1000) * n;
-  const scaledHeavyEnergyWh = (comparison.heavy.energyWh / 1000) * n;
-  const scaledDeltaCo2G = (comparison.deltaCo2G / 1000) * n;
-  const scaledDeltaWaterMl = (comparison.deltaWaterMl / 1000) * n;
-  const lead = (
+export interface AvgResponseImpact {
+  heavy: { tokens: number; co2G: number };
+  light: { tokens: number; co2G: number };
+}
+
+/**
+ * "token" -> average tokens per response only. "environmental" -> average
+ * CO2 per response only. "environmental_token" -> both. "none" -> nothing.
+ * All from real, platform-wide averages (SessionInfo.avgResponseImpact,
+ * computed server-side -- see src/lib/session.ts getAverageTokensPerModel),
+ * not the earlier "if everyone did this" scaled hypothetical.
+ */
+export function modelCaption(variant: InfoVariant, model: ModelKey, avg: AvgResponseImpact): ReactNode {
+  const stats = avg[model];
+  const showTokens = variant === "token" || variant === "environmental_token";
+  const showCo2 = variant === "environmental" || variant === "environmental_token";
+
+  if (!showTokens && !showCo2) return null;
+
+  return (
     <>
-      If everyone on this platform did the same (we have <strong>{nDisplay}</strong> people!)
+      {showTokens && (
+        <>
+          ~<strong>{Math.round(stats.tokens).toLocaleString()}</strong> tokens
+        </>
+      )}
+      {showTokens && showCo2 && " and "}
+      {showCo2 && (
+        <>
+          ~<strong>{formatGrams(stats.co2G)}</strong> CO₂
+        </>
+      )}{" "}
+      per response, on average.
     </>
   );
-
-  // "environmental_token" reuses the exact same per-model CO2 comparison as
-  // "environmental" -- the token half of that condition is shown separately,
-  // in the sidebar's running-token-count block (see Sidebar.tsx), not here.
-  if (variant === "environmental" || variant === "environmental_token") {
-    if (model === "light") {
-      return (
-        <>
-          {lead}, that&apos;s <strong>{formatWh(scaledDeltaEnergyWh)}</strong> saved, along with{" "}
-          <strong>{formatGrams(scaledDeltaCo2G)}</strong> less CO₂ and <strong>{formatMlPrecise(scaledDeltaWaterMl)}</strong>{" "}
-          less water, per token.
-        </>
-      );
-    }
-    return (
-      <>
-        {lead}, that&apos;s <strong>{formatWh(scaledHeavyEnergyWh)}</strong> used, leading to{" "}
-        <strong>{formatGrams(scaledDeltaCo2G)}</strong> more CO₂ and <strong>{formatMlPrecise(scaledDeltaWaterMl)}</strong>{" "}
-        more water, per token.
-      </>
-    );
-  }
-  return null;
 }
 
 export function ModelPicker(props: {
   selected: ModelKey;
   onChange: (model: ModelKey) => void;
   infoVariant: InfoVariant;
-  modelComparison: ModelComparison;
+  avgResponseImpact: AvgResponseImpact;
 }) {
-  const { selected, onChange, infoVariant, modelComparison } = props;
-  const showCaptions = infoVariant === "environmental" || infoVariant === "environmental_token";
+  const { selected, onChange, infoVariant, avgResponseImpact } = props;
+  const showCaptions = infoVariant !== "none";
 
   if (showCaptions) {
-    const lightCaption = modelCaption(infoVariant, "light", modelComparison);
-    const heavyCaption = modelCaption(infoVariant, "heavy", modelComparison);
+    const lightCaption = modelCaption(infoVariant, "light", avgResponseImpact);
+    const heavyCaption = modelCaption(infoVariant, "heavy", avgResponseImpact);
     return (
       <div className="model-picker-bar">
         <div className="model-toggle-cards">

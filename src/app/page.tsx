@@ -159,9 +159,9 @@ export default function Home() {
                     ...prev,
                     cumulative: frame.cumulative,
                     budgetExhausted:
-                      prev.condition.pricingVariant === "variable"
-                        ? frame.cumulative.spentCents >= prev.fixedCreditCents
-                        : frame.cumulative.totalTokens >= prev.flatMaxTokens,
+                      frame.cumulative.totalTokens >= prev.maxTokensPerSession ||
+                      (prev.condition.pricingVariant === "variable" &&
+                        frame.cumulative.spentCents >= prev.fixedCreditCents),
                   }
                 : prev
             );
@@ -375,11 +375,10 @@ export default function Home() {
       <Sidebar
         cumulative={session.cumulative ?? EMPTY_USAGE}
         socialProofPct={session.socialProofPct}
-        flatMaxTokens={session.flatMaxTokens}
+        maxTokensPerSession={session.maxTokensPerSession}
         scaleUsers={session.modelComparison.scaleUsers}
         pricingCopy={session.pricingCopy}
         infoVariant={session.condition.infoVariant}
-        pricingVariant={session.condition.pricingVariant}
         onNewChat={handleNewChat}
       />
 
@@ -457,9 +456,10 @@ export default function Home() {
 
             {session.budgetExhausted && (
               <div className="budget-exhausted-banner">
-                {session.condition.pricingVariant === "variable"
+                {session.condition.pricingVariant === "variable" &&
+                session.cumulative.spentCents >= session.fixedCreditCents
                   ? "You've used your full participation credit for this session"
-                  : `You've reached the ${session.flatMaxTokens.toLocaleString()}-token limit for this session`}{" "}
+                  : `You've reached the ${session.maxTokensPerSession.toLocaleString()}-token limit for this session`}{" "}
                 -- you can&apos;t send more messages, but you can still finish up the task below.
               </div>
             )}
@@ -474,7 +474,7 @@ export default function Home() {
                   selected={selectedModel}
                   onChange={setSelectedModel}
                   infoVariant={session.condition.infoVariant}
-                  modelComparison={session.modelComparison}
+                  avgResponseImpact={session.avgResponseImpact}
                 />
               }
             />

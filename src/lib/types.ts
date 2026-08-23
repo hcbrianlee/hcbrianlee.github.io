@@ -35,16 +35,24 @@ export interface SessionInfo {
   };
   pricingCopy: CopyBlock | null;
   fixedCreditCents: number;
-  /** Total-token cap for "flat" pricing sessions (see src/lib/pricing.ts getFlatMaxTokens) -- meaningless under "variable", which caps by dollar credit instead. */
-  flatMaxTokens: number;
+  /**
+   * Total-token cap for THIS session, universal across both pricing
+   * variants (see src/lib/pricing.ts getMaxTokensPerSession) -- "variable"
+   * additionally caps by dollar credit (fixedCreditCents) on top of this;
+   * "flat" has no dollar cost, so this token cap is its only limit.
+   */
+  maxTokensPerSession: number;
   socialProofPct: number | null;
   cumulative: CumulativeUsage;
   /**
-   * True once this session has hit its cap and /api/chat will reject
-   * further generations: under "variable", cumulative.spentCents >=
-   * fixedCreditCents; under "flat", cumulative.totalTokens >= flatMaxTokens.
+   * True once this session has hit a cap and /api/chat will reject further
+   * generations: cumulative.totalTokens >= maxTokensPerSession (either
+   * variant), or -- "variable" only, additionally -- cumulative.spentCents
+   * >= fixedCreditCents.
    */
   budgetExhausted: boolean;
+  /** Typical (real, platform-wide average -- see src/lib/session.ts getAverageTokensPerModel) tokens and derived CO2 per response, for the "token"/"environmental" model-toggle captions. */
+  avgResponseImpact: { heavy: { tokens: number; co2G: number }; light: { tokens: number; co2G: number } };
   /** Hotlinked image URL for this session's assigned cartoon (chosen once, deterministically, at session creation). */
   cartoonImageUrl: string;
   /** All caption ideas submitted so far for this cartoon, oldest first. Capped at maxCaptionSubmissions. */

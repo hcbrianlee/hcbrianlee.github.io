@@ -10,6 +10,7 @@ import {
   getTripPlanSubmissions,
   getConditions,
   getCumulativeUsage,
+  getAverageTokensPerModel,
   getScheduleSolved,
   getScheduleStartedAt,
   getStaffScheduleSolved,
@@ -17,8 +18,8 @@ import {
   getSocialProofPct,
 } from "@/lib/session";
 import { getPricingCopy } from "@/lib/conditions";
-import { getFlatMaxTokens } from "@/lib/pricing";
-import { getModelComparison } from "@/lib/carbon";
+import { getMaxTokensPerSession } from "@/lib/pricing";
+import { getModelComparison, estimateAverageResponseImpact } from "@/lib/carbon";
 import { getCartoonImageUrl, pickCartoonFilename } from "@/lib/cartoons";
 import { getAdProductImageUrl, MAX_AD_CAPTION_SUBMISSIONS } from "@/lib/adTask";
 import { MAX_TRIP_PLAN_SUBMISSIONS } from "@/lib/tripPlanning";
@@ -38,6 +39,7 @@ async function buildSessionInfo(
   const [
     cumulative,
     socialProofPct,
+    avgTokensPerModel,
     captionSubmissions,
     scheduleSolved,
     scheduleStartedAt,
@@ -49,6 +51,7 @@ async function buildSessionInfo(
   ] = await Promise.all([
     getCumulativeUsage(supabase, sessionId),
     getSocialProofPct(supabase),
+    getAverageTokensPerModel(supabase),
     getCaptionSubmissions(supabase, sessionId),
     getScheduleSolved(supabase, sessionId),
     getScheduleStartedAt(supabase, sessionId),
@@ -59,11 +62,10 @@ async function buildSessionInfo(
     getExperimentOverrides(supabase),
   ]);
 
-  const flatMaxTokens = getFlatMaxTokens();
+  const maxTokensPerSession = getMaxTokensPerSession();
   const budgetExhausted =
-    condition.pricing_variant === "variable"
-      ? cumulative.spentCents >= fixedCreditCents
-      : cumulative.totalTokens >= flatMaxTokens;
+    cumulative.totalTokens >= maxTokensPerSession ||
+    (condition.pricing_variant === "variable" && cumulative.spentCents >= fixedCreditCents);
 
   return {
     sessionId,
@@ -73,12 +75,16 @@ async function buildSessionInfo(
       pricingVariant: condition.pricing_variant,
       defaultModel: condition.default_model,
     },
-    pricingCopy: getPricingCopy(condition.pricing_variant, flatMaxTokens),
+    pricingCopy: getPricingCopy(condition.pricing_variant, maxTokensPerSession),
     fixedCreditCents,
-    flatMaxTokens,
+    maxTokensPerSession,
     socialProofPct,
     cumulative,
     budgetExhausted,
+    avgResponseImpact: {
+      heavy: estimateAverageResponseImpact("heavy", avgTokensPerModel.heavy),
+      light: estimateAverageResponseImpact("light", avgTokensPerModel.light),
+    },
     cartoonImageUrl: getCartoonImageUrl(cartoonFilename),
     captionSubmissions,
     maxCaptionSubmissions: MAX_CAPTION_SUBMISSIONS,

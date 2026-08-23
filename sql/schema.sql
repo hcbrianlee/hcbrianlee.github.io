@@ -138,6 +138,20 @@ from sessions s
 left join events e on e.session_id = s.id
 group by s.id;
 
+-- Platform-wide (not per-session) average response length per model, used
+-- for the "token"/"environmental" model-toggle captions (ModelPicker.tsx,
+-- via getAverageTokensPerModel in src/lib/session.ts) -- a real measured
+-- average rather than a guessed constant, same principle as the
+-- "convenience" condition's timing being measured rather than researched.
+create or replace view model_avg_tokens as
+select
+  model,
+  avg(total_tokens)::numeric as avg_tokens,
+  count(*) as response_count
+from events
+where event_type = 'response_received' and model is not null
+group by model;
+
 -- Single-row table of live experimenter overrides for LLM request params,
 -- edited from /admin (see ADMIN_DASHBOARD_SECRET in .env.example). Every
 -- column is nullable -- null means "use the src/lib/models.ts default for

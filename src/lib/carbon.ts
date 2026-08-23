@@ -30,6 +30,9 @@ const REFERENCE_SECONDS_PER_TOKEN = 0.02;
 const MIN_LOAD_FACTOR = 0.85;
 const MAX_LOAD_FACTOR = 1.5;
 
+/** Fallback average response length (tokens) before any real response_received data exists for a model -- see getAverageTokensPerModel, src/lib/session.ts. Roughly matches the "~300-500 token query" figure cited in .env.example's energy sourcing comment. */
+export const DEFAULT_AVG_RESPONSE_TOKENS = 400;
+
 export function estimateImpact(params: {
   modelKey: ModelKey;
   totalTokens: number;
@@ -56,15 +59,35 @@ export function estimateImpact(params: {
   };
 }
 
-function perThousandTokens(modelKey: ModelKey): ImpactEstimate {
+/** Static (no load factor) impact for an arbitrary token count -- a reference figure, not a measurement of one specific response. */
+function estimateStaticImpact(modelKey: ModelKey, totalTokens: number): ImpactEstimate {
   const cfg = getModelConfig(modelKey);
-  const energyWh = cfg.energyWhPer1kTokens;
+  const energyWh = (totalTokens / 1000) * cfg.energyWhPer1kTokens;
   const energyKWh = energyWh / 1000;
   return {
     energyWh,
     co2G: energyKWh * GRID_CARBON_INTENSITY_G_PER_KWH,
     waterMl: energyKWh * WATER_ML_PER_KWH,
   };
+}
+
+function perThousandTokens(modelKey: ModelKey): ImpactEstimate {
+  return estimateStaticImpact(modelKey, 1000);
+}
+
+/**
+ * Typical per-response token count and CO2 for each model, used for the
+ * "token"/"environmental" model-toggle captions (ModelPicker.tsx). Prefers
+ * a real platform-wide average (getAverageTokensPerModel, src/lib/session.ts)
+ * over a guess -- avgTokens comes from that; CO2 is derived from it via the
+ * same static per-token conversion used everywhere else in this file, not a
+ * separately-logged average (co2 is a deterministic function of tokens).
+ */
+export function estimateAverageResponseImpact(
+  modelKey: ModelKey,
+  avgTokens: number
+): { tokens: number; co2G: number } {
+  return { tokens: avgTokens, co2G: estimateStaticImpact(modelKey, avgTokens).co2G };
 }
 
 /**

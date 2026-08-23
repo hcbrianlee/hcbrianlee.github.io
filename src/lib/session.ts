@@ -1,8 +1,30 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { CaptionSubmission, CumulativeUsage, ConditionRow } from "./types";
+import { DEFAULT_AVG_RESPONSE_TOKENS } from "./carbon";
 
 /** Most caption ideas a single session may submit for its cartoon. */
 export const MAX_CAPTION_SUBMISSIONS = 10;
+
+/**
+ * Platform-wide average response length per model (model_avg_tokens view),
+ * for the "token"/"environmental" model-toggle captions -- falls back to
+ * DEFAULT_AVG_RESPONSE_TOKENS for a model with no logged responses yet
+ * (e.g. a fresh deployment) rather than showing 0.
+ */
+export async function getAverageTokensPerModel(supabase: SupabaseClient): Promise<{ heavy: number; light: number }> {
+  const { data, error } = await supabase.from("model_avg_tokens").select("model, avg_tokens, response_count");
+
+  if (error) throw new Error(`model_avg_tokens query failed: ${error.message}`);
+
+  const byModel = new Map((data ?? []).map((row) => [row.model, row]));
+  const heavyRow = byModel.get("heavy");
+  const lightRow = byModel.get("light");
+
+  return {
+    heavy: heavyRow && heavyRow.response_count > 0 ? Number(heavyRow.avg_tokens) : DEFAULT_AVG_RESPONSE_TOKENS,
+    light: lightRow && lightRow.response_count > 0 ? Number(lightRow.avg_tokens) : DEFAULT_AVG_RESPONSE_TOKENS,
+  };
+}
 
 export async function getCumulativeUsage(
   supabase: SupabaseClient,
