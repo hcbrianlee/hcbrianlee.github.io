@@ -10,14 +10,12 @@ import type { CopyBlock, PricingVariant } from "./types";
  */
 
 /**
- * Null means: show nothing in the sidebar's pricing note.
- * "variable" discloses the hard stop explicitly -- V0 (design doc, 2026-08)
- * specifies participants literally cannot send more messages once their
- * budget is used up, so that needs to be stated up front, not discovered
- * mid-session. "flat" has nothing to disclose (no budget, no per-message
- * cost) beyond the model toggle being freely switchable.
+ * Null means: show nothing in the sidebar's pricing note. Both variants
+ * disclose their hard stop explicitly -- "variable" when the dollar credit
+ * runs out, "flat" when the token cap is hit -- so it's stated up front,
+ * not discovered mid-session.
  */
-export function getPricingCopy(variant: PricingVariant): CopyBlock | null {
+export function getPricingCopy(variant: PricingVariant, flatMaxTokens: number): CopyBlock | null {
   switch (variant) {
     case "variable":
       return {
@@ -28,7 +26,7 @@ export function getPricingCopy(variant: PricingVariant): CopyBlock | null {
     default:
       return {
         title: "Unlimited use",
-        body: "There's no per-message cost and no budget cap for this session. You can toggle between the light and heavy model anytime in the chat below.",
+        body: `There's no per-message cost for this session, but there's a limit of ${flatMaxTokens.toLocaleString()} total tokens -- once you reach that, you won't be able to send more messages. You can toggle between the light and heavy model anytime in the chat below.`,
       };
   }
 }

@@ -17,6 +17,7 @@ import {
   getSocialProofPct,
 } from "@/lib/session";
 import { getPricingCopy } from "@/lib/conditions";
+import { getFlatMaxTokens } from "@/lib/pricing";
 import { getModelComparison } from "@/lib/carbon";
 import { getCartoonImageUrl, pickCartoonFilename } from "@/lib/cartoons";
 import { getAdProductImageUrl, MAX_AD_CAPTION_SUBMISSIONS } from "@/lib/adTask";
@@ -58,6 +59,12 @@ async function buildSessionInfo(
     getExperimentOverrides(supabase),
   ]);
 
+  const flatMaxTokens = getFlatMaxTokens();
+  const budgetExhausted =
+    condition.pricing_variant === "variable"
+      ? cumulative.spentCents >= fixedCreditCents
+      : cumulative.totalTokens >= flatMaxTokens;
+
   return {
     sessionId,
     condition: {
@@ -66,11 +73,12 @@ async function buildSessionInfo(
       pricingVariant: condition.pricing_variant,
       defaultModel: condition.default_model,
     },
-    pricingCopy: getPricingCopy(condition.pricing_variant),
+    pricingCopy: getPricingCopy(condition.pricing_variant, flatMaxTokens),
     fixedCreditCents,
+    flatMaxTokens,
     socialProofPct,
     cumulative,
-    budgetExhausted: condition.pricing_variant === "variable" && cumulative.spentCents >= fixedCreditCents,
+    budgetExhausted,
     cartoonImageUrl: getCartoonImageUrl(cartoonFilename),
     captionSubmissions,
     maxCaptionSubmissions: MAX_CAPTION_SUBMISSIONS,

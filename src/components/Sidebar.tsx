@@ -1,22 +1,24 @@
 "use client";
 
 import type { CopyBlock, CumulativeUsage, InfoVariant, PricingVariant } from "@/lib/types";
-import { formatCents, formatGrams } from "@/lib/format";
+import { formatGrams, formatUserCount } from "@/lib/format";
 
 export function Sidebar(props: {
   cumulative: CumulativeUsage;
   socialProofPct: number | null;
-  fixedCreditCents: number;
+  flatMaxTokens: number;
+  /** Hypothetical group size for the "if everyone on this platform did what you've done" CO2 framing -- same figure used in ModelPicker's per-model comparison (session.modelComparison.scaleUsers). */
+  scaleUsers: number;
   pricingCopy: CopyBlock | null;
   infoVariant: InfoVariant;
   pricingVariant: PricingVariant;
   onNewChat: () => void;
 }) {
-  const { cumulative, socialProofPct, fixedCreditCents, pricingCopy, infoVariant, pricingVariant, onNewChat } = props;
+  const { cumulative, socialProofPct, flatMaxTokens, scaleUsers, pricingCopy, infoVariant, pricingVariant, onNewChat } =
+    props;
 
   const showCo2 = infoVariant === "environmental" || infoVariant === "environmental_token";
   const showTokens = infoVariant === "token" || infoVariant === "environmental_token";
-  const showBudget = pricingVariant === "variable";
 
   return (
     <aside className="sidebar">
@@ -34,9 +36,9 @@ export function Sidebar(props: {
         </div>
 
         {showCo2 && (
-          <div className="stat-row">
-            <span className="stat-label">Est. CO₂ used</span>
-            <span>{formatGrams(cumulative.co2G)}</span>
+          <div className="sidebar-pricing-note">
+            🌍 If everyone on this platform used what you have (we have <strong>{formatUserCount(scaleUsers)}</strong>{" "}
+            people!), that&apos;s <strong>{formatGrams(cumulative.co2G * scaleUsers)}</strong> of CO₂.
           </div>
         )}
 
@@ -52,22 +54,20 @@ export function Sidebar(props: {
         )}
       </div>
 
-      {showBudget && (
+      {pricingVariant === "flat" && (
         <div className="sidebar-section">
-          <h3>Participation credit</h3>
+          <h3>Session token limit</h3>
           <div className="stat-row">
-            <span className="stat-label">Starting credit</span>
-            <span>{formatCents(fixedCreditCents)}</span>
+            <span className="stat-label">Limit</span>
+            <span>{flatMaxTokens.toLocaleString()}</span>
           </div>
-          {cumulative.spentCents > 0 && (
-            <div className="stat-row">
-              <span className="stat-label">Spent so far</span>
-              <span>{formatCents(cumulative.spentCents)}</span>
-            </div>
-          )}
+          <div className="stat-row">
+            <span className="stat-label">Used so far</span>
+            <span>{cumulative.totalTokens.toLocaleString()}</span>
+          </div>
           <div className="stat-row">
             <span className="stat-label">Remaining</span>
-            <span>{formatCents(Math.max(0, fixedCreditCents - cumulative.spentCents))}</span>
+            <span>{Math.max(0, flatMaxTokens - cumulative.totalTokens).toLocaleString()}</span>
           </div>
 
           {pricingCopy && (

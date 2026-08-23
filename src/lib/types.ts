@@ -35,9 +35,15 @@ export interface SessionInfo {
   };
   pricingCopy: CopyBlock | null;
   fixedCreditCents: number;
+  /** Total-token cap for "flat" pricing sessions (see src/lib/pricing.ts getFlatMaxTokens) -- meaningless under "variable", which caps by dollar credit instead. */
+  flatMaxTokens: number;
   socialProofPct: number | null;
   cumulative: CumulativeUsage;
-  /** Only meaningful when condition.pricingVariant === "variable" -- true once cumulative.spentCents >= fixedCreditCents, at which point /api/chat rejects further generations for this session. Always false under "flat" (no budget to exhaust). */
+  /**
+   * True once this session has hit its cap and /api/chat will reject
+   * further generations: under "variable", cumulative.spentCents >=
+   * fixedCreditCents; under "flat", cumulative.totalTokens >= flatMaxTokens.
+   */
   budgetExhausted: boolean;
   /** Hotlinked image URL for this session's assigned cartoon (chosen once, deterministically, at session creation). */
   cartoonImageUrl: string;

@@ -4,7 +4,7 @@ import { getModelConfig } from "@/lib/models";
 import { streamChat } from "@/lib/providers";
 import { isReasoningModel } from "@/lib/providers/openai";
 import { estimateImpact } from "@/lib/carbon";
-import { estimateCostCents } from "@/lib/pricing";
+import { estimateCostCents, getFlatMaxTokens } from "@/lib/pricing";
 import { getCumulativeUsage } from "@/lib/session";
 import { getExperimentOverrides } from "@/lib/overrides";
 import type { ChatStreamFrame, ConditionRow, ModelKey } from "@/lib/types";
@@ -80,16 +80,24 @@ export async function POST(req: NextRequest) {
       .condition;
     pricingVariant = condition?.pricing_variant ?? "flat";
 
-    // Hard budget stop (design doc, 2026-08): under "variable" pricing,
-    // once cumulative spend reaches the participation credit, the
-    // participant literally cannot send more messages -- not just a
-    // running total they can watch climb past it. Checked server-side
-    // (never trust a client-side gate for this), before generating so an
-    // over-budget request is rejected without ever calling the model.
+    // Hard stop (design doc, 2026-08): under "variable" pricing, once
+    // cumulative spend reaches the participation credit, the participant
+    // literally cannot send more messages -- not just a running total they
+    // can watch climb past it. "flat" has no dollar cost but isn't truly
+    // unlimited either -- it's capped by total tokens instead (see
+    // getFlatMaxTokens). Checked server-side (never trust a client-side
+    // gate for this), before generating so an over-cap request is rejected
+    // without ever calling the model.
     if (pricingVariant === "variable") {
       const cumulative = await getCumulativeUsage(supabase, sessionId);
       if (cumulative.spentCents >= session.fixed_credit_cents) {
         return jsonError("You've used your full participation credit for this session.", 402);
+      }
+    } else if (pricingVariant === "flat") {
+      const cumulative = await getCumulativeUsage(supabase, sessionId);
+      const maxTokens = getFlatMaxTokens();
+      if (cumulative.totalTokens >= maxTokens) {
+        return jsonError(`You've reached the ${maxTokens.toLocaleString()}-token limit for this session.`, 402);
       }
     }
 

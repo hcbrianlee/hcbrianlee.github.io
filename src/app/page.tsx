@@ -159,8 +159,9 @@ export default function Home() {
                     ...prev,
                     cumulative: frame.cumulative,
                     budgetExhausted:
-                      prev.condition.pricingVariant === "variable" &&
-                      frame.cumulative.spentCents >= prev.fixedCreditCents,
+                      prev.condition.pricingVariant === "variable"
+                        ? frame.cumulative.spentCents >= prev.fixedCreditCents
+                        : frame.cumulative.totalTokens >= prev.flatMaxTokens,
                   }
                 : prev
             );
@@ -374,7 +375,8 @@ export default function Home() {
       <Sidebar
         cumulative={session.cumulative ?? EMPTY_USAGE}
         socialProofPct={session.socialProofPct}
-        fixedCreditCents={session.fixedCreditCents}
+        flatMaxTokens={session.flatMaxTokens}
+        scaleUsers={session.modelComparison.scaleUsers}
         pricingCopy={session.pricingCopy}
         infoVariant={session.condition.infoVariant}
         pricingVariant={session.condition.pricingVariant}
@@ -455,8 +457,10 @@ export default function Home() {
 
             {session.budgetExhausted && (
               <div className="budget-exhausted-banner">
-                You&apos;ve used your full participation credit for this session -- you can&apos;t send more
-                messages, but you can still finish up the task below.
+                {session.condition.pricingVariant === "variable"
+                  ? "You've used your full participation credit for this session"
+                  : `You've reached the ${session.flatMaxTokens.toLocaleString()}-token limit for this session`}{" "}
+                -- you can&apos;t send more messages, but you can still finish up the task below.
               </div>
             )}
 
