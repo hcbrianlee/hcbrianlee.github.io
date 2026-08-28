@@ -6,7 +6,6 @@ import { milesFromCo2G } from "@/lib/carbon";
 
 export function Sidebar(props: {
   cumulative: CumulativeUsage;
-  maxTokensPerSession: number;
   /** Hypothetical group size for the "if everyone on this platform did what you've done" CO2 framing -- same figure used in ModelPicker's per-model comparison (session.modelComparison.scaleUsers). */
   scaleUsers: number;
   pricingCopy: CopyBlock | null;
@@ -14,15 +13,21 @@ export function Sidebar(props: {
   pricingVariant: PricingVariant;
   onNewChat: () => void;
 }) {
-  const { cumulative, maxTokensPerSession, scaleUsers, pricingCopy, infoVariant, pricingVariant, onNewChat } = props;
+  const { cumulative, scaleUsers, pricingCopy, infoVariant, pricingVariant, onNewChat } = props;
 
   const showCo2 = infoVariant === "environmental" || infoVariant === "environmental_token";
-  const showTokens = infoVariant === "token" || infoVariant === "environmental_token";
+  // Raw "Tokens used" count (no denominator, for either pricing variant) --
+  // only for the "token" info conditions, since it's the informational nudge
+  // itself, not a budget disclosure.
+  const showTokenUsage = infoVariant === "token" || infoVariant === "environmental_token";
   // The token cap is enforced server-side for BOTH pricing variants (see
-  // chat/route.ts), but only disclosed to "variable" sessions -- "flat"
-  // shows just the raw count, no denominator and no limit note, so it
-  // still reads as "unlimited" the way the condition is framed.
-  const showCap = pricingVariant === "variable";
+  // chat/route.ts), but only disclosed as a standing "Token limit: 10,000"
+  // note for "variable" sessions -- shown for ALL variable conditions
+  // regardless of info variant, since it's a real constraint participants
+  // need to know about, independent of the informational nudge. "flat"
+  // never discloses it, so it still reads as "unlimited" the way the
+  // condition is framed.
+  const showTokenLimitNote = pricingVariant === "variable";
 
   return (
     <aside className="sidebar">
@@ -47,23 +52,18 @@ export function Sidebar(props: {
           </div>
         )}
 
-        {showTokens && (
-          <>
-            <div className="stat-row">
-              <span className="stat-label">Tokens used</span>
-              <span>
-                {showCap
-                  ? `${cumulative.totalTokens.toLocaleString()} / ${maxTokensPerSession.toLocaleString()}`
-                  : cumulative.totalTokens.toLocaleString()}
-              </span>
-            </div>
-            {showCap && pricingCopy && (
-              <div className="sidebar-pricing-note">
-                <strong>{pricingCopy.title}</strong>
-                {pricingCopy.body}
-              </div>
-            )}
-          </>
+        {showTokenUsage && (
+          <div className="stat-row">
+            <span className="stat-label">Tokens used</span>
+            <span>{cumulative.totalTokens.toLocaleString()}</span>
+          </div>
+        )}
+
+        {showTokenLimitNote && pricingCopy && (
+          <div className="sidebar-pricing-note">
+            <strong>{pricingCopy.title}</strong>
+            {pricingCopy.body}
+          </div>
         )}
       </div>
 
