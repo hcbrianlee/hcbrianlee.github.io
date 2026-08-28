@@ -49,6 +49,15 @@ export function formatWh(wh: number): string {
   return `${(wh / 1_000_000_000).toFixed(2)} GWh`;
 }
 
+/** "driving X miles" equivalence for a CO2 mass -- same "big number, small word" idea as formatUserCount. */
+export function formatMiles(miles: number): string {
+  if (miles >= 1_000_000_000) return `${(miles / 1_000_000_000).toFixed(1)} billion miles`;
+  if (miles >= 1_000_000) return `${(miles / 1_000_000).toFixed(1)} million miles`;
+  if (miles >= 1000) return `${Math.round(miles).toLocaleString()} miles`;
+  if (miles >= 1) return `${miles.toFixed(1)} miles`;
+  return `${Math.round(miles * 5280).toLocaleString()} feet`;
+}
+
 /** "900 million" / "1.2 billion" style display for large hypothetical group sizes in nudge copy. */
 export function formatUserCount(n: number): string {
   if (n >= 1_000_000_000) return `${(n / 1_000_000_000).toFixed(n % 1_000_000_000 === 0 ? 0 : 1)} billion`;

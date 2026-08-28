@@ -22,6 +22,16 @@ const NUDGE_IMPACT_SCALE_USERS = Number(process.env.NUDGE_IMPACT_SCALE_USERS ?? 
 const GRID_CARBON_INTENSITY_G_PER_KWH = Number(process.env.GRID_CARBON_INTENSITY_G_PER_KWH ?? 425);
 const WATER_ML_PER_KWH = Number(process.env.WATER_ML_PER_KWH ?? 1900);
 
+// EPA's Greenhouse Gas Equivalencies Calculator figure for a typical
+// gasoline passenger vehicle: ~404 g CO2 per mile driven. Used to translate
+// an abstract gram/ton figure into a "driving X miles" equivalence that's
+// easier to feel than a raw mass unit.
+const CO2_G_PER_MILE_DRIVEN = Number(process.env.CO2_G_PER_MILE_DRIVEN ?? 404);
+
+export function milesFromCo2G(co2G: number): number {
+  return co2G / CO2_G_PER_MILE_DRIVEN;
+}
+
 // Reference generation speed used to translate response time into a "load"
 // adjustment, per the design doc's idea of using response time as a proxy
 // for prompt/response complexity. Clamped so an unusually slow or fast

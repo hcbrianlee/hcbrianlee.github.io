@@ -1,7 +1,8 @@
 "use client";
 
 import type { CopyBlock, CumulativeUsage, InfoVariant, PricingVariant } from "@/lib/types";
-import { formatGrams, formatUserCount } from "@/lib/format";
+import { formatGrams, formatUserCount, formatMiles } from "@/lib/format";
+import { milesFromCo2G } from "@/lib/carbon";
 
 export function Sidebar(props: {
   cumulative: CumulativeUsage;
@@ -43,7 +44,8 @@ export function Sidebar(props: {
         {showCo2 && (
           <div className="sidebar-pricing-note">
             🌍 If everyone on this platform used what you have (we have <strong>{formatUserCount(scaleUsers)}</strong>{" "}
-            people!), that&apos;s <strong>{formatGrams(cumulative.co2G * scaleUsers)}</strong> of CO₂.
+            people!), that&apos;s <strong>{formatGrams(cumulative.co2G * scaleUsers)}</strong> of CO₂ -- like driving{" "}
+            <strong>{formatMiles(milesFromCo2G(cumulative.co2G * scaleUsers))}</strong>.
           </div>
         )}
 
