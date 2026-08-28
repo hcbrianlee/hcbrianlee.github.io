@@ -400,6 +400,7 @@ export default function Home() {
         scaleUsers={session.modelComparison.scaleUsers}
         pricingCopy={session.pricingCopy}
         infoVariant={session.condition.infoVariant}
+        pricingVariant={session.condition.pricingVariant}
         onNewChat={handleNewChat}
       />
 

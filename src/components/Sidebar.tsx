@@ -1,6 +1,6 @@
 "use client";
 
-import type { CopyBlock, CumulativeUsage, InfoVariant } from "@/lib/types";
+import type { CopyBlock, CumulativeUsage, InfoVariant, PricingVariant } from "@/lib/types";
 import { formatGrams, formatUserCount } from "@/lib/format";
 
 export function Sidebar(props: {
@@ -11,12 +11,19 @@ export function Sidebar(props: {
   scaleUsers: number;
   pricingCopy: CopyBlock | null;
   infoVariant: InfoVariant;
+  pricingVariant: PricingVariant;
   onNewChat: () => void;
 }) {
-  const { cumulative, socialProofPct, maxTokensPerSession, scaleUsers, pricingCopy, infoVariant, onNewChat } = props;
+  const { cumulative, socialProofPct, maxTokensPerSession, scaleUsers, pricingCopy, infoVariant, pricingVariant, onNewChat } =
+    props;
 
   const showCo2 = infoVariant === "environmental" || infoVariant === "environmental_token";
   const showTokens = infoVariant === "token" || infoVariant === "environmental_token";
+  // The token cap is enforced server-side for BOTH pricing variants (see
+  // chat/route.ts), but only disclosed to "variable" sessions -- "flat"
+  // shows just the raw count, no denominator and no limit note, so it
+  // still reads as "unlimited" the way the condition is framed.
+  const showCap = pricingVariant === "variable";
 
   return (
     <aside className="sidebar">
@@ -45,10 +52,12 @@ export function Sidebar(props: {
             <div className="stat-row">
               <span className="stat-label">Tokens used</span>
               <span>
-                {cumulative.totalTokens.toLocaleString()} / {maxTokensPerSession.toLocaleString()}
+                {showCap
+                  ? `${cumulative.totalTokens.toLocaleString()} / ${maxTokensPerSession.toLocaleString()}`
+                  : cumulative.totalTokens.toLocaleString()}
               </span>
             </div>
-            {pricingCopy && (
+            {showCap && pricingCopy && (
               <div className="sidebar-pricing-note">
                 <strong>{pricingCopy.title}</strong>
                 {pricingCopy.body}
