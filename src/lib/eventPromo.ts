@@ -101,9 +101,25 @@ export const EVIDENCE_ITEMS: EvidenceItem[] = [
 
 export const ATTENDEE_CONCERN = "Why would I pay $8 just to enter when I still have to pay separately for food?";
 
+export const TASK_INSTRUCTIONS =
+  "You are helping the organizers of a fictional community event called the Riverside Night Market. Your goal " +
+  "is to create promotional content that makes as many people as possible interested in attending the event. " +
+  "You may use the AI assistant however you would like while completing this task.";
+
 export const REQUIRED_EVIDENCE_COUNT = 6;
 export const PART1_MAX_WORDS = 100;
 export const PART2_MAX_WORDS = 60;
+
+export const PART1_INTRO = "Write a promotional message that makes people interested in attending the Riverside Night Market.";
+export const PART1_REQUIREMENTS = [
+  "include the event's date, time, location, and admission price;",
+  "be 100 words or fewer, including any headline;",
+  "read naturally as something that could realistically be used to promote a local event.",
+];
+
+export const PART2_INTRO = "After seeing information about the event, a potential attendee says:";
+export const PART2_BODY = "Write a response intended to make this person more interested in attending the event.";
+export const PART2_REQUIREMENT = "Your response must be 60 words or fewer.";
 
 /** Most full submissions (evidence + both parts) a single session may make. */
 export const MAX_EVENT_PROMO_SUBMISSIONS = 3;

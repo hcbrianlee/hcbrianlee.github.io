@@ -5,6 +5,12 @@ import {
   EVENT_INFO,
   EVIDENCE_ITEMS,
   ATTENDEE_CONCERN,
+  TASK_INSTRUCTIONS,
+  PART1_INTRO,
+  PART1_REQUIREMENTS,
+  PART2_INTRO,
+  PART2_BODY,
+  PART2_REQUIREMENT,
   REQUIRED_EVIDENCE_COUNT,
   PART1_MAX_WORDS,
   PART2_MAX_WORDS,
@@ -63,10 +69,7 @@ export function EventPromoTask(props: {
 
   return (
     <div className="scheduling-panel">
-      <div className="chat-nudge">
-        📣 {EVENT_INFO.name} -- write promotional content for this fictional event, with AI help if you&apos;d
-        like. Your submission gets reviewed by independent evaluators afterward, not auto-graded.
-      </div>
+      <div className="chat-nudge">{TASK_INSTRUCTIONS}</div>
 
       <div className="scheduling-constraints">
         <strong>Event details (free to use, don&apos;t count toward the evidence limit)</strong>
@@ -106,6 +109,30 @@ export function EventPromoTask(props: {
             );
           })}
         </ul>
+      </div>
+
+      <div className="scheduling-constraints">
+        <strong>Your Task</strong>
+        <p style={{ margin: "6px 0 0" }}>You will create two coordinated promotional messages.</p>
+
+        <p style={{ margin: "12px 0 0" }}>
+          <strong>Part 1: Promotional Message</strong>
+        </p>
+        <p style={{ margin: "4px 0 0" }}>{PART1_INTRO}</p>
+        <p style={{ margin: "4px 0 0" }}>Your message must:</p>
+        <ul style={{ margin: "4px 0 0" }}>
+          {PART1_REQUIREMENTS.map((r) => (
+            <li key={r}>{r}</li>
+          ))}
+        </ul>
+
+        <p style={{ margin: "12px 0 0" }}>
+          <strong>Part 2: Response to a Potential Attendee</strong>
+        </p>
+        <p style={{ margin: "4px 0 0" }}>{PART2_INTRO}</p>
+        <p style={{ margin: "4px 0 0", fontStyle: "italic" }}>&quot;{ATTENDEE_CONCERN}&quot;</p>
+        <p style={{ margin: "4px 0 0" }}>{PART2_BODY}</p>
+        <p style={{ margin: "4px 0 0" }}>{PART2_REQUIREMENT}</p>
       </div>
 
       {submissions.length > 0 && (
