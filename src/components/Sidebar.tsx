@@ -43,8 +43,8 @@ export function Sidebar(props: {
 
         {showCo2 && (
           <div className="sidebar-pricing-note">
-            🌍 If everyone on this platform used what you have (we have <strong>{formatUserCount(scaleUsers)}</strong>{" "}
-            people!), that&apos;s <strong>{formatGrams(cumulative.co2G * scaleUsers)}</strong> of CO₂ -- like driving{" "}
+            🌍 If <strong>{formatUserCount(scaleUsers)}</strong> people each used what you have, that&apos;s{" "}
+            <strong>{formatGrams(cumulative.co2G * scaleUsers)}</strong> of CO₂ -- like driving{" "}
             <strong>{formatMiles(milesFromCo2G(cumulative.co2G * scaleUsers))}</strong>.
           </div>
         )}
