@@ -40,7 +40,7 @@ export function Sidebar(props: {
           <span>{cumulative.promptCount}</span>
         </div>
 
-        {showCo2 && (
+        {showCo2 && cumulative.co2G > 0 && (
           <div className="sidebar-pricing-note">
             🌍 If everyone on this platform used what you have (we have <strong>{formatUserCount(scaleUsers)}</strong>{" "}
             people!), that&apos;s <strong>{formatGrams(cumulative.co2G * scaleUsers)}</strong> of CO₂.
