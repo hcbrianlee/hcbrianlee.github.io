@@ -11,6 +11,8 @@ import {
   PART2_INTRO,
   PART2_BODY,
   PART2_REQUIREMENT,
+  EVIDENCE_RULES,
+  EVIDENCE_RULE_5_EXAMPLE,
   REQUIRED_EVIDENCE_COUNT,
   PART1_MAX_WORDS,
   PART2_MAX_WORDS,
@@ -133,6 +135,20 @@ export function EventPromoTask(props: {
         <p style={{ margin: "4px 0 0", fontStyle: "italic" }}>&quot;{ATTENDEE_CONCERN}&quot;</p>
         <p style={{ margin: "4px 0 0" }}>{PART2_BODY}</p>
         <p style={{ margin: "4px 0 0" }}>{PART2_REQUIREMENT}</p>
+      </div>
+
+      <div className="scheduling-constraints">
+        <strong>Evidence Rules (across Parts 1 and 2 combined)</strong>
+        <ol style={{ margin: "6px 0 0" }}>
+          {EVIDENCE_RULES.map((rule, i) => (
+            <li key={i} style={{ marginBottom: 4 }}>
+              {rule}
+              {i === 4 && (
+                <p style={{ margin: "4px 0 0", color: "#666", fontStyle: "italic" }}>{EVIDENCE_RULE_5_EXAMPLE}</p>
+              )}
+            </li>
+          ))}
+        </ol>
       </div>
 
       {submissions.length > 0 && (

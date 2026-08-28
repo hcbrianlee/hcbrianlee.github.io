@@ -121,6 +121,22 @@ export const PART2_INTRO = "After seeing information about the event, a potentia
 export const PART2_BODY = "Write a response intended to make this person more interested in attending the event.";
 export const PART2_REQUIREMENT = "Your response must be 60 words or fewer.";
 
+/** Verbatim from the task doc. Rule 5's example is kept as a separate field so it can be rendered as a distinct note rather than folded into the numbered list. */
+export const EVIDENCE_RULES = [
+  "You must select exactly six evidence items from E1-E14.",
+  "Each of your six selected evidence items must be used in at least one of the two messages.",
+  "You may use the same selected evidence item in both messages if you think doing so is helpful.",
+  "You may not use information from evidence items you did not select.",
+  "If you use an evidence item, you must communicate all substantive information contained in that item. You may rephrase or shorten the wording, but you may not omit information that materially affects how the evidence should be interpreted.",
+  "You may reorganize, combine, and rephrase the selected information, but you may not invent facts or make claims unsupported by the information provided.",
+  'Do not use unsupported superlatives such as "the best," "#1," or "the city\'s favorite."',
+];
+
+export const EVIDENCE_RULE_5_EXAMPLE =
+  'For example, if you select E6, you may not state only that the event has a "4.9 out of 5 rating." You must ' +
+  "also communicate that this rating is based on 37 online reviews. Similarly, sample sizes, comparison groups, " +
+  "relevant time periods, and other meaningful qualifiers must be retained.";
+
 /** Most full submissions (evidence + both parts) a single session may make. */
 export const MAX_EVENT_PROMO_SUBMISSIONS = 3;
 
