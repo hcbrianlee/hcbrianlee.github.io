@@ -8,6 +8,7 @@ import {
   getCaptionSubmissions,
   getAdCaptionSubmissions,
   getTripPlanSubmissions,
+  getEventPromoSubmissions,
   getConditions,
   getCumulativeUsage,
   getAverageTokensPerModel,
@@ -23,6 +24,7 @@ import { getModelComparison, estimateAverageResponseImpact } from "@/lib/carbon"
 import { getCartoonImageUrl, pickCartoonFilename } from "@/lib/cartoons";
 import { getAdProductImageUrl, MAX_AD_CAPTION_SUBMISSIONS } from "@/lib/adTask";
 import { MAX_TRIP_PLAN_SUBMISSIONS } from "@/lib/tripPlanning";
+import { MAX_EVENT_PROMO_SUBMISSIONS } from "@/lib/eventPromo";
 import { getExperimentOverrides } from "@/lib/overrides";
 import type { ConditionRow, SessionInfo } from "@/lib/types";
 
@@ -47,6 +49,7 @@ async function buildSessionInfo(
     staffScheduleStartedAt,
     adCaptionSubmissions,
     tripPlanSubmissions,
+    eventPromoSubmissions,
     overrides,
   ] = await Promise.all([
     getCumulativeUsage(supabase, sessionId),
@@ -59,6 +62,7 @@ async function buildSessionInfo(
     getStaffScheduleStartedAt(supabase, sessionId),
     getAdCaptionSubmissions(supabase, sessionId),
     getTripPlanSubmissions(supabase, sessionId),
+    getEventPromoSubmissions(supabase, sessionId),
     getExperimentOverrides(supabase),
   ]);
 
@@ -100,6 +104,8 @@ async function buildSessionInfo(
     maxAdCaptionSubmissions: MAX_AD_CAPTION_SUBMISSIONS,
     tripPlanSubmissions,
     maxTripPlanSubmissions: MAX_TRIP_PLAN_SUBMISSIONS,
+    eventPromoSubmissions,
+    maxEventPromoSubmissions: MAX_EVENT_PROMO_SUBMISSIONS,
   };
 }
 

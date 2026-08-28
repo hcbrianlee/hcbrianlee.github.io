@@ -10,7 +10,7 @@ export type InfoVariant = "none" | "token" | "environmental" | "environmental_to
 /** "flat" replaces the old "free" name -- same behavior (no budget, no per-message charge), renamed for the 2026-08 redesign. The old "fixed" (pick once upfront) pricing condition was dropped entirely. */
 export type PricingVariant = "variable" | "flat";
 /** Which task participants see -- global, toggled from /admin. See src/lib/overrides.ts: ActiveTask. */
-export type ActiveTask = "cartoon" | "scheduling" | "staffScheduling" | "adCaption" | "tripPlanning";
+export type ActiveTask = "cartoon" | "scheduling" | "staffScheduling" | "adCaption" | "tripPlanning" | "eventPromo";
 
 export interface CopyBlock {
   title: string;
@@ -92,6 +92,17 @@ export interface SessionInfo {
   tripPlanSubmissions: CaptionSubmission[];
   /** Most trip itineraries a single session may submit (see /api/submit-trip-plan). */
   maxTripPlanSubmissions: number;
+  /** All eventPromo submissions so far, oldest first. Capped at maxEventPromoSubmissions. */
+  eventPromoSubmissions: EventPromoSubmission[];
+  /** Most eventPromo submissions a single session may make (see /api/submit-event-promo). */
+  maxEventPromoSubmissions: number;
+}
+
+export interface EventPromoSubmission {
+  evidenceSelected: string[];
+  part1: string;
+  part2: string;
+  submittedAt: string;
 }
 
 export interface CaptionSubmission {

@@ -24,7 +24,7 @@ interface Defaults {
   light: ModelDefaults;
 }
 
-type ActiveTask = "cartoon" | "scheduling" | "staffScheduling" | "adCaption" | "tripPlanning";
+type ActiveTask = "cartoon" | "scheduling" | "staffScheduling" | "adCaption" | "tripPlanning" | "eventPromo";
 
 interface Overrides {
   activeTask: ActiveTask;
@@ -424,6 +424,7 @@ export default function AdminPage() {
               <option value="staffScheduling">Staff scheduling (infeasible, judged)</option>
               <option value="adCaption">Ad caption (judged)</option>
               <option value="tripPlanning">Trip planning collab (judged)</option>
+              <option value="eventPromo">Event promo (evidence-constrained, judged)</option>
             </select>
           </div>
 

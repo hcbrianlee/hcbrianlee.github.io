@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { CaptionSubmission, CumulativeUsage, ConditionRow } from "./types";
+import type { CaptionSubmission, CumulativeUsage, ConditionRow, EventPromoSubmission } from "./types";
 import { DEFAULT_AVG_RESPONSE_TOKENS } from "./carbon";
 
 /** Most caption ideas a single session may submit for its cartoon. */
@@ -205,6 +205,36 @@ export async function getStaffScheduleSolved(supabase: SupabaseClient, sessionId
 
   if (error) throw new Error(`staff schedule solved query failed: ${error.message}`);
   return (data ?? []).length > 0;
+}
+
+/**
+ * Every eventPromo submission so far, oldest first -- unlike the caption-
+ * style tasks, this is structured (evidence list + two texts), so it's
+ * stored in metadata jsonb rather than the caption_text column, same
+ * pattern as staff_schedule_submitted.
+ */
+export async function getEventPromoSubmissions(
+  supabase: SupabaseClient,
+  sessionId: string
+): Promise<EventPromoSubmission[]> {
+  const { data, error } = await supabase
+    .from("events")
+    .select("metadata, created_at")
+    .eq("session_id", sessionId)
+    .eq("event_type", "event_promo_submitted")
+    .order("created_at", { ascending: true });
+
+  if (error) throw new Error(`event promo submissions query failed: ${error.message}`);
+
+  return (data ?? []).map((row) => {
+    const metadata = row.metadata as { evidenceSelected: string[]; part1: string; part2: string };
+    return {
+      evidenceSelected: metadata.evidenceSelected,
+      part1: metadata.part1,
+      part2: metadata.part2,
+      submittedAt: row.created_at as string,
+    };
+  });
 }
 
 /**

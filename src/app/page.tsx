@@ -12,6 +12,7 @@ import { SchedulingTask } from "@/components/SchedulingTask";
 import { StaffSchedulingTask } from "@/components/StaffSchedulingTask";
 import { ProductPanel } from "@/components/ProductPanel";
 import { TripPlanningTask } from "@/components/TripPlanningTask";
+import { EventPromoTask } from "@/components/EventPromoTask";
 import { FinishSection } from "@/components/FinishSection";
 import type { ChatMessage, ChatStreamFrame, CumulativeUsage, ModelKey, SessionInfo } from "@/lib/types";
 
@@ -33,6 +34,7 @@ export default function Home() {
   const [captionSubmitting, setCaptionSubmitting] = useState(false);
   const [adCaptionSubmitting, setAdCaptionSubmitting] = useState(false);
   const [tripPlanSubmitting, setTripPlanSubmitting] = useState(false);
+  const [eventPromoSubmitting, setEventPromoSubmitting] = useState(false);
   const [scheduleSubmitting, setScheduleSubmitting] = useState(false);
   const [scheduleStarting, setScheduleStarting] = useState(false);
   const [staffScheduleSubmitting, setStaffScheduleSubmitting] = useState(false);
@@ -282,6 +284,25 @@ export default function Home() {
     }
   }
 
+  async function handleSubmitEventPromo(evidenceSelected: string[], part1: string, part2: string) {
+    if (!session || eventPromoSubmitting) return;
+    setEventPromoSubmitting(true);
+    try {
+      const res = await fetch("/api/submit-event-promo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId: session.sessionId, evidenceSelected, part1, part2 }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data?.error ?? "Failed to submit");
+      setSession((prev) => (prev ? { ...prev, eventPromoSubmissions: data.submissions } : prev));
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to submit");
+    } finally {
+      setEventPromoSubmitting(false);
+    }
+  }
+
   async function handleStartStaffSchedule() {
     if (!session || staffScheduleStarting || session.staffScheduleStartedAt) return;
     setStaffScheduleStarting(true);
@@ -428,6 +449,13 @@ export default function Home() {
                 submitting={tripPlanSubmitting}
                 onSubmit={handleSubmitTripPlan}
               />
+            ) : session.activeTask === "eventPromo" ? (
+              <EventPromoTask
+                submissions={session.eventPromoSubmissions}
+                maxSubmissions={session.maxEventPromoSubmissions}
+                submitting={eventPromoSubmitting}
+                onSubmit={handleSubmitEventPromo}
+              />
             ) : (
               <>
                 <CartoonImage cartoonImageUrl={session.cartoonImageUrl} />
@@ -448,7 +476,9 @@ export default function Home() {
                   ? session.adCaptionSubmissions.length > 0
                   : session.activeTask === "tripPlanning"
                     ? session.tripPlanSubmissions.length > 0
-                    : session.captionSubmissions.length > 0) && (
+                    : session.activeTask === "eventPromo"
+                      ? session.eventPromoSubmissions.length > 0
+                      : session.captionSubmissions.length > 0) && (
               <FinishSection sessionEnded={sessionEnded} onDonateClick={() => setDonateOpen(true)} />
             )}
 
