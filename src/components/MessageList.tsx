@@ -16,14 +16,7 @@ export function MessageList({ messages }: { messages: ChatMessage[] }) {
   }, [messages]);
 
   if (messages.length === 0) {
-    return (
-      <div className="messages">
-        <div className="empty-state">
-          Ask the assistant to help you brainstorm a caption for the Cartoon Caption Contest, or just say hello to
-          get started.
-        </div>
-      </div>
-    );
+    return <div className="messages" />;
   }
 
   return (

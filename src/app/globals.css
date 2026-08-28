@@ -768,15 +768,6 @@ button {
   }
 }
 
-.empty-state {
-  max-width: 640px;
-  margin: 60px auto;
-  text-align: center;
-  color: #6b6b6b;
-  font-size: 14px;
-  padding: 0 20px;
-}
-
 /* Composer */
 
 .composer-wrap {
