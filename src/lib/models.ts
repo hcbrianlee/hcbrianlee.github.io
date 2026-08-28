@@ -1,3 +1,4 @@
+import { hashIndex } from "./assignment";
 import type { ModelKey, Provider } from "./types";
 
 export interface ModelConfig {
@@ -107,4 +108,9 @@ export function getModelConfig(key: ModelKey): ModelConfig {
   const cfg = MODELS[key];
   if (!cfg) throw new Error(`Unknown model key: ${key}`);
   return cfg;
+}
+
+/** Deterministic per-session coin flip for which model starts selected -- same hashIndex pattern as condition assignment and cartoon picking. */
+export function pickDefaultModel(sessionId: string): ModelKey {
+  return hashIndex(`${sessionId}:defaultModel`, 2) === 0 ? "light" : "heavy";
 }

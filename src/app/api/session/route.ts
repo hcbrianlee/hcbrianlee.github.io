@@ -21,6 +21,7 @@ import {
 import { getPricingCopy } from "@/lib/conditions";
 import { getMaxTokensPerSession } from "@/lib/pricing";
 import { getModelComparison, estimateAverageResponseImpact } from "@/lib/carbon";
+import { pickDefaultModel } from "@/lib/models";
 import { getCartoonImageUrl, pickCartoonFilename } from "@/lib/cartoons";
 import { getAdProductImageUrl, MAX_AD_CAPTION_SUBMISSIONS } from "@/lib/adTask";
 import { MAX_TRIP_PLAN_SUBMISSIONS } from "@/lib/tripPlanning";
@@ -77,7 +78,7 @@ async function buildSessionInfo(
       code: condition.code,
       infoVariant: condition.info_variant,
       pricingVariant: condition.pricing_variant,
-      defaultModel: condition.default_model,
+      defaultModel: pickDefaultModel(sessionId),
     },
     pricingCopy: getPricingCopy(maxTokensPerSession),
     fixedCreditCents,
