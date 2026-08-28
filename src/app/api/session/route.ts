@@ -16,7 +16,6 @@ import {
   getScheduleStartedAt,
   getStaffScheduleSolved,
   getStaffScheduleStartedAt,
-  getSocialProofPct,
 } from "@/lib/session";
 import { getPricingCopy } from "@/lib/conditions";
 import { getMaxTokensPerSession } from "@/lib/pricing";
@@ -41,7 +40,6 @@ async function buildSessionInfo(
 ): Promise<SessionInfo> {
   const [
     cumulative,
-    socialProofPct,
     avgTokensPerModel,
     captionSubmissions,
     scheduleSolved,
@@ -54,7 +52,6 @@ async function buildSessionInfo(
     overrides,
   ] = await Promise.all([
     getCumulativeUsage(supabase, sessionId),
-    getSocialProofPct(supabase),
     getAverageTokensPerModel(supabase),
     getCaptionSubmissions(supabase, sessionId),
     getScheduleSolved(supabase, sessionId),
@@ -83,7 +80,6 @@ async function buildSessionInfo(
     pricingCopy: getPricingCopy(maxTokensPerSession),
     fixedCreditCents,
     maxTokensPerSession,
-    socialProofPct,
     cumulative,
     budgetExhausted,
     avgResponseImpact: {

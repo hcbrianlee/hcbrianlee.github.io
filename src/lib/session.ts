@@ -48,30 +48,6 @@ export async function getCumulativeUsage(
 }
 
 /**
- * Share of logged responses (across all sessions) that used the light
- * model, used for the social-norm nudge ("x% of participants used the
- * light version"). Returns null until there's enough data to be meaningful.
- */
-export async function getSocialProofPct(supabase: SupabaseClient): Promise<number | null> {
-  const { count: lightCount, error: lightErr } = await supabase
-    .from("events")
-    .select("id", { count: "exact", head: true })
-    .eq("event_type", "response_received")
-    .eq("model", "light");
-
-  const { count: totalCount, error: totalErr } = await supabase
-    .from("events")
-    .select("id", { count: "exact", head: true })
-    .eq("event_type", "response_received");
-
-  if (lightErr) throw new Error(`social proof (light count) query failed: ${lightErr.message}`);
-  if (totalErr) throw new Error(`social proof (total count) query failed: ${totalErr.message}`);
-
-  if (!totalCount || totalCount < 10) return null;
-  return Math.round(((lightCount ?? 0) / totalCount) * 100);
-}
-
-/**
  * Every caption idea submitted so far for this session, oldest first.
  * Sourced entirely from the `caption_submitted` events already logged by
  * /api/submit-caption -- sessions.final_caption / final_caption_submitted_at

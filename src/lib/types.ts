@@ -42,7 +42,6 @@ export interface SessionInfo {
    * "flat" has no dollar cost, so this token cap is its only limit.
    */
   maxTokensPerSession: number;
-  socialProofPct: number | null;
   cumulative: CumulativeUsage;
   /**
    * True once this session has hit a cap and /api/chat will reject further

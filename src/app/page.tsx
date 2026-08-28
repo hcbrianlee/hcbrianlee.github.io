@@ -395,7 +395,6 @@ export default function Home() {
     <div className="app-shell">
       <Sidebar
         cumulative={session.cumulative ?? EMPTY_USAGE}
-        socialProofPct={session.socialProofPct}
         maxTokensPerSession={session.maxTokensPerSession}
         scaleUsers={session.modelComparison.scaleUsers}
         pricingCopy={session.pricingCopy}

@@ -6,7 +6,6 @@ import { milesFromCo2G } from "@/lib/carbon";
 
 export function Sidebar(props: {
   cumulative: CumulativeUsage;
-  socialProofPct: number | null;
   maxTokensPerSession: number;
   /** Hypothetical group size for the "if everyone on this platform did what you've done" CO2 framing -- same figure used in ModelPicker's per-model comparison (session.modelComparison.scaleUsers). */
   scaleUsers: number;
@@ -15,8 +14,7 @@ export function Sidebar(props: {
   pricingVariant: PricingVariant;
   onNewChat: () => void;
 }) {
-  const { cumulative, socialProofPct, maxTokensPerSession, scaleUsers, pricingCopy, infoVariant, pricingVariant, onNewChat } =
-    props;
+  const { cumulative, maxTokensPerSession, scaleUsers, pricingCopy, infoVariant, pricingVariant, onNewChat } = props;
 
   const showCo2 = infoVariant === "environmental" || infoVariant === "environmental_token";
   const showTokens = infoVariant === "token" || infoVariant === "environmental_token";
@@ -66,10 +64,6 @@ export function Sidebar(props: {
               </div>
             )}
           </>
-        )}
-
-        {socialProofPct !== null && (
-          <div className="social-proof">🌿 {socialProofPct}% of responses so far used the light model.</div>
         )}
       </div>
 
