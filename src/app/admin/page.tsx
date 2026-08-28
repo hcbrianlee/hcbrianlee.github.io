@@ -20,6 +20,7 @@ interface ModelDefaults {
 }
 
 interface Defaults {
+  maxTokensPerSession: number;
   heavy: ModelDefaults;
   light: ModelDefaults;
 }
@@ -28,6 +29,7 @@ type ActiveTask = "cartoon" | "scheduling" | "staffScheduling" | "adCaption" | "
 
 interface Overrides {
   activeTask: ActiveTask;
+  maxTokensPerSession: number | null;
   heavyTemperature: number | null;
   lightTemperature: number | null;
   heavyTopP: number | null;
@@ -427,6 +429,16 @@ export default function AdminPage() {
               <option value="eventPromo">Event promo (evidence-constrained, judged)</option>
             </select>
           </div>
+
+          <NumberField
+            label="Token limit per session"
+            note="(global -- applies to every session, both pricing variants. See src/lib/pricing.ts getMaxTokensPerSession.)"
+            value={overrides.maxTokensPerSession}
+            defaultValue={defaults.maxTokensPerSession}
+            step={100}
+            min={1}
+            onChange={(v) => handlePatch({ maxTokensPerSession: v })}
+          />
 
           <div className="admin-columns">
             <ModelColumn prefix="heavy" defaults={defaults.heavy} overrides={overrides} onChange={handlePatch} />

@@ -11,6 +11,8 @@ export interface ExperimentOverrides {
    * across task types; expected to be removed once one task is settled on.
    */
   activeTask: ActiveTask;
+  /** Live override for src/lib/pricing.ts getMaxTokensPerSession -- null falls back to the MAX_TOKENS_PER_SESSION env default (10,000). Applies to every session, both pricing variants. */
+  maxTokensPerSession: number | null;
   heavyTemperature: number | null;
   lightTemperature: number | null;
   /** Nucleus sampling threshold [0,1]. Supported by both OpenAI and Anthropic. */
@@ -61,6 +63,7 @@ export interface ExperimentOverrides {
 
 const EMPTY_OVERRIDES: ExperimentOverrides = {
   activeTask: "cartoon",
+  maxTokensPerSession: null,
   heavyTemperature: null,
   lightTemperature: null,
   heavyTopP: null,
@@ -95,6 +98,7 @@ export async function getExperimentOverrides(supabase: SupabaseClient): Promise<
     )
       ? data.active_task
       : "cartoon",
+    maxTokensPerSession: data.max_tokens_per_session,
     heavyTemperature: data.heavy_temperature,
     lightTemperature: data.light_temperature,
     heavyTopP: data.heavy_top_p,
@@ -129,6 +133,7 @@ export async function saveExperimentOverrides(
   const { error } = await supabase.from("experiment_overrides").upsert({
     id: 1,
     active_task: next.activeTask,
+    max_tokens_per_session: next.maxTokensPerSession,
     heavy_temperature: next.heavyTemperature,
     light_temperature: next.lightTemperature,
     heavy_top_p: next.heavyTopP,

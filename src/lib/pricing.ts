@@ -27,8 +27,11 @@ export function estimateCostCents(params: {
  * this, /api/chat rejects further generations regardless of pricing_variant
  * (see chat/route.ts). "variable" additionally caps by dollar credit on
  * top of this; "flat" has no dollar cost, so this is its only limit.
- * Env-configurable, same pattern as FIXED_CREDIT_CENTS.
+ * Env-configurable (MAX_TOKENS_PER_SESSION), same pattern as
+ * FIXED_CREDIT_CENTS -- `override` is /admin's live
+ * ExperimentOverrides.maxTokensPerSession, which takes precedence over the
+ * env default when set.
  */
-export function getMaxTokensPerSession(): number {
-  return Number(process.env.MAX_TOKENS_PER_SESSION ?? 10000);
+export function getMaxTokensPerSession(override?: number | null): number {
+  return override ?? Number(process.env.MAX_TOKENS_PER_SESSION ?? 10000);
 }

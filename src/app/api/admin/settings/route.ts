@@ -4,6 +4,7 @@ import { isAdminAuthorized } from "@/lib/adminAuth";
 import { getExperimentOverrides, saveExperimentOverrides, type ExperimentOverrides } from "@/lib/overrides";
 import { getModelConfig } from "@/lib/models";
 import { isReasoningModel } from "@/lib/providers/openai";
+import { getMaxTokensPerSession } from "@/lib/pricing";
 
 export const runtime = "nodejs";
 
@@ -16,6 +17,9 @@ function defaults() {
   const heavyReasoning = isReasoningModel(heavy.model);
   const lightReasoning = isReasoningModel(light.model);
   return {
+    // Env default (MAX_TOKENS_PER_SESSION) -- shown as the NumberField's
+    // "default" when no /admin override is set.
+    maxTokensPerSession: getMaxTokensPerSession(null),
     heavy: {
       provider: heavy.provider,
       // Reasoning models (o1/o3/o4-*) reject temperature/top_p/presence_penalty

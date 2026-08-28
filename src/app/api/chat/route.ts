@@ -80,6 +80,13 @@ export async function POST(req: NextRequest) {
       .condition;
     pricingVariant = condition?.pricing_variant ?? "flat";
 
+    // Live experimenter overrides from /admin -- null fields fall back to
+    // the src/lib/models.ts default for this model. See src/lib/overrides.ts.
+    // No built-in default system prompt for either task: heavySystemPrompt/
+    // lightSystemPrompt fall back to "" (no system message at all) rather
+    // than a hardcoded default -- see the systemMessage construction below.
+    const overrides = await getExperimentOverrides(supabase);
+
     // Hard stops (design doc, 2026-08), checked server-side (never trust a
     // client-side gate for this) before generating so an over-cap request
     // is rejected without ever calling the model:
@@ -89,7 +96,7 @@ export async function POST(req: NextRequest) {
     //   in practice the token cap trips first given current per-token
     //   prices, but the dollar check stays as a backstop.
     const cumulative = await getCumulativeUsage(supabase, sessionId);
-    const maxTokens = getMaxTokensPerSession();
+    const maxTokens = getMaxTokensPerSession(overrides.maxTokensPerSession);
     if (cumulative.totalTokens >= maxTokens) {
       return jsonError(`You've reached the ${maxTokens.toLocaleString()}-token limit for this session.`, 402);
     }
@@ -98,13 +105,6 @@ export async function POST(req: NextRequest) {
     }
 
     modelCfg = getModelConfig(modelKey);
-
-    // Live experimenter overrides from /admin -- null fields fall back to
-    // the src/lib/models.ts default for this model. See src/lib/overrides.ts.
-    // No built-in default system prompt for either task: heavySystemPrompt/
-    // lightSystemPrompt fall back to "" (no system message at all) rather
-    // than a hardcoded default -- see the systemMessage construction below.
-    const overrides = await getExperimentOverrides(supabase);
     const defaultMaxTokens = isReasoningModel(modelCfg.model) ? DEFAULT_MAX_TOKENS_REASONING : DEFAULT_MAX_TOKENS;
     effective =
       modelKey === "heavy"

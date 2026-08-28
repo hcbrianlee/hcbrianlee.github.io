@@ -64,7 +64,7 @@ async function buildSessionInfo(
     getExperimentOverrides(supabase),
   ]);
 
-  const maxTokensPerSession = getMaxTokensPerSession();
+  const maxTokensPerSession = getMaxTokensPerSession(overrides.maxTokensPerSession);
   const budgetExhausted =
     cumulative.totalTokens >= maxTokensPerSession ||
     (condition.pricing_variant === "variable" && cumulative.spentCents >= fixedCreditCents);
