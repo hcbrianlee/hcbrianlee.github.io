@@ -163,6 +163,8 @@ create table if not exists experiment_overrides (
   id integer primary key default 1,
   active_task text not null default 'cartoon' check (active_task in ('cartoon', 'scheduling', 'staffScheduling', 'adCaption', 'tripPlanning', 'eventPromo')),
   max_tokens_per_session integer,
+  heavy_model text,
+  light_model text,
   heavy_temperature numeric,
   light_temperature numeric,
   heavy_top_p numeric,
@@ -215,6 +217,10 @@ alter table experiment_overrides add constraint experiment_overrides_active_task
 -- Live /admin override for src/lib/pricing.ts getMaxTokensPerSession -- null
 -- falls back to the MAX_TOKENS_PER_SESSION env default (10,000).
 alter table experiment_overrides add column if not exists max_tokens_per_session integer;
+-- Live /admin override for which actual model powers the "heavy"/"light"
+-- slot -- null falls back to MODEL_HEAVY_ID/MODEL_LIGHT_ID.
+alter table experiment_overrides add column if not exists heavy_model text;
+alter table experiment_overrides add column if not exists light_model text;
 
 -- Same "alter existing table" pattern for events.event_type -- the inline
 -- check on create table only takes effect on a brand new table, so an

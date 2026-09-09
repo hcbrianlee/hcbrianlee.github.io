@@ -13,6 +13,17 @@ export interface ExperimentOverrides {
   activeTask: ActiveTask;
   /** Live override for src/lib/pricing.ts getMaxTokensPerSession -- null falls back to the MAX_TOKENS_PER_SESSION env default (10,000). Applies to every session, both pricing variants. */
   maxTokensPerSession: number | null;
+  /**
+   * Live override for which actual model powers the "heavy"/"light" slot --
+   * null falls back to MODEL_HEAVY_ID/MODEL_LIGHT_ID (src/lib/models.ts).
+   * Only ever a curated OpenAI model id from /admin's dropdown (see
+   * MODEL_CHOICES, src/app/admin/page.tsx); switching a slot to a gpt-5-mini/
+   * gpt-5-nano/o-series model is what actually determines its request shape
+   * at generation time -- see isReasoningModel, src/lib/providers/openai.ts,
+   * which is driven by this model id string, not the heavy/light slot name.
+   */
+  heavyModel: string | null;
+  lightModel: string | null;
   heavyTemperature: number | null;
   lightTemperature: number | null;
   /** Nucleus sampling threshold [0,1]. Supported by both OpenAI and Anthropic. */
@@ -64,6 +75,8 @@ export interface ExperimentOverrides {
 const EMPTY_OVERRIDES: ExperimentOverrides = {
   activeTask: "cartoon",
   maxTokensPerSession: null,
+  heavyModel: null,
+  lightModel: null,
   heavyTemperature: null,
   lightTemperature: null,
   heavyTopP: null,
@@ -99,6 +112,8 @@ export async function getExperimentOverrides(supabase: SupabaseClient): Promise<
       ? data.active_task
       : "cartoon",
     maxTokensPerSession: data.max_tokens_per_session,
+    heavyModel: data.heavy_model,
+    lightModel: data.light_model,
     heavyTemperature: data.heavy_temperature,
     lightTemperature: data.light_temperature,
     heavyTopP: data.heavy_top_p,
@@ -134,6 +149,8 @@ export async function saveExperimentOverrides(
     id: 1,
     active_task: next.activeTask,
     max_tokens_per_session: next.maxTokensPerSession,
+    heavy_model: next.heavyModel,
+    light_model: next.lightModel,
     heavy_temperature: next.heavyTemperature,
     light_temperature: next.lightTemperature,
     heavy_top_p: next.heavyTopP,

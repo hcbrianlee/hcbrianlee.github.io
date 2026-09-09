@@ -21,10 +21,16 @@ function defaults() {
     // "default" when no /admin override is set.
     maxTokensPerSession: getMaxTokensPerSession(null),
     heavy: {
+      // Actual model id currently powering this slot (MODEL_HEAVY_ID env
+      // default) -- shown as the model dropdown's "default" and used
+      // client-side to recompute isReasoning against whatever /admin
+      // override is picked, not just this static default.
+      model: heavy.model,
       provider: heavy.provider,
-      // Reasoning models (o1/o3/o4-*) reject temperature/top_p/presence_penalty
-      // outright via the API -- these are no-ops on heavy now, kept only so
-      // the dashboard's shared fields stay uniform. See isReasoning below.
+      // Reasoning models (o1/o3/o4-*, gpt-5 family) reject
+      // temperature/top_p/presence_penalty outright via the API -- these are
+      // no-ops on heavy now, kept only so the dashboard's shared fields stay
+      // uniform. See isReasoning below.
       isReasoning: heavyReasoning,
       temperature: heavy.temperature,
       topP: heavy.topP,
@@ -45,6 +51,7 @@ function defaults() {
       reasoningEffort: heavy.reasoningEffort,
     },
     light: {
+      model: light.model,
       provider: light.provider,
       isReasoning: lightReasoning,
       temperature: light.temperature,

@@ -47,6 +47,7 @@ export async function POST(req: NextRequest) {
 
   let supabase;
   let modelCfg;
+  let effectiveModelId: string;
   let pricingVariant: ConditionRow["pricing_variant"];
   let effective: {
     temperature: number;
@@ -105,7 +106,12 @@ export async function POST(req: NextRequest) {
     }
 
     modelCfg = getModelConfig(modelKey);
-    const defaultMaxTokens = isReasoningModel(modelCfg.model) ? DEFAULT_MAX_TOKENS_REASONING : DEFAULT_MAX_TOKENS;
+    // Live /admin override for which actual model id powers this slot --
+    // null falls back to MODEL_HEAVY_ID/MODEL_LIGHT_ID (src/lib/models.ts).
+    // Everything downstream (request shape, reasoning_effort vs sampling
+    // params) is driven by this string, not by the heavy/light slot name.
+    effectiveModelId = (modelKey === "heavy" ? overrides.heavyModel : overrides.lightModel) ?? modelCfg.model;
+    const defaultMaxTokens = isReasoningModel(effectiveModelId) ? DEFAULT_MAX_TOKENS_REASONING : DEFAULT_MAX_TOKENS;
     effective =
       modelKey === "heavy"
         ? {
@@ -184,7 +190,7 @@ export async function POST(req: NextRequest) {
 
         const { textStream, getUsage } = await streamChat({
           provider: modelCfg.provider,
-          model: modelCfg.model,
+          model: effectiveModelId,
           messages: [...systemMessages, ...messages],
           temperature: effective.temperature,
           topP: effective.topP,

@@ -2,16 +2,19 @@ import OpenAI from "openai";
 import type { UsageTotals } from "../types";
 
 /**
- * o-series reasoning models (o1, o3, o3-mini, o4-mini, ...) use a different
- * Chat Completions request shape than standard chat models like gpt-4o:
- * they reject temperature/top_p/presence_penalty/seed outright (the API
- * errors on them rather than ignoring them), use max_completion_tokens
- * instead of max_tokens (which also counts invisible internal reasoning
- * tokens, not just the visible answer), and accept an optional
- * reasoning_effort instead of sampling params as their main behavior knob.
+ * o-series reasoning models (o1, o3, o3-mini, o4-mini, ...) AND the gpt-5
+ * family (gpt-5, gpt-5-mini, gpt-5-nano, and point releases like gpt-5.1)
+ * use a different Chat Completions request shape than standard chat models
+ * like gpt-4o: they reject temperature/top_p/presence_penalty/seed outright
+ * (the API errors on them rather than ignoring them), use
+ * max_completion_tokens instead of max_tokens (which also counts invisible
+ * internal reasoning tokens, not just the visible answer), and accept an
+ * optional reasoning_effort instead of sampling params as their main
+ * behavior knob. gpt-5-mini/nano aren't marketed as "o-series reasoning
+ * models" but take the identical param set, so they're matched here too.
  */
 export function isReasoningModel(model: string): boolean {
-  return /^o\d/i.test(model);
+  return /^o\d/i.test(model) || /^gpt-5/i.test(model);
 }
 
 export async function streamOpenAI(params: {

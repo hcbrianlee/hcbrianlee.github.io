@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 const ADMIN_KEY_STORAGE = "gn_admin_key";
 
 interface ModelDefaults {
+  model: string;
   provider: string;
   isReasoning: boolean;
   temperature: number;
@@ -30,6 +31,8 @@ type ActiveTask = "cartoon" | "scheduling" | "staffScheduling" | "adCaption" | "
 interface Overrides {
   activeTask: ActiveTask;
   maxTokensPerSession: number | null;
+  heavyModel: string | null;
+  lightModel: string | null;
   heavyTemperature: number | null;
   lightTemperature: number | null;
   heavyTopP: number | null;
@@ -53,6 +56,38 @@ interface Overrides {
 }
 
 type ModelPrefix = "heavy" | "light";
+
+// Curated OpenAI model choices for the heavy/light slot dropdowns -- price
+// and benchmark tradeoffs discussed with the experimenter, all confirmed
+// live on the API as of Sept 2026. gpt-5-mini/gpt-5-nano take the same
+// max_completion_tokens/reasoning_effort request shape as the o-series
+// models despite not being marketed as "reasoning models" -- see
+// isReasoningModelId below and src/lib/providers/openai.ts.
+const MODEL_CHOICES: { value: string; label: string }[] = [
+  { value: "o4-mini", label: "o4-mini (reasoning)" },
+  { value: "o3-mini", label: "o3-mini (reasoning)" },
+  { value: "gpt-5-mini", label: "gpt-5-mini (reasoning-shaped)" },
+  { value: "gpt-5-nano", label: "gpt-5-nano (reasoning-shaped)" },
+  { value: "gpt-4o-mini", label: "gpt-4o-mini (non-reasoning)" },
+  { value: "gpt-4.1-nano", label: "gpt-4.1-nano (non-reasoning)" },
+];
+
+// Mirrors src/lib/providers/openai.ts isReasoningModel -- duplicated here
+// (rather than imported) because that file also pulls in the `openai`
+// package, which isn't meant to load into a client bundle. Used to decide
+// which fields to show/gray-out for whichever model id is actually
+// effective (the /admin override if set, else the env default) -- the
+// server-side isReasoning flag in `defaults` only reflects the static env
+// default and doesn't know about a live override.
+function isReasoningModelId(model: string): boolean {
+  return /^o\d/i.test(model) || /^gpt-5/i.test(model);
+}
+
+// Mirrors src/app/api/chat/route.ts's DEFAULT_MAX_TOKENS/DEFAULT_MAX_TOKENS_REASONING -- used
+// to show the right "default" max_tokens for whichever model is actually
+// effective, not just the static env-configured one.
+const DEFAULT_MAX_TOKENS = 1024;
+const DEFAULT_MAX_TOKENS_REASONING = 4096;
 
 // Suggested text only -- never sent unless the admin fills it in here and
 // clicks Save. Addresses a specific, diagnosed failure mode: standard chat
@@ -146,6 +181,15 @@ function ModelColumn(props: {
   const suggestedPrompt =
     overrides.activeTask === "staffScheduling" ? SUGGESTED_STAFF_SCHEDULING_PROMPT : SUGGESTED_SCHEDULING_PROMPT;
   const label = prefix === "heavy" ? "Heavy" : "Light";
+  const model = prefix === "heavy" ? overrides.heavyModel : overrides.lightModel;
+  // Which model id is actually effective (the /admin override if set, else
+  // the MODEL_HEAVY_ID/MODEL_LIGHT_ID env default) -- everything below that
+  // depends on "is this a reasoning model" reacts to THIS, not the static
+  // defaults.isReasoning, so switching the dropdown updates the rest of the
+  // column immediately, before Save is even clicked.
+  const effectiveModel = model ?? defaults.model;
+  const effectiveIsReasoning = isReasoningModelId(effectiveModel);
+  const effectiveDefaultMaxTokens = effectiveIsReasoning ? DEFAULT_MAX_TOKENS_REASONING : DEFAULT_MAX_TOKENS;
   const temperature = prefix === "heavy" ? overrides.heavyTemperature : overrides.lightTemperature;
   const topP = prefix === "heavy" ? overrides.heavyTopP : overrides.lightTopP;
   const presencePenalty = prefix === "heavy" ? overrides.heavyPresencePenalty : overrides.lightPresencePenalty;
@@ -156,7 +200,7 @@ function ModelColumn(props: {
   const delayBaseSec = prefix === "heavy" ? overrides.heavyDelayBaseSec : overrides.lightDelayBaseSec;
   const delayJitterSec = prefix === "heavy" ? overrides.heavyDelayJitterSec : overrides.lightDelayJitterSec;
   const reasoningEffort = prefix === "heavy" ? overrides.heavyReasoningEffort : overrides.lightReasoningEffort;
-  const reasoningNote = defaults.isReasoning
+  const reasoningNote = effectiveIsReasoning
     ? "(no effect -- this is a reasoning model; the API rejects this param. Use reasoning effort below instead.)"
     : undefined;
 
@@ -165,6 +209,33 @@ function ModelColumn(props: {
       <h3>
         {label} <span className="admin-provider-tag">({defaults.provider})</span>
       </h3>
+
+      <div className="admin-field">
+        <label>
+          Model{" "}
+          <span className="admin-field-note">
+            (which actual model powers this slot -- switching this changes request shape live, see the notes below)
+          </span>
+        </label>
+        <div className="admin-field-row">
+          <select
+            value={model ?? ""}
+            onChange={(e) => onChange({ [`${prefix}Model`]: e.target.value === "" ? null : e.target.value })}
+          >
+            <option value="">default ({defaults.model})</option>
+            {MODEL_CHOICES.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+          {model !== null && (
+            <button type="button" className="admin-reset-btn" onClick={() => onChange({ [`${prefix}Model`]: null })}>
+              Reset
+            </button>
+          )}
+        </div>
+      </div>
 
       <NumberField
         label="Temperature"
@@ -205,7 +276,7 @@ function ModelColumn(props: {
         onChange={(v) => onChange({ [`${prefix}PresencePenalty`]: v })}
       />
 
-      {defaults.isReasoning && (
+      {effectiveIsReasoning && (
         <div className="admin-field">
           <label>
             Reasoning effort{" "}
@@ -240,7 +311,7 @@ function ModelColumn(props: {
       <NumberField
         label="max_tokens"
         value={maxTokens}
-        defaultValue={defaults.maxTokens}
+        defaultValue={effectiveDefaultMaxTokens}
         step={1}
         min={1}
         onChange={(v) => onChange({ [`${prefix}MaxTokens`]: v })}
