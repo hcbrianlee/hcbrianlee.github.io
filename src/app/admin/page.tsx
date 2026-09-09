@@ -1,6 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import {
+  EVIDENCE_ITEMS as DEFAULT_EVIDENCE_ITEMS,
+  parseEvidenceItemsText,
+  formatEvidenceItemsText,
+  type EvidenceItem,
+} from "@/lib/eventPromo";
 
 const ADMIN_KEY_STORAGE = "gn_admin_key";
 
@@ -33,6 +39,7 @@ interface Overrides {
   maxTokensPerSession: number | null;
   heavyModel: string | null;
   lightModel: string | null;
+  eventPromoEvidence: EvidenceItem[] | null;
   heavyTemperature: number | null;
   lightTemperature: number | null;
   heavyTopP: number | null;
@@ -163,6 +170,56 @@ function NumberField(props: {
         {value !== null && (
           <button type="button" className="admin-reset-btn" onClick={() => onChange(null)}>
             Reset
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// Local text state (not fully controlled straight from `value`, unlike the
+// other fields) is deliberate: parseEvidenceItemsText skips a line that
+// isn't yet a complete "id. label: text" (e.g. while typing a new item), so
+// re-deriving the textarea's displayed text from the parsed-and-reformatted
+// result on every keystroke would erase whatever incomplete line the admin
+// is mid-typing. Only mounts once /admin's data has already loaded (see the
+// `loading || !overrides` gate below), so the initial text always reflects
+// the real current override, not a stale default.
+function EvidenceEditor(props: { value: EvidenceItem[] | null; onChange: (items: EvidenceItem[] | null) => void }) {
+  const { value, onChange } = props;
+  const [text, setText] = useState(() => formatEvidenceItemsText(value ?? DEFAULT_EVIDENCE_ITEMS));
+  const parsed = parseEvidenceItemsText(text);
+
+  function handleChange(next: string) {
+    setText(next);
+    onChange(parseEvidenceItemsText(next));
+  }
+
+  function handleReset() {
+    setText(formatEvidenceItemsText(DEFAULT_EVIDENCE_ITEMS));
+    onChange(null);
+  }
+
+  return (
+    <div className="admin-field">
+      <label>
+        Event Promo evidence set{" "}
+        <span className="admin-field-note">
+          (global -- one item per line, exactly &quot;Eid. Label: text&quot;, e.g. &quot;E1. Food vendors: The event
+          will feature 28 food vendors...&quot;. IDs, count, and required-selection count (6) are all driven by
+          whatever&apos;s parsed here -- a malformed line is silently skipped, not an error.)
+        </span>
+      </label>
+      <textarea
+        rows={14}
+        value={text}
+        onChange={(e) => handleChange(e.target.value)}
+      />
+      <div className="admin-field-row">
+        <span className="admin-field-default">{parsed.length} evidence item{parsed.length === 1 ? "" : "s"} parsed</span>
+        {value !== null && (
+          <button type="button" className="admin-reset-btn" onClick={handleReset}>
+            Reset to default
           </button>
         )}
       </div>
@@ -509,6 +566,11 @@ export default function AdminPage() {
             step={100}
             min={1}
             onChange={(v) => handlePatch({ maxTokensPerSession: v })}
+          />
+
+          <EvidenceEditor
+            value={overrides.eventPromoEvidence}
+            onChange={(items) => handlePatch({ eventPromoEvidence: items })}
           />
 
           <div className="admin-columns">

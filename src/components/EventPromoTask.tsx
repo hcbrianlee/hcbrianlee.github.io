@@ -3,7 +3,6 @@
 import { useState } from "react";
 import {
   EVENT_INFO,
-  EVIDENCE_ITEMS,
   ATTENDEE_CONCERN,
   TASK_INSTRUCTIONS,
   PART1_INTRO,
@@ -11,7 +10,7 @@ import {
   PART2_INTRO,
   PART2_BODY,
   PART2_REQUIREMENT,
-  EVIDENCE_RULES,
+  getEvidenceRules,
   EVIDENCE_RULE_5_EXAMPLE,
   REQUIRED_EVIDENCE_COUNT,
   PART1_MAX_WORDS,
@@ -19,14 +18,17 @@ import {
   countWords,
 } from "@/lib/eventPromo";
 import type { EventPromoSubmission } from "@/lib/types";
+import type { EvidenceItem } from "@/lib/eventPromo";
 
 export function EventPromoTask(props: {
+  evidenceItems: EvidenceItem[];
   submissions: EventPromoSubmission[];
   maxSubmissions: number;
   submitting: boolean;
   onSubmit: (evidenceSelected: string[], part1: string, part2: string) => void;
 }) {
-  const { submissions, maxSubmissions, submitting, onSubmit } = props;
+  const { evidenceItems, submissions, maxSubmissions, submitting, onSubmit } = props;
+  const evidenceRules = getEvidenceRules(evidenceItems.length);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [part1, setPart1] = useState("");
   const [part2, setPart2] = useState("");
@@ -87,7 +89,7 @@ export function EventPromoTask(props: {
           Evidence -- select exactly {REQUIRED_EVIDENCE_COUNT} ({selected.size}/{REQUIRED_EVIDENCE_COUNT} selected)
         </strong>
         <ul className="staff-background-list" style={{ marginTop: 10 }}>
-          {EVIDENCE_ITEMS.map((item) => {
+          {evidenceItems.map((item) => {
             const isChecked = selected.has(item.id);
             const disabled = !isChecked && selected.size >= REQUIRED_EVIDENCE_COUNT;
             return (
@@ -140,7 +142,7 @@ export function EventPromoTask(props: {
       <div className="scheduling-constraints">
         <strong>Evidence Rules (across Parts 1 and 2 combined)</strong>
         <ol style={{ margin: "6px 0 0" }}>
-          {EVIDENCE_RULES.map((rule, i) => (
+          {evidenceRules.map((rule, i) => (
             <li key={i} style={{ marginBottom: 4 }}>
               {rule}
               {i === 4 && (

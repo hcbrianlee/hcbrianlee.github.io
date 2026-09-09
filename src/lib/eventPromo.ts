@@ -38,74 +38,97 @@ export const EVENT_INFO: EventInfo = {
   note: "Food and drinks are purchased separately. These basic event details may be used freely and do not count toward the evidence limit.",
 };
 
+/**
+ * Default evidence set -- overridable live from /admin (see
+ * ExperimentOverrides.eventPromoEvidence, src/lib/overrides.ts). This array
+ * is only ever the fallback when no /admin override is set; the effective
+ * list a given session actually sees comes from
+ * getEffectiveEvidenceItems below, threaded through SessionInfo.
+ */
 export const EVIDENCE_ITEMS: EvidenceItem[] = [
-  {
-    id: "E1",
-    label: "Food vendors",
-    text: "The event will have 28 food vendors, including 19 independently owned businesses located within 20 miles of the event, representing 11 different cuisines. 14 vendors will offer at least one vegetarian option, 8 will offer a vegan option, and 6 will offer a gluten-free option.",
-  },
+  { id: "E1", label: "Food vendors", text: "The event will feature 28 food vendors offering dishes from 11 different cuisines." },
   {
     id: "E2",
-    label: "Local businesses",
-    text: "19 of the 28 food vendors are independently owned businesses located within 20 miles of the event.",
+    label: "Dietary options",
+    text: "At least 14 vendors will offer vegetarian or vegan options, and 6 will offer gluten free options.",
   },
   {
     id: "E3",
-    label: "Dietary options",
-    text: "14 vendors will offer at least one vegetarian option, 8 will offer a vegan option, and 6 will offer a gluten-free option.",
-  },
-  {
-    id: "E4",
-    label: "Food prices",
-    text: "Based on vendor menus, the average price of a full-sized food item is approximately $9.40.",
-  },
-  {
-    id: "E5",
     label: "Returning attendees",
     text: "In a survey of 612 attendees from last year's event, 81% said they would like to attend again.",
   },
   {
-    id: "E6",
+    id: "E4",
     label: "Online reviews",
-    text: "The event currently has an average rating of 4.9 out of 5 based on 37 online reviews.",
+    text: "The event currently has an average rating of 5 out of 5 based on 4 online reviews.",
   },
-  { id: "E7", label: "Live music", text: "Three local bands will perform continuously from 6:00-9:00 PM." },
+  { id: "E5", label: "Live music", text: "Three local bands will perform continuously from 6:00 to 9:00 PM." },
+  {
+    id: "E6",
+    label: "Menu Accommodation",
+    text: "Among the 28 food vendors, at least half will offer vegetarian or vegan menu, and a quarter will offer a gluten free menu.",
+  },
+  {
+    id: "E7",
+    label: "Cuisine coverage",
+    text: "The 28 food vendors collectively represents 11 different types of cuisine.",
+  },
   {
     id: "E8",
-    label: "Chef demonstrations",
-    text: "Local chefs will give 15-minute cooking demonstrations at 6:00, 7:00, and 8:00 PM.",
+    label: "Additional savings",
+    text: "Entrance tickets cost $12, but buying in advance saves $4.",
   },
   {
     id: "E9",
-    label: "Transportation",
-    text: "A free shuttle will run between downtown and Riverside Park every 20 minutes from 4:30-10:30 PM.",
+    label: "Weather",
+    text: "There is a 50% chance of rain, so the event may or may not be affected.",
   },
   {
     id: "E10",
-    label: "Parking",
-    text: "Free parking is available at Riverside Park, with approximately 120 spaces.",
+    label: "Common area",
+    text: "The event will have shared areas where attendees can eat and drink.",
   },
   {
     id: "E11",
-    label: "Weather preparation",
-    text: "The event will take place rain or shine. Approximately 70% of the main food and seating area will be covered by tents.",
-  },
-  {
-    id: "E12",
-    label: "Seating",
-    text: "The event will have approximately 180 seats in shared seating areas where attendees can eat, drink, and watch the evening activities.",
-  },
-  {
-    id: "E13",
     label: "Advance admission",
     text: "People who purchase admission in advance pay $8 instead of the $12 entrance price.",
   },
   {
-    id: "E14",
+    id: "E12",
     label: "Giveaway",
     text: "The first 250 attendees will receive a reusable Riverside Night Market tote bag.",
   },
 ];
+
+/** Live /admin override if set (non-empty), else the default list above. */
+export function getEffectiveEvidenceItems(override: EvidenceItem[] | null | undefined): EvidenceItem[] {
+  return override && override.length > 0 ? override : EVIDENCE_ITEMS;
+}
+
+/**
+ * "E1. Label: text" per line -- the exact shorthand the experimenter
+ * naturally writes evidence lists in, used to round-trip /admin's evidence
+ * editor (a single textarea) to/from EvidenceItem[]. Blank lines are
+ * ignored; a line that doesn't match the "id. label: text" shape is
+ * skipped rather than throwing, so a work-in-progress edit doesn't error
+ * out mid-typing.
+ */
+export function parseEvidenceItemsText(raw: string): EvidenceItem[] {
+  const items: EvidenceItem[] = [];
+  for (const line of raw.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+    const match = trimmed.match(/^([^\s.]+)\.\s*([^:]+):\s*(.+)$/);
+    if (!match) continue;
+    const [, id, label, text] = match;
+    items.push({ id: id.trim(), label: label.trim(), text: text.trim() });
+  }
+  return items;
+}
+
+export function formatEvidenceItemsText(items: EvidenceItem[]): string {
+  return items.map((i) => `${i.id}. ${i.label}: ${i.text}`).join("\n");
+}
 
 export const ATTENDEE_CONCERN = "Why would I pay $8 just to enter when I still have to pay separately for food?";
 
@@ -129,21 +152,30 @@ export const PART2_INTRO = "After seeing information about the event, a potentia
 export const PART2_BODY = "Write a response intended to make this person more interested in attending the event.";
 export const PART2_REQUIREMENT = "Your response must be 60 words or fewer.";
 
-/** Verbatim from the task doc. Rule 5's example is kept as a separate field so it can be rendered as a distinct note rather than folded into the numbered list. */
-export const EVIDENCE_RULES = [
-  "You must select exactly six evidence items from E1-E14.",
-  "Each of your six selected evidence items must be used in at least one of the two messages.",
-  "You may use the same selected evidence item in both messages if you think doing so is helpful.",
-  "You may not use information from evidence items you did not select.",
-  "If you use an evidence item, you must communicate all substantive information contained in that item. You may rephrase or shorten the wording, but you may not omit information that materially affects how the evidence should be interpreted.",
-  "You may reorganize, combine, and rephrase the selected information, but you may not invent facts or make claims unsupported by the information provided.",
-  'Do not use unsupported superlatives such as "the best," "#1," or "the city\'s favorite."',
-];
+/**
+ * Adapted from the task doc. Rule 1 is generated (not hardcoded to E1-E14)
+ * since the evidence set is now /admin-editable and its size can change --
+ * pass the effective list's length. Rule 5's example is kept as a separate
+ * field so it can be rendered as a distinct note rather than folded into
+ * the numbered list; it's written generically (not tied to a specific
+ * evidence id) so it stays accurate no matter how /admin edits the set.
+ */
+export function getEvidenceRules(itemCount: number): string[] {
+  return [
+    `You must select exactly six evidence items from E1-E${itemCount}.`,
+    "Each of your six selected evidence items must be used in at least one of the two messages.",
+    "You may use the same selected evidence item in both messages if you think doing so is helpful.",
+    "You may not use information from evidence items you did not select.",
+    "If you use an evidence item, you must communicate all substantive information contained in that item. You may rephrase or shorten the wording, but you may not omit information that materially affects how the evidence should be interpreted.",
+    "You may reorganize, combine, and rephrase the selected information, but you may not invent facts or make claims unsupported by the information provided.",
+    'Do not use unsupported superlatives such as "the best," "#1," or "the city\'s favorite."',
+  ];
+}
 
 export const EVIDENCE_RULE_5_EXAMPLE =
-  'For example, if you select E6, you may not state only that the event has a "4.9 out of 5 rating." You must ' +
-  "also communicate that this rating is based on 37 online reviews. Similarly, sample sizes, comparison groups, " +
-  "relevant time periods, and other meaningful qualifiers must be retained.";
+  'For example, if a selected evidence item states a rating out of 5 based on a certain number of reviews, you ' +
+  "may not state only the rating -- you must also communicate how many reviews it's based on. Similarly, sample " +
+  "sizes, comparison groups, relevant time periods, and other meaningful qualifiers must be retained.";
 
 /** Most full submissions (evidence + both parts) a single session may make. */
 export const MAX_EVENT_PROMO_SUBMISSIONS = 3;

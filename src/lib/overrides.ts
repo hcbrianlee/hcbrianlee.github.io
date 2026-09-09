@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import type { EvidenceItem } from "./eventPromo";
 
 export type ActiveTask = "cartoon" | "scheduling" | "staffScheduling" | "adCaption" | "tripPlanning" | "eventPromo";
 
@@ -24,6 +25,8 @@ export interface ExperimentOverrides {
    */
   heavyModel: string | null;
   lightModel: string | null;
+  /** Live override for the eventPromo task's evidence set -- null or empty falls back to EVIDENCE_ITEMS (src/lib/eventPromo.ts getEffectiveEvidenceItems). Edited from /admin as a single "E1. Label: text" per line textarea. */
+  eventPromoEvidence: EvidenceItem[] | null;
   heavyTemperature: number | null;
   lightTemperature: number | null;
   /** Nucleus sampling threshold [0,1]. Supported by both OpenAI and Anthropic. */
@@ -77,6 +80,7 @@ const EMPTY_OVERRIDES: ExperimentOverrides = {
   maxTokensPerSession: null,
   heavyModel: null,
   lightModel: null,
+  eventPromoEvidence: null,
   heavyTemperature: null,
   lightTemperature: null,
   heavyTopP: null,
@@ -114,6 +118,7 @@ export async function getExperimentOverrides(supabase: SupabaseClient): Promise<
     maxTokensPerSession: data.max_tokens_per_session,
     heavyModel: data.heavy_model,
     lightModel: data.light_model,
+    eventPromoEvidence: data.event_promo_evidence,
     heavyTemperature: data.heavy_temperature,
     lightTemperature: data.light_temperature,
     heavyTopP: data.heavy_top_p,
@@ -151,6 +156,7 @@ export async function saveExperimentOverrides(
     max_tokens_per_session: next.maxTokensPerSession,
     heavy_model: next.heavyModel,
     light_model: next.lightModel,
+    event_promo_evidence: next.eventPromoEvidence,
     heavy_temperature: next.heavyTemperature,
     light_temperature: next.lightTemperature,
     heavy_top_p: next.heavyTopP,

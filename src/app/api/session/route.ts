@@ -24,7 +24,7 @@ import { pickDefaultModel } from "@/lib/models";
 import { getCartoonImageUrl, pickCartoonFilename } from "@/lib/cartoons";
 import { getAdProductImageUrl, MAX_AD_CAPTION_SUBMISSIONS } from "@/lib/adTask";
 import { MAX_TRIP_PLAN_SUBMISSIONS } from "@/lib/tripPlanning";
-import { MAX_EVENT_PROMO_SUBMISSIONS } from "@/lib/eventPromo";
+import { MAX_EVENT_PROMO_SUBMISSIONS, getEffectiveEvidenceItems } from "@/lib/eventPromo";
 import { getExperimentOverrides } from "@/lib/overrides";
 import type { ConditionRow, SessionInfo } from "@/lib/types";
 
@@ -103,6 +103,7 @@ async function buildSessionInfo(
     maxTripPlanSubmissions: MAX_TRIP_PLAN_SUBMISSIONS,
     eventPromoSubmissions,
     maxEventPromoSubmissions: MAX_EVENT_PROMO_SUBMISSIONS,
+    eventPromoEvidenceItems: getEffectiveEvidenceItems(overrides.eventPromoEvidence),
   };
 }
 

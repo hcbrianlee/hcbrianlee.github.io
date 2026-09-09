@@ -1,3 +1,5 @@
+import type { EvidenceItem } from "./eventPromo";
+
 export type ModelKey = "light" | "heavy";
 export type Provider = "openai" | "anthropic";
 /**
@@ -95,6 +97,8 @@ export interface SessionInfo {
   eventPromoSubmissions: EventPromoSubmission[];
   /** Most eventPromo submissions a single session may make (see /api/submit-event-promo). */
   maxEventPromoSubmissions: number;
+  /** Effective evidence set for the eventPromo task -- the live /admin override if set, else the default (src/lib/eventPromo.ts getEffectiveEvidenceItems). */
+  eventPromoEvidenceItems: EvidenceItem[];
 }
 
 export interface EventPromoSubmission {

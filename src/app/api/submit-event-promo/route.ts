@@ -1,18 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { getEventPromoSubmissions } from "@/lib/session";
+import { getExperimentOverrides } from "@/lib/overrides";
 import {
-  EVIDENCE_ITEMS,
   REQUIRED_EVIDENCE_COUNT,
   PART1_MAX_WORDS,
   PART2_MAX_WORDS,
   MAX_EVENT_PROMO_SUBMISSIONS,
+  getEffectiveEvidenceItems,
   countWords,
 } from "@/lib/eventPromo";
 
 export const runtime = "nodejs";
-
-const VALID_EVIDENCE_IDS = new Set(EVIDENCE_ITEMS.map((e) => e.id));
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -32,8 +31,8 @@ export async function POST(req: NextRequest) {
   // checked -- everything about whether the selected evidence was used
   // honestly and completely is for a human judge (see src/lib/eventPromo.ts).
   const uniqueEvidence = new Set(evidenceSelected);
-  if (uniqueEvidence.size !== evidenceSelected.length || evidenceSelected.some((id) => !VALID_EVIDENCE_IDS.has(id))) {
-    return NextResponse.json({ error: "evidenceSelected must be distinct, valid evidence IDs" }, { status: 400 });
+  if (uniqueEvidence.size !== evidenceSelected.length) {
+    return NextResponse.json({ error: "evidenceSelected must be distinct evidence IDs" }, { status: 400 });
   }
   if (uniqueEvidence.size !== REQUIRED_EVIDENCE_COUNT) {
     return NextResponse.json(
@@ -61,6 +60,16 @@ export async function POST(req: NextRequest) {
 
   try {
     const supabase = getSupabaseServerClient();
+
+    // Validate evidenceSelected against whichever evidence set is actually
+    // effective for this session -- the /admin override if set, else the
+    // default EVIDENCE_ITEMS. Must be checked against the live set, not a
+    // module-load-time snapshot, since /admin can edit it at any time.
+    const overrides = await getExperimentOverrides(supabase);
+    const validEvidenceIds = new Set(getEffectiveEvidenceItems(overrides.eventPromoEvidence).map((e) => e.id));
+    if (evidenceSelected.some((id) => !validEvidenceIds.has(id))) {
+      return NextResponse.json({ error: "evidenceSelected must be valid evidence IDs" }, { status: 400 });
+    }
 
     const { data: session, error: sessionErr } = await supabase
       .from("sessions")

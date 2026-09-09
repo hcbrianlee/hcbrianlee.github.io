@@ -165,6 +165,7 @@ create table if not exists experiment_overrides (
   max_tokens_per_session integer,
   heavy_model text,
   light_model text,
+  event_promo_evidence jsonb,
   heavy_temperature numeric,
   light_temperature numeric,
   heavy_top_p numeric,
@@ -221,6 +222,9 @@ alter table experiment_overrides add column if not exists max_tokens_per_session
 -- slot -- null falls back to MODEL_HEAVY_ID/MODEL_LIGHT_ID.
 alter table experiment_overrides add column if not exists heavy_model text;
 alter table experiment_overrides add column if not exists light_model text;
+-- Live /admin override for the eventPromo task's evidence set -- null or an
+-- empty array falls back to EVIDENCE_ITEMS (src/lib/eventPromo.ts).
+alter table experiment_overrides add column if not exists event_promo_evidence jsonb;
 
 -- Same "alter existing table" pattern for events.event_type -- the inline
 -- check on create table only takes effect on a brand new table, so an

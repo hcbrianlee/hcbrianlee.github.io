@@ -450,6 +450,7 @@ export default function Home() {
               />
             ) : session.activeTask === "eventPromo" ? (
               <EventPromoTask
+                evidenceItems={session.eventPromoEvidenceItems}
                 submissions={session.eventPromoSubmissions}
                 maxSubmissions={session.maxEventPromoSubmissions}
                 submitting={eventPromoSubmitting}
