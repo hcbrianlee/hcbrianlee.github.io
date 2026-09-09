@@ -79,14 +79,18 @@ export const EVIDENCE_ITEMS: EvidenceItem[] = [
   {
     id: "E10",
     label: "Parking",
-    text: "Approximately 120 parking spaces are available at Riverside Park. Organizers expect more than 1,000 attendees.",
+    text: "Free parking is available at Riverside Park, with approximately 120 spaces.",
   },
   {
     id: "E11",
     label: "Weather preparation",
     text: "The event will take place rain or shine. Approximately 70% of the main food and seating area will be covered by tents.",
   },
-  { id: "E12", label: "Seating", text: "The event will have approximately 180 seats available in common seating areas." },
+  {
+    id: "E12",
+    label: "Seating",
+    text: "The event will have approximately 180 seats in shared seating areas where attendees can eat, drink, and watch the evening activities.",
+  },
   {
     id: "E13",
     label: "Advance admission",
