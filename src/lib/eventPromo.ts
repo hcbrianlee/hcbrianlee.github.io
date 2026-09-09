@@ -39,7 +39,11 @@ export const EVENT_INFO: EventInfo = {
 };
 
 export const EVIDENCE_ITEMS: EvidenceItem[] = [
-  { id: "E1", label: "Food vendors", text: "The event will have 28 food vendors representing 11 different cuisines." },
+  {
+    id: "E1",
+    label: "Food vendors",
+    text: "The event will have 28 food vendors, including 19 independently owned businesses located within 20 miles of the event, representing 11 different cuisines. 14 vendors will offer at least one vegetarian option, 8 will offer a vegan option, and 6 will offer a gluten-free option.",
+  },
   {
     id: "E2",
     label: "Local businesses",
