@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Green Nudge Chat",
-  description: "A ChatGPT-style assistant with green nudging for the Green Nudging AI experiment.",
+  title: "Generative AI Assistant",
+  description: "A general-purpose AI chat assistant.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

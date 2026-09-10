@@ -54,7 +54,7 @@ export function FloatingChat(props: {
       {open && (
         <div className="chat-panel">
           <div className="chat-panel-header">
-            <span className="chat-panel-title">🌱 Green Nudge Chat</span>
+            <span className="chat-panel-title">🤖 Generative AI Assistant</span>
             <div className="chat-panel-header-actions">
               <button className="chat-panel-new-chat-btn" onClick={onNewChat}>
                 + New chat

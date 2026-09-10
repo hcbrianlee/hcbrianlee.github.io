@@ -56,7 +56,16 @@ button {
   right: 20px;
   width: 380px;
   max-width: calc(100vw - 32px);
-  height: min(640px, calc(100dvh - 120px));
+  /* Grows to fit its content (header + nudges + messages + composer) up to
+     this cap, then clips -- combined with .messages being the sole flex:1
+     child below, once the cap is hit the fixed-size sections (header,
+     nudges, composer) keep their natural height and .messages absorbs the
+     rest as an internally-scrolling area. A short conversation never
+     scrolls at all; a long one only scrolls the message list, not the
+     whole panel. Was a flat 640px before, which cut off a long response
+     well before using the available screen space. */
+  height: auto;
+  max-height: min(760px, calc(100dvh - 40px));
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
@@ -233,6 +242,7 @@ button {
   color: #7a2620;
   font-size: 13px;
   text-align: center;
+  flex-shrink: 0;
 }
 
 /* ---------- Main column ---------- */
@@ -843,6 +853,7 @@ button {
   position: sticky;
   bottom: 0;
   z-index: 10;
+  flex-shrink: 0;
 }
 
 .composer {
