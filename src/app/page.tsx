@@ -161,8 +161,8 @@ export default function Home() {
                     ...prev,
                     cumulative: frame.cumulative,
                     budgetExhausted:
-                      frame.cumulative.totalTokens >= prev.maxTokensPerSession ||
-                      (prev.condition.pricingVariant === "variable" &&
+                      prev.condition.pricingVariant === "variable" &&
+                      (frame.cumulative.totalTokens >= prev.maxTokensPerSession ||
                         frame.cumulative.spentCents >= prev.fixedCreditCents),
                   }
                 : prev

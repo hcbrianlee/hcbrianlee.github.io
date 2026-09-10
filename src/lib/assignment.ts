@@ -19,3 +19,19 @@ export function hashIndex(seed: string, n: number): number {
   const value = digest.readUInt32BE(0);
   return value % n;
 }
+
+/**
+ * Deterministic per-seed Fisher-Yates shuffle -- same reproducibility
+ * rationale as hashIndex above, just producing a full permutation instead
+ * of a single bucket pick. Each swap step draws its index via
+ * hashIndex(`${seed}:${i}`, i + 1), so the whole shuffle is a pure function
+ * of the seed (e.g. sessionId) and never touches Math.random().
+ */
+export function seededShuffle<T>(seed: string, items: T[]): T[] {
+  const arr = [...items];
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = hashIndex(`${seed}:${i}`, i + 1);
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}

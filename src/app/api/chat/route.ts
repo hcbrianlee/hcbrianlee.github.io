@@ -91,18 +91,18 @@ export async function POST(req: NextRequest) {
     // Hard stops (design doc, 2026-08), checked server-side (never trust a
     // client-side gate for this) before generating so an over-cap request
     // is rejected without ever calling the model:
-    // - Universal token cap applies to BOTH pricing variants -- once
-    //   cumulative total_tokens reaches this, no more messages, period.
-    // - "variable" additionally caps by dollar credit on top of that --
-    //   in practice the token cap trips first given current per-token
-    //   prices, but the dollar check stays as a backstop.
+    // - Token cap and dollar-credit cap both apply ONLY to "variable"
+    //   pricing -- "flat" has no cap of either kind, genuinely unlimited,
+    //   matching how the condition is framed to participants.
     const cumulative = await getCumulativeUsage(supabase, sessionId);
-    const maxTokens = getMaxTokensPerSession(overrides.maxTokensPerSession);
-    if (cumulative.totalTokens >= maxTokens) {
-      return jsonError(`You've reached the ${maxTokens.toLocaleString()}-token limit for this session.`, 402);
-    }
-    if (pricingVariant === "variable" && cumulative.spentCents >= session.fixed_credit_cents) {
-      return jsonError("You've used your full participation credit for this session.", 402);
+    if (pricingVariant === "variable") {
+      const maxTokens = getMaxTokensPerSession(overrides.maxTokensPerSession);
+      if (cumulative.totalTokens >= maxTokens) {
+        return jsonError(`You've reached the ${maxTokens.toLocaleString()}-token limit for this session.`, 402);
+      }
+      if (cumulative.spentCents >= session.fixed_credit_cents) {
+        return jsonError("You've used your full participation credit for this session.", 402);
+      }
     }
 
     modelCfg = getModelConfig(modelKey);

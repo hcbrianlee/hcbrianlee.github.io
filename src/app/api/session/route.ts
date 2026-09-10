@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { randomUUID } from "crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabaseServerClient } from "@/lib/supabase";
-import { hashIndex } from "@/lib/assignment";
+import { hashIndex, seededShuffle } from "@/lib/assignment";
 import {
   MAX_CAPTION_SUBMISSIONS,
   getCaptionSubmissions,
@@ -65,9 +65,11 @@ async function buildSessionInfo(
   ]);
 
   const maxTokensPerSession = getMaxTokensPerSession(overrides.maxTokensPerSession);
+  // Both caps apply ONLY to "variable" pricing -- "flat" is genuinely
+  // unlimited, never exhausted. See the matching check in chat/route.ts.
   const budgetExhausted =
-    cumulative.totalTokens >= maxTokensPerSession ||
-    (condition.pricing_variant === "variable" && cumulative.spentCents >= fixedCreditCents);
+    condition.pricing_variant === "variable" &&
+    (cumulative.totalTokens >= maxTokensPerSession || cumulative.spentCents >= fixedCreditCents);
 
   return {
     sessionId,
@@ -103,7 +105,11 @@ async function buildSessionInfo(
     maxTripPlanSubmissions: MAX_TRIP_PLAN_SUBMISSIONS,
     eventPromoSubmissions,
     maxEventPromoSubmissions: MAX_EVENT_PROMO_SUBMISSIONS,
-    eventPromoEvidenceItems: getEffectiveEvidenceItems(overrides.eventPromoEvidence),
+    // Shuffled per-session (not per-request) so the order stays stable
+    // across reloads of the same session, but differs participant to
+    // participant -- guards against a fixed E1-first ordering biasing which
+    // evidence gets picked/used most often.
+    eventPromoEvidenceItems: seededShuffle(`${sessionId}:evidence`, getEffectiveEvidenceItems(overrides.eventPromoEvidence)),
   };
 }
 

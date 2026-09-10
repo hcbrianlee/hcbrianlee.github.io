@@ -8,7 +8,7 @@ import type { ModelKey, PricingVariant } from "./types";
  *   response -- the price is shown up front in the nudge copy, and once
  *   cumulative spend reaches the participation credit, /api/chat rejects
  *   further generations for the session (see chat/route.ts). This is on
- *   top of the universal token cap below -- both apply under "variable".
+ *   top of the token cap below -- both apply under "variable" only.
  */
 export function estimateCostCents(params: {
   modelKey: ModelKey;
@@ -22,15 +22,15 @@ export function estimateCostCents(params: {
 }
 
 /**
- * Total-token cap for a session, applied uniformly to BOTH pricing
- * variants: once cumulative total_tokens (across both models) reaches
- * this, /api/chat rejects further generations regardless of pricing_variant
- * (see chat/route.ts). "variable" additionally caps by dollar credit on
- * top of this; "flat" has no dollar cost, so this is its only limit.
- * Env-configurable (MAX_TOKENS_PER_SESSION), same pattern as
- * FIXED_CREDIT_CENTS -- `override` is /admin's live
- * ExperimentOverrides.maxTokensPerSession, which takes precedence over the
- * env default when set.
+ * Total-token cap for a session -- applies ONLY to "variable" pricing
+ * (V0/VT/VE/VE_T): once cumulative total_tokens (across both models)
+ * reaches this, /api/chat rejects further generations (see chat/route.ts).
+ * "variable" additionally caps by dollar credit on top of this. "flat"
+ * (F0/FT/FE/FE_T) has neither cap -- genuinely unlimited, matching how the
+ * condition is framed to participants. Env-configurable
+ * (MAX_TOKENS_PER_SESSION), same pattern as FIXED_CREDIT_CENTS --
+ * `override` is /admin's live ExperimentOverrides.maxTokensPerSession,
+ * which takes precedence over the env default when set.
  */
 export function getMaxTokensPerSession(override?: number | null): number {
   return override ?? Number(process.env.MAX_TOKENS_PER_SESSION ?? 10000);

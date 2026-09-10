@@ -38,18 +38,18 @@ export interface SessionInfo {
   pricingCopy: CopyBlock | null;
   fixedCreditCents: number;
   /**
-   * Total-token cap for THIS session, universal across both pricing
-   * variants (see src/lib/pricing.ts getMaxTokensPerSession) -- "variable"
-   * additionally caps by dollar credit (fixedCreditCents) on top of this;
-   * "flat" has no dollar cost, so this token cap is its only limit.
+   * Total-token cap, applies ONLY under "variable" pricing (see
+   * src/lib/pricing.ts getMaxTokensPerSession) -- "variable" additionally
+   * caps by dollar credit (fixedCreditCents) on top of this; "flat" has
+   * neither cap, genuinely unlimited.
    */
   maxTokensPerSession: number;
   cumulative: CumulativeUsage;
   /**
    * True once this session has hit a cap and /api/chat will reject further
-   * generations: cumulative.totalTokens >= maxTokensPerSession (either
-   * variant), or -- "variable" only, additionally -- cumulative.spentCents
-   * >= fixedCreditCents.
+   * generations. Always false under "flat" pricing (no cap at all); under
+   * "variable", true once cumulative.totalTokens >= maxTokensPerSession or
+   * cumulative.spentCents >= fixedCreditCents.
    */
   budgetExhausted: boolean;
   /** Typical (real, platform-wide average -- see src/lib/session.ts getAverageTokensPerModel) tokens and derived CO2 per response, for the "token"/"environmental" model-toggle captions. */

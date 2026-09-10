@@ -560,7 +560,7 @@ export default function AdminPage() {
 
           <NumberField
             label="Token limit per session"
-            note="(global -- applies to every session, both pricing variants. See src/lib/pricing.ts getMaxTokensPerSession.)"
+            note="(applies only to variable-pricing sessions -- V0/VT/VE/VE_T. Flat sessions have no token cap at all. See src/lib/pricing.ts getMaxTokensPerSession.)"
             value={overrides.maxTokensPerSession}
             defaultValue={defaults.maxTokensPerSession}
             step={100}
