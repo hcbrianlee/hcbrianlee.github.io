@@ -54,8 +54,16 @@ button {
   position: fixed;
   bottom: 88px;
   right: 20px;
-  width: 380px;
-  max-width: calc(100vw - 32px);
+  width: 460px;
+  min-width: 320px;
+  max-width: min(720px, calc(100vw - 32px));
+  /* Horizontal-only: dragging the bottom-right corner (the browser's native
+     resize handle, enabled by any overflow value other than "visible" --
+     already true here) changes width, growing the panel leftward since
+     it's anchored by `right`. Height stays fully auto/content-driven (see
+     below) rather than also user-draggable, so it doesn't fight with that
+     grow-to-content behavior. */
+  resize: horizontal;
   /* Grows to fit its content (header + nudges + messages + composer) up to
      this cap, then clips -- combined with .messages being the sole flex:1
      child below, once the cap is hit the fixed-size sections (header,
@@ -122,8 +130,10 @@ button {
 }
 
 .chat-panel-nudges {
-  padding: 10px 14px;
-  border-bottom: 1px solid #e7e7e7;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  border: 1px solid #e7e7e7;
+  border-radius: 10px;
   background: #fafafa;
   font-size: 12.5px;
   flex-shrink: 0;
@@ -187,6 +197,7 @@ button {
     height: 100%;
     max-width: 100%;
     border-radius: 0;
+    resize: none;
   }
 }
 

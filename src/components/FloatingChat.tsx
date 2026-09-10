@@ -65,36 +65,6 @@ export function FloatingChat(props: {
             </div>
           </div>
 
-          <div className="chat-panel-nudges">
-            <h3>Your usage this session</h3>
-            <div className="chat-nudge-stat-row">
-              <span className="chat-nudge-stat-label">Prompts sent</span>
-              <span>{cumulative.promptCount}</span>
-            </div>
-
-            {showCo2 && (
-              <div className="chat-nudge-note">
-                🌍 If <strong>{formatUserCount(scaleUsers)}</strong> people each used what you have, that&apos;s{" "}
-                <strong>{formatGrams(cumulative.co2G * scaleUsers)}</strong> of CO₂ -- like driving{" "}
-                <strong>{formatMiles(milesFromCo2G(cumulative.co2G * scaleUsers))}</strong>.
-              </div>
-            )}
-
-            {showTokenUsage && (
-              <div className="chat-nudge-stat-row">
-                <span className="chat-nudge-stat-label">Tokens used</span>
-                <span>{cumulative.totalTokens.toLocaleString()}</span>
-              </div>
-            )}
-
-            {showTokenLimitNote && pricingCopy && (
-              <div className="chat-nudge-note">
-                <strong className="chat-nudge-note-title">{pricingCopy.title}</strong>
-                {pricingCopy.body}
-              </div>
-            )}
-          </div>
-
           <MessageList messages={messages} />
 
           {budgetExhausted && (
@@ -110,12 +80,44 @@ export function FloatingChat(props: {
             onSend={onSend}
             disabled={sending || sessionEnded || budgetExhausted}
             topContent={
-              <ModelPicker
-                selected={selectedModel}
-                onChange={onModelChange}
-                infoVariant={infoVariant}
-                avgResponseImpact={session.avgResponseImpact}
-              />
+              <>
+                <div className="chat-panel-nudges">
+                  <h3>Your usage this session</h3>
+                  <div className="chat-nudge-stat-row">
+                    <span className="chat-nudge-stat-label">Prompts sent</span>
+                    <span>{cumulative.promptCount}</span>
+                  </div>
+
+                  {showCo2 && (
+                    <div className="chat-nudge-note">
+                      🌍 If <strong>{formatUserCount(scaleUsers)}</strong> people each used what you have, that&apos;s{" "}
+                      <strong>{formatGrams(cumulative.co2G * scaleUsers)}</strong> of CO₂ -- like driving{" "}
+                      <strong>{formatMiles(milesFromCo2G(cumulative.co2G * scaleUsers))}</strong>.
+                    </div>
+                  )}
+
+                  {showTokenUsage && (
+                    <div className="chat-nudge-stat-row">
+                      <span className="chat-nudge-stat-label">Tokens used</span>
+                      <span>{cumulative.totalTokens.toLocaleString()}</span>
+                    </div>
+                  )}
+
+                  {showTokenLimitNote && pricingCopy && (
+                    <div className="chat-nudge-note">
+                      <strong className="chat-nudge-note-title">{pricingCopy.title}</strong>
+                      {pricingCopy.body}
+                    </div>
+                  )}
+                </div>
+
+                <ModelPicker
+                  selected={selectedModel}
+                  onChange={onModelChange}
+                  infoVariant={infoVariant}
+                  avgResponseImpact={session.avgResponseImpact}
+                />
+              </>
             }
           />
         </div>
