@@ -48,7 +48,39 @@ button {
   padding: 4px 6px 8px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
+}
+
+/* Hidden above the mobile breakpoint (see the 720px media query below) --
+   the sidebar is a permanent column there and never needs a close button. */
+.sidebar-close-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: #ececec;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Hidden above the mobile breakpoint -- the sidebar is a permanent column
+   there, so there's nothing to open. */
+.mobile-menu-btn {
+  display: none;
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  font-size: 18px;
+  line-height: 1;
+  padding: 6px 10px;
+  cursor: pointer;
+  margin-bottom: 10px;
+}
+
+.sidebar-backdrop {
+  display: none;
 }
 
 .new-chat-btn {
@@ -953,8 +985,43 @@ button {
 }
 
 @media (max-width: 720px) {
+  /* Slide-in drawer instead of a permanent column -- a portrait phone is
+     almost always narrower than this breakpoint (~375-430px typical),
+     while the same phone rotated to landscape often exceeds it, which is
+     why a plain "display: none" here used to make the sidebar (and the
+     nudge content it carries: token/CO2 stats, the token-limit note)
+     disappear in portrait but not landscape, with no way to get it back.
+     A toggleable overlay fixes that regardless of orientation. */
   .sidebar {
-    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 50;
+    transform: translateX(-100%);
+    transition: transform 0.25s ease;
+    box-shadow: 2px 0 16px rgba(0, 0, 0, 0.35);
+  }
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close-btn {
+    display: block;
+  }
+
+  .mobile-menu-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 40;
   }
 }
 

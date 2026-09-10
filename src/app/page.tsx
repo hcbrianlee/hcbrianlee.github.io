@@ -40,6 +40,8 @@ export default function Home() {
   const [staffScheduleSubmitting, setStaffScheduleSubmitting] = useState(false);
   const [staffScheduleStarting, setStaffScheduleStarting] = useState(false);
 
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   const [donateOpen, setDonateOpen] = useState(false);
   const [donateSubmitting, setDonateSubmitting] = useState(false);
   const [donateResult, setDonateResult] = useState<{ donationCents: number; remainingCents: number } | null>(null);
@@ -369,6 +371,7 @@ export default function Home() {
   function handleNewChat() {
     setMessages([]);
     setDraft("");
+    setSidebarOpen(false);
   }
 
   function closeDonateModal() {
@@ -400,9 +403,17 @@ export default function Home() {
         infoVariant={session.condition.infoVariant}
         pricingVariant={session.condition.pricingVariant}
         onNewChat={handleNewChat}
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
       />
 
+      {sidebarOpen && <div className="sidebar-backdrop" onClick={() => setSidebarOpen(false)} />}
+
       <main className="main">
+        <button className="mobile-menu-btn" onClick={() => setSidebarOpen(true)} aria-label="Open menu">
+          ☰
+        </button>
+
         {debugConditionCode && (
           <div className="debug-banner">
             Debug mode — forced condition <code>{debugConditionCode}</code>. Remove <code>?condition=…</code> from the

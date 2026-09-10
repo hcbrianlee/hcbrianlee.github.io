@@ -12,8 +12,18 @@ export function Sidebar(props: {
   infoVariant: InfoVariant;
   pricingVariant: PricingVariant;
   onNewChat: () => void;
+  /**
+   * Below the 720px breakpoint (see globals.css) the sidebar is a slide-in
+   * drawer instead of a permanent column -- `open` toggles the
+   * open/closed CSS state and `onClose` is wired to both the drawer's own
+   * close button and the backdrop overlay rendered by the parent (page.tsx).
+   * Has no visual effect above the breakpoint, where the sidebar is always
+   * shown and these are unused.
+   */
+  open: boolean;
+  onClose: () => void;
 }) {
-  const { cumulative, scaleUsers, pricingCopy, infoVariant, pricingVariant, onNewChat } = props;
+  const { cumulative, scaleUsers, pricingCopy, infoVariant, pricingVariant, onNewChat, open, onClose } = props;
 
   const showCo2 = infoVariant === "environmental" || infoVariant === "environmental_token";
   // Raw "Tokens used" count (no denominator, for either pricing variant) --
@@ -30,8 +40,13 @@ export function Sidebar(props: {
   const showTokenLimitNote = pricingVariant === "variable";
 
   return (
-    <aside className="sidebar">
-      <div className="sidebar-brand">🌱 Green Nudge Chat</div>
+    <aside className={`sidebar${open ? " sidebar-open" : ""}`}>
+      <div className="sidebar-brand">
+        🌱 Green Nudge Chat
+        <button className="sidebar-close-btn" onClick={onClose} aria-label="Close menu">
+          ✕
+        </button>
+      </div>
 
       <button className="new-chat-btn" onClick={onNewChat}>
         + New chat
