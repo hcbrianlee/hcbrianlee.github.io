@@ -1,10 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Sidebar } from "@/components/Sidebar";
-import { ModelPicker } from "@/components/ModelPicker";
-import { MessageList } from "@/components/MessageList";
-import { Composer } from "@/components/Composer";
+import { FloatingChat } from "@/components/FloatingChat";
 import { DonationModal } from "@/components/DonationModal";
 import { CartoonImage } from "@/components/CartoonImage";
 import { CaptionSubmit } from "@/components/CaptionSubmit";
@@ -393,15 +390,6 @@ export default function Home() {
 
   return (
     <div className="app-shell">
-      <Sidebar
-        cumulative={session.cumulative ?? EMPTY_USAGE}
-        scaleUsers={session.modelComparison.scaleUsers}
-        pricingCopy={session.pricingCopy}
-        infoVariant={session.condition.infoVariant}
-        pricingVariant={session.condition.pricingVariant}
-        onNewChat={handleNewChat}
-      />
-
       <main className="main">
         {debugConditionCode && (
           <div className="debug-banner">
@@ -481,35 +469,21 @@ export default function Home() {
                       : session.captionSubmissions.length > 0) && (
               <FinishSection sessionEnded={sessionEnded} onDonateClick={() => setDonateOpen(true)} />
             )}
-
-            <MessageList messages={messages} />
-
-            {session.budgetExhausted && (
-              <div className="budget-exhausted-banner">
-                {session.condition.pricingVariant === "variable" &&
-                session.cumulative.spentCents >= session.fixedCreditCents
-                  ? "You've used your full participation credit for this session"
-                  : `You've reached the ${session.maxTokensPerSession.toLocaleString()}-token limit for this session`}{" "}
-                -- you can&apos;t send more messages, but you can still finish up the task below.
-              </div>
-            )}
-
-            <Composer
-              value={draft}
-              onChange={setDraft}
-              onSend={handleSend}
-              disabled={sending || sessionEnded || session.budgetExhausted}
-              topContent={
-                <ModelPicker
-                  selected={selectedModel}
-                  onChange={setSelectedModel}
-                  infoVariant={session.condition.infoVariant}
-                  avgResponseImpact={session.avgResponseImpact}
-                />
-              }
-            />
           </>
       </main>
+
+      <FloatingChat
+        session={session}
+        messages={messages}
+        draft={draft}
+        onDraftChange={setDraft}
+        onSend={handleSend}
+        sending={sending}
+        sessionEnded={sessionEnded}
+        selectedModel={selectedModel}
+        onModelChange={setSelectedModel}
+        onNewChat={handleNewChat}
+      />
 
       {donateOpen && (
         <DonationModal

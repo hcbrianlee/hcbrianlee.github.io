@@ -1,26 +1,28 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import type { ChatMessage } from "@/lib/types";
 
 export function MessageList({ messages }: { messages: ChatMessage[] }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    // Scroll the page itself to its current bottom, not scrollIntoView on a
-    // sentinel -- with the composer pinned via position: sticky,
-    // scrollIntoView's "end" calculation doesn't play well with that and
-    // was intermittently jumping to the top of the page instead of
-    // following newly streamed text. This runs on every content update
-    // (messages is a new array reference per streamed delta), so the page
-    // tracks the response as it grows.
-    window.scrollTo({ top: document.documentElement.scrollHeight, behavior: "auto" });
+    // Scroll this list's own container to its current bottom -- not the
+    // window. Now that this lives inside FloatingChat's fixed-size panel
+    // (.messages is the scrolling flex child, see globals.css), the page
+    // itself doesn't scroll at all; only this container does. Runs on
+    // every content update (messages is a new array reference per
+    // streamed delta), so it tracks the response as it grows.
+    const el = containerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [messages]);
 
   if (messages.length === 0) {
-    return <div className="messages" />;
+    return <div className="messages" ref={containerRef} />;
   }
 
   return (
-    <div className="messages">
+    <div className="messages" ref={containerRef}>
       {messages.map((m) => (
         <div key={m.id} className={`message-row-outer ${m.role}`}>
           <div className="message-row-inner">

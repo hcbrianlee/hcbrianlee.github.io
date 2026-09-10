@@ -25,96 +25,150 @@ button {
   align-items: flex-start;
 }
 
-/* ---------- Sidebar ---------- */
+/* ---------- Floating chat (opt-in AI assistant) ---------- */
 
-.sidebar {
-  width: 272px;
-  flex-shrink: 0;
-  background: #171717;
-  color: #ececec;
+.chat-fab {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #10a37f;
+  color: white;
+  border: none;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  z-index: 60;
+}
+
+.chat-fab:hover {
+  background: #0d8a6b;
+}
+
+.chat-panel {
+  position: fixed;
+  bottom: 88px;
+  right: 20px;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  height: min(640px, calc(100dvh - 120px));
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
   display: flex;
   flex-direction: column;
-  padding: 14px 12px;
-  gap: 14px;
-  position: sticky;
-  top: 0;
-  height: 100dvh;
-  overflow-y: auto;
+  overflow: hidden;
+  z-index: 60;
 }
 
-.sidebar-brand {
-  font-size: 15px;
-  font-weight: 600;
-  padding: 4px 6px 8px;
+.chat-panel-header {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 8px;
-}
-
-.new-chat-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  padding: 12px 14px;
+  background: #171717;
   color: #ececec;
-  border-radius: 10px;
-  padding: 10px 12px;
+  flex-shrink: 0;
+}
+
+.chat-panel-title {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.chat-panel-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.chat-panel-new-chat-btn {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: #ececec;
+  border-radius: 8px;
+  padding: 5px 9px;
+  font-size: 12px;
   cursor: pointer;
-  font-size: 13.5px;
-  text-align: left;
 }
 
-.new-chat-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
+.chat-panel-new-chat-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
 }
 
-.sidebar-section {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 12px;
+.chat-panel-close-btn {
+  background: transparent;
+  border: none;
+  color: #ececec;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.chat-panel-nudges {
+  padding: 10px 14px;
+  border-bottom: 1px solid #e7e7e7;
+  background: #fafafa;
   font-size: 12.5px;
+  flex-shrink: 0;
 }
 
-.sidebar-section h3 {
-  margin: 0 0 8px;
-  font-size: 11.5px;
+.chat-panel-nudges h3 {
+  margin: 0 0 6px;
+  font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: rgba(236, 236, 236, 0.55);
+  color: #8a8a8a;
   font-weight: 600;
 }
 
-.stat-row {
+.chat-nudge-stat-row {
   display: flex;
   justify-content: space-between;
-  padding: 4px 0;
-  color: rgba(236, 236, 236, 0.9);
+  padding: 3px 0;
+  color: #1a1a1a;
 }
 
-.stat-row .stat-label {
-  color: rgba(236, 236, 236, 0.6);
+.chat-nudge-stat-label {
+  color: #6b6b6b;
 }
 
-.sidebar-pricing-note {
-  margin-top: 10px;
+.chat-nudge-note {
+  margin-top: 8px;
   padding: 8px 10px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: #eef9f3;
+  border: 1px solid #cdeedd;
   border-radius: 8px;
-  color: rgba(236, 236, 236, 0.85);
+  color: #1a1a1a;
   font-size: 11.5px;
   line-height: 1.4;
 }
 
-.sidebar-pricing-note strong {
+.chat-nudge-note strong {
   display: block;
   margin-bottom: 3px;
-  color: #ececec;
+  color: #0b6b4d;
   font-size: 12px;
 }
 
-.sidebar-spacer {
-  flex: 1;
+@media (max-width: 480px) {
+  .chat-panel {
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    border-radius: 0;
+  }
 }
 
 .donate-btn {
@@ -711,6 +765,8 @@ button {
 
 .messages {
   flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .message-row-outer {
@@ -950,34 +1006,6 @@ button {
   font-size: 14px;
   text-align: center;
   padding: 20px;
-}
-
-@media (max-width: 720px) {
-  /* The nudge content the sidebar carries (token/CO2 stats, the
-     token-limit note) has to always be visible, not opt-in behind a
-     toggle -- so below this breakpoint it reflows into a full-width block
-     stacked above the chat instead of a fixed-width side column (which a
-     portrait phone, typically 375-430px wide, has no room for). A
-     previous version hid it behind "display: none" outright, which made
-     it disappear in portrait (narrower than this breakpoint) but not
-     landscape (often wider), with no way to get it back either way; a
-     hamburger-toggled drawer fixed the "no way to get it back" problem
-     but still left it hidden by default, which defeats a nudge that's
-     supposed to always be seen. Reflowing avoids both problems. */
-  .app-shell {
-    flex-direction: column;
-  }
-
-  .sidebar {
-    width: 100%;
-    height: auto;
-    position: static;
-    overflow-y: visible;
-  }
-
-  .sidebar-spacer {
-    display: none;
-  }
 }
 
 /* /admin experiment settings dashboard */
