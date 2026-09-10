@@ -151,10 +151,20 @@ button {
   line-height: 1.4;
 }
 
+/* Bold emphasis inline within a sentence (e.g. the CO2 note's "If <strong>N</strong>
+   people...") -- just colored, NOT block, so it wraps as normal prose. */
 .chat-nudge-note strong {
+  color: #0b6b4d;
+}
+
+/* The token-limit note's own title (e.g. "Token limit") is the one place
+   a <strong> should sit on its own line above the body -- scoped to this
+   class specifically so it doesn't turn the CO2 note's inline <strong>
+   tags into stacked block lines too (that was making the nudge panel much
+   taller than it needed to be). */
+.chat-nudge-note-title {
   display: block;
   margin-bottom: 3px;
-  color: #0b6b4d;
   font-size: 12px;
 }
 

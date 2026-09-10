@@ -89,7 +89,7 @@ export function FloatingChat(props: {
 
             {showTokenLimitNote && pricingCopy && (
               <div className="chat-nudge-note">
-                <strong>{pricingCopy.title}</strong>
+                <strong className="chat-nudge-note-title">{pricingCopy.title}</strong>
                 {pricingCopy.body}
               </div>
             )}
