@@ -7,6 +7,13 @@ body {
   height: 100%;
   margin: 0;
   padding: 0;
+  /* Without this, mobile Safari's automatic "font boosting" inflates text
+     inside narrow columns (like the chat panel, or the task content on a
+     narrow phone screen) well past the size the CSS actually specifies --
+     the classic "why is my text huge on mobile" bug. Disabling it makes
+     font-size mean what it says on every device. */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 body {
