@@ -68,7 +68,11 @@ create table if not exists sessions (
   -- hotlinked from GitHub at render time.
   cartoon_filename text,
   final_caption text,
-  final_caption_submitted_at timestamptz
+  final_caption_submitted_at timestamptz,
+  -- Coarse mobile/desktop classification from the User-Agent header at
+  -- session creation (src/lib/device.ts getDeviceType) -- see the
+  -- alter-table comment below for why this is nullable/never re-derived.
+  device_type text
 );
 
 create index if not exists sessions_condition_id_idx on sessions(condition_id);
@@ -233,6 +237,14 @@ alter table experiment_overrides add column if not exists event_promo_evidence j
 -- max_tokens_per_session, running past it never blocks further chat or
 -- submissions.
 alter table experiment_overrides add column if not exists session_time_limit_minutes integer;
+
+-- Coarse mobile/desktop classification captured once at session creation
+-- from the request's User-Agent header (src/lib/device.ts getDeviceType) --
+-- never re-derived later, since it describes the participant's device for
+-- this session, not something that changes mid-session. Nullable so
+-- existing rows from before this column existed just read as unknown
+-- rather than a guessed value.
+alter table sessions add column if not exists device_type text;
 
 -- Same "alter existing table" pattern for events.event_type -- the inline
 -- check on create table only takes effect on a brand new table, so an
