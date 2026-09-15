@@ -59,14 +59,18 @@ export async function getCaptionSubmissions(
 ): Promise<CaptionSubmission[]> {
   const { data, error } = await supabase
     .from("events")
-    .select("caption_text, created_at")
+    .select("caption_text, created_at, metadata")
     .eq("session_id", sessionId)
     .eq("event_type", "caption_submitted")
     .order("created_at", { ascending: true });
 
   if (error) throw new Error(`caption submissions query failed: ${error.message}`);
 
-  return (data ?? []).map((row) => ({ text: row.caption_text as string, submittedAt: row.created_at as string }));
+  return (data ?? []).map((row) => ({
+    text: row.caption_text as string,
+    submittedAt: row.created_at as string,
+    late: Boolean((row.metadata as { late?: boolean } | null)?.late),
+  }));
 }
 
 /**
@@ -76,14 +80,18 @@ export async function getCaptionSubmissions(
 export async function getAdCaptionSubmissions(supabase: SupabaseClient, sessionId: string): Promise<CaptionSubmission[]> {
   const { data, error } = await supabase
     .from("events")
-    .select("caption_text, created_at")
+    .select("caption_text, created_at, metadata")
     .eq("session_id", sessionId)
     .eq("event_type", "ad_caption_submitted")
     .order("created_at", { ascending: true });
 
   if (error) throw new Error(`ad caption submissions query failed: ${error.message}`);
 
-  return (data ?? []).map((row) => ({ text: row.caption_text as string, submittedAt: row.created_at as string }));
+  return (data ?? []).map((row) => ({
+    text: row.caption_text as string,
+    submittedAt: row.created_at as string,
+    late: Boolean((row.metadata as { late?: boolean } | null)?.late),
+  }));
 }
 
 /**
@@ -94,14 +102,18 @@ export async function getAdCaptionSubmissions(supabase: SupabaseClient, sessionI
 export async function getTripPlanSubmissions(supabase: SupabaseClient, sessionId: string): Promise<CaptionSubmission[]> {
   const { data, error } = await supabase
     .from("events")
-    .select("caption_text, created_at")
+    .select("caption_text, created_at, metadata")
     .eq("session_id", sessionId)
     .eq("event_type", "trip_plan_submitted")
     .order("created_at", { ascending: true });
 
   if (error) throw new Error(`trip plan submissions query failed: ${error.message}`);
 
-  return (data ?? []).map((row) => ({ text: row.caption_text as string, submittedAt: row.created_at as string }));
+  return (data ?? []).map((row) => ({
+    text: row.caption_text as string,
+    submittedAt: row.created_at as string,
+    late: Boolean((row.metadata as { late?: boolean } | null)?.late),
+  }));
 }
 
 /**
@@ -203,12 +215,13 @@ export async function getEventPromoSubmissions(
   if (error) throw new Error(`event promo submissions query failed: ${error.message}`);
 
   return (data ?? []).map((row) => {
-    const metadata = row.metadata as { evidenceSelected: string[]; part1: string; part2: string };
+    const metadata = row.metadata as { evidenceSelected: string[]; part1: string; part2: string; late?: boolean };
     return {
       evidenceSelected: metadata.evidenceSelected,
       part1: metadata.part1,
       part2: metadata.part2,
       submittedAt: row.created_at as string,
+      late: Boolean(metadata.late),
     };
   });
 }

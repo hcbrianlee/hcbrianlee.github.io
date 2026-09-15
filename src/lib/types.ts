@@ -44,6 +44,14 @@ export interface SessionInfo {
    * neither cap, genuinely unlimited.
    */
   maxTokensPerSession: number;
+  /**
+   * Whole-session time budget in minutes (src/lib/pricing.ts
+   * getSessionTimeLimitMinutes), admin-editable from /admin. Purely
+   * advisory -- SessionTimer.tsx counts down from sessionStartedAt using
+   * this, but running past it never blocks chat or submissions, it only
+   * shows a warning and causes submit-* routes to stamp a `late` flag.
+   */
+  sessionTimeLimitMinutes: number;
   cumulative: CumulativeUsage;
   /**
    * True once this session has hit a cap and /api/chat will reject further
@@ -106,11 +114,15 @@ export interface EventPromoSubmission {
   part1: string;
   part2: string;
   submittedAt: string;
+  /** True if submitted after the session's time limit (src/lib/pricing.ts isPastSessionTimeLimit) -- still counts against maxEventPromoSubmissions, flagged only for later exclusion from analysis. */
+  late: boolean;
 }
 
 export interface CaptionSubmission {
   text: string;
   submittedAt: string;
+  /** True if submitted after the session's time limit (src/lib/pricing.ts isPastSessionTimeLimit) -- still counts against the task's submission cap, flagged only for later exclusion from analysis. */
+  late: boolean;
 }
 
 export interface ModelComparison {

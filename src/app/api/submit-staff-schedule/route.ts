@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { getStaffScheduleStartedAt } from "@/lib/session";
 import { checkStaffSchedule, STAFF, STAFF_CONSTRAINTS } from "@/lib/staffScheduling";
+import { getExperimentOverrides } from "@/lib/overrides";
+import { getSessionTimeLimitMinutes, isPastSessionTimeLimit } from "@/lib/pricing";
 
 export const runtime = "nodejs";
 
@@ -30,7 +32,7 @@ export async function POST(req: NextRequest) {
 
     const { data: session, error: sessionErr } = await supabase
       .from("sessions")
-      .select("id, status")
+      .select("id, status, started_at")
       .eq("id", sessionId)
       .maybeSingle();
 
@@ -59,10 +61,13 @@ export async function POST(req: NextRequest) {
 
     const elapsedMs = Date.now() - new Date(staffScheduleStartedAt).getTime();
 
+    const overrides = await getExperimentOverrides(supabase);
+    const late = isPastSessionTimeLimit(session.started_at, getSessionTimeLimitMinutes(overrides.sessionTimeLimitMinutes));
+
     const { error: insertErr } = await supabase.from("events").insert({
       session_id: sessionId,
       event_type: "staff_schedule_submitted",
-      metadata: { schedule, droppedConstraintId, rationale: rationale.trim(), results, allCorrect, elapsedMs },
+      metadata: { schedule, droppedConstraintId, rationale: rationale.trim(), results, allCorrect, elapsedMs, late },
     });
     if (insertErr) throw new Error(`staff_schedule_submitted insert failed: ${insertErr.message}`);
 

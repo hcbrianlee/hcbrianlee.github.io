@@ -163,6 +163,7 @@ create table if not exists experiment_overrides (
   id integer primary key default 1,
   active_task text not null default 'cartoon' check (active_task in ('cartoon', 'scheduling', 'staffScheduling', 'adCaption', 'tripPlanning', 'eventPromo')),
   max_tokens_per_session integer,
+  session_time_limit_minutes integer,
   heavy_model text,
   light_model text,
   event_promo_evidence jsonb,
@@ -225,6 +226,13 @@ alter table experiment_overrides add column if not exists light_model text;
 -- Live /admin override for the eventPromo task's evidence set -- null or an
 -- empty array falls back to EVIDENCE_ITEMS (src/lib/eventPromo.ts).
 alter table experiment_overrides add column if not exists event_promo_evidence jsonb;
+-- Live /admin override for src/lib/pricing.ts getSessionTimeLimitMinutes --
+-- null falls back to the SESSION_TIME_LIMIT_MINUTES env default (20). Purely
+-- a display/lateness-marking mechanism (SessionTimer.tsx, and the `late`
+-- flag each submit-* route stamps into its event's metadata) -- unlike
+-- max_tokens_per_session, running past it never blocks further chat or
+-- submissions.
+alter table experiment_overrides add column if not exists session_time_limit_minutes integer;
 
 -- Same "alter existing table" pattern for events.event_type -- the inline
 -- check on create table only takes effect on a brand new table, so an

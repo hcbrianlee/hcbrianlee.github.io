@@ -335,6 +335,45 @@ button {
   border-radius: 4px;
 }
 
+/* Whole-session countdown (SessionTimer.tsx) -- fixed to the top-left
+   corner so it stays visible regardless of scroll position or whether the
+   chat panel (top-right/bottom-right, see .chat-widget-row/.chat-fab) is
+   open. Small and unobtrusive while time remains; switches to a loud
+   warning once expired -- see .session-timer-expired below. */
+.session-timer {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 55;
+  background: white;
+  border: 1px solid #e7e7e7;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #33334a;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.session-timer-expired {
+  max-width: 260px;
+  background: #fff1f0;
+  border-color: #ffb4ab;
+  color: #b3261e;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+@media (max-width: 480px) {
+  .session-timer {
+    top: 10px;
+    left: 10px;
+    max-width: calc(100vw - 20px);
+    font-size: 11.5px;
+    padding: 5px 10px;
+  }
+}
+
 /* Pops up between the message list and the composer once a response has
    fully finished -- hidden while streaming, hidden again the instant a
    new message is sent (see FloatingChat.tsx showOutputCard). Styled as a

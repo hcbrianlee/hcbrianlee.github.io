@@ -15,6 +15,15 @@ export interface ExperimentOverrides {
   /** Live override for src/lib/pricing.ts getMaxTokensPerSession -- null falls back to the MAX_TOKENS_PER_SESSION env default (10,000). Applies to every session, both pricing variants. */
   maxTokensPerSession: number | null;
   /**
+   * Live override for src/lib/pricing.ts getSessionTimeLimitMinutes -- null
+   * falls back to the SESSION_TIME_LIMIT_MINUTES env default (20). Drives
+   * the whole-session countdown (SessionTimer.tsx) and the `late` flag
+   * stamped into every submit-* event's metadata once elapsed -- unlike
+   * maxTokensPerSession, this never blocks chat or submissions, it only
+   * warns and marks lateness for later exclusion from analysis.
+   */
+  sessionTimeLimitMinutes: number | null;
+  /**
    * Live override for which actual model powers the "heavy"/"light" slot --
    * null falls back to MODEL_HEAVY_ID/MODEL_LIGHT_ID (src/lib/models.ts).
    * Only ever a curated OpenAI model id from /admin's dropdown (see
@@ -78,6 +87,7 @@ export interface ExperimentOverrides {
 const EMPTY_OVERRIDES: ExperimentOverrides = {
   activeTask: "cartoon",
   maxTokensPerSession: null,
+  sessionTimeLimitMinutes: null,
   heavyModel: null,
   lightModel: null,
   eventPromoEvidence: null,
@@ -116,6 +126,7 @@ export async function getExperimentOverrides(supabase: SupabaseClient): Promise<
       ? data.active_task
       : "cartoon",
     maxTokensPerSession: data.max_tokens_per_session,
+    sessionTimeLimitMinutes: data.session_time_limit_minutes,
     heavyModel: data.heavy_model,
     lightModel: data.light_model,
     eventPromoEvidence: data.event_promo_evidence,
@@ -154,6 +165,7 @@ export async function saveExperimentOverrides(
     id: 1,
     active_task: next.activeTask,
     max_tokens_per_session: next.maxTokensPerSession,
+    session_time_limit_minutes: next.sessionTimeLimitMinutes,
     heavy_model: next.heavyModel,
     light_model: next.lightModel,
     event_promo_evidence: next.eventPromoEvidence,

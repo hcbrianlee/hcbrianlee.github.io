@@ -18,7 +18,7 @@ import {
   getStaffScheduleStartedAt,
 } from "@/lib/session";
 import { getPricingCopy } from "@/lib/conditions";
-import { getMaxTokensPerSession } from "@/lib/pricing";
+import { getMaxTokensPerSession, getSessionTimeLimitMinutes } from "@/lib/pricing";
 import { getModelComparison, estimateAverageResponseImpact } from "@/lib/carbon";
 import { pickDefaultModel } from "@/lib/models";
 import { getCartoonImageUrl, pickCartoonFilename } from "@/lib/cartoons";
@@ -82,6 +82,7 @@ async function buildSessionInfo(
     pricingCopy: getPricingCopy(maxTokensPerSession),
     fixedCreditCents,
     maxTokensPerSession,
+    sessionTimeLimitMinutes: getSessionTimeLimitMinutes(overrides.sessionTimeLimitMinutes),
     cumulative,
     budgetExhausted,
     avgResponseImpact: {

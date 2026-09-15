@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { MAX_CAPTION_SUBMISSIONS, getCaptionSubmissions } from "@/lib/session";
+import { getExperimentOverrides } from "@/lib/overrides";
+import { getSessionTimeLimitMinutes, isPastSessionTimeLimit } from "@/lib/pricing";
 
 export const runtime = "nodejs";
 
@@ -21,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     const { data: session, error: sessionErr } = await supabase
       .from("sessions")
-      .select("id, status, cartoon_filename")
+      .select("id, status, cartoon_filename, started_at")
       .eq("id", sessionId)
       .maybeSingle();
 
@@ -40,11 +42,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const overrides = await getExperimentOverrides(supabase);
+    const late = isPastSessionTimeLimit(session.started_at, getSessionTimeLimitMinutes(overrides.sessionTimeLimitMinutes));
+
     const { error: insertErr } = await supabase.from("events").insert({
       session_id: sessionId,
       event_type: "caption_submitted",
       caption_text: trimmed,
       cartoon_filename: session.cartoon_filename,
+      metadata: { late },
     });
     if (insertErr) throw new Error(`caption_submitted insert failed: ${insertErr.message}`);
 

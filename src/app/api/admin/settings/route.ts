@@ -4,7 +4,7 @@ import { isAdminAuthorized } from "@/lib/adminAuth";
 import { getExperimentOverrides, saveExperimentOverrides, type ExperimentOverrides } from "@/lib/overrides";
 import { getModelConfig } from "@/lib/models";
 import { isReasoningModel } from "@/lib/providers/openai";
-import { getMaxTokensPerSession } from "@/lib/pricing";
+import { getMaxTokensPerSession, getSessionTimeLimitMinutes } from "@/lib/pricing";
 
 export const runtime = "nodejs";
 
@@ -20,6 +20,9 @@ function defaults() {
     // Env default (MAX_TOKENS_PER_SESSION) -- shown as the NumberField's
     // "default" when no /admin override is set.
     maxTokensPerSession: getMaxTokensPerSession(null),
+    // Env default (SESSION_TIME_LIMIT_MINUTES) -- shown as the NumberField's
+    // "default" when no /admin override is set.
+    sessionTimeLimitMinutes: getSessionTimeLimitMinutes(null),
     heavy: {
       // Actual model id currently powering this slot (MODEL_HEAVY_ID env
       // default) -- shown as the model dropdown's "default" and used

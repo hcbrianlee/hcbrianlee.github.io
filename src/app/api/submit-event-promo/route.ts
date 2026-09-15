@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { getEventPromoSubmissions } from "@/lib/session";
 import { getExperimentOverrides } from "@/lib/overrides";
+import { getSessionTimeLimitMinutes, isPastSessionTimeLimit } from "@/lib/pricing";
 import {
   REQUIRED_EVIDENCE_COUNT,
   PART1_MAX_WORDS,
@@ -73,7 +74,7 @@ export async function POST(req: NextRequest) {
 
     const { data: session, error: sessionErr } = await supabase
       .from("sessions")
-      .select("id, status")
+      .select("id, status, started_at")
       .eq("id", sessionId)
       .maybeSingle();
 
@@ -92,6 +93,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const late = isPastSessionTimeLimit(session.started_at, getSessionTimeLimitMinutes(overrides.sessionTimeLimitMinutes));
+
     const { error: insertErr } = await supabase.from("events").insert({
       session_id: sessionId,
       event_type: "event_promo_submitted",
@@ -101,6 +104,7 @@ export async function POST(req: NextRequest) {
         part2: part2.trim(),
         part1Words,
         part2Words,
+        late,
       },
     });
     if (insertErr) throw new Error(`event_promo_submitted insert failed: ${insertErr.message}`);

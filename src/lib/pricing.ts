@@ -35,3 +35,22 @@ export function estimateCostCents(params: {
 export function getMaxTokensPerSession(override?: number | null): number {
   return override ?? Number(process.env.MAX_TOKENS_PER_SESSION ?? 10000);
 }
+
+/**
+ * Whole-session time budget in minutes, purely advisory -- drives the
+ * countdown shown by SessionTimer.tsx and the `late` flag every submit-*
+ * route stamps into its event's metadata once elapsed. Unlike
+ * getMaxTokensPerSession, running past this never blocks chat or
+ * submissions; it only warns the participant and marks lateness for later
+ * exclusion from analysis. Env-configurable (SESSION_TIME_LIMIT_MINUTES),
+ * same override pattern as getMaxTokensPerSession -- `override` is
+ * /admin's live ExperimentOverrides.sessionTimeLimitMinutes.
+ */
+export function getSessionTimeLimitMinutes(override?: number | null): number {
+  return override ?? Number(process.env.SESSION_TIME_LIMIT_MINUTES ?? 20);
+}
+
+/** True once `sessionStartedAt` (sessions.started_at) is further in the past than the session's time limit -- see getSessionTimeLimitMinutes. Used server-side by every submit-* route to stamp a `late` flag on the submission, never trusted from the client. */
+export function isPastSessionTimeLimit(sessionStartedAt: string, limitMinutes: number): boolean {
+  return Date.now() - new Date(sessionStartedAt).getTime() > limitMinutes * 60 * 1000;
+}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { FloatingChat } from "@/components/FloatingChat";
+import { SessionTimer } from "@/components/SessionTimer";
 import { DonationModal } from "@/components/DonationModal";
 import { CartoonImage } from "@/components/CartoonImage";
 import { CaptionSubmit } from "@/components/CaptionSubmit";
@@ -395,6 +396,8 @@ export default function Home() {
 
   return (
     <div className="app-shell">
+      <SessionTimer startedAt={session.sessionStartedAt} limitMinutes={session.sessionTimeLimitMinutes} />
+
       <main className="main">
         {debugConditionCode && (
           <div className="debug-banner">

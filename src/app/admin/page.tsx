@@ -28,6 +28,7 @@ interface ModelDefaults {
 
 interface Defaults {
   maxTokensPerSession: number;
+  sessionTimeLimitMinutes: number;
   heavy: ModelDefaults;
   light: ModelDefaults;
 }
@@ -37,6 +38,7 @@ type ActiveTask = "cartoon" | "scheduling" | "staffScheduling" | "adCaption" | "
 interface Overrides {
   activeTask: ActiveTask;
   maxTokensPerSession: number | null;
+  sessionTimeLimitMinutes: number | null;
   heavyModel: string | null;
   lightModel: string | null;
   eventPromoEvidence: EvidenceItem[] | null;
@@ -566,6 +568,16 @@ export default function AdminPage() {
             step={100}
             min={1}
             onChange={(v) => handlePatch({ maxTokensPerSession: v })}
+          />
+
+          <NumberField
+            label="Session time limit (minutes)"
+            note="(whole-session countdown shown to every participant, all conditions. Purely advisory -- running past it never blocks chat or submissions, it just shows a warning and marks any submission made after it as 'late' for later exclusion from analysis. See src/lib/pricing.ts getSessionTimeLimitMinutes.)"
+            value={overrides.sessionTimeLimitMinutes}
+            defaultValue={defaults.sessionTimeLimitMinutes}
+            step={1}
+            min={1}
+            onChange={(v) => handlePatch({ sessionTimeLimitMinutes: v })}
           />
 
           <EvidenceEditor
