@@ -31,6 +31,7 @@ export function FloatingChat(props: {
   const { session, messages, draft, onDraftChange, onSend, sending, sessionEnded, selectedModel, onModelChange, onNewChat } =
     props;
   const [open, setOpen] = useState(false);
+  const [minimized, setMinimized] = useState(false);
   const [copied, setCopied] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -90,7 +91,7 @@ export function FloatingChat(props: {
       </button>
 
       {open && (
-        <div className="chat-panel">
+        <div className={`chat-panel${minimized ? " chat-panel-minimized" : ""}`}>
           <div className="chat-panel-header">
             <span className="chat-panel-title">🤖 Generative AI Assistant</span>
             <div className="chat-panel-header-actions">
@@ -100,24 +101,33 @@ export function FloatingChat(props: {
               <button className="chat-panel-new-chat-btn" onClick={onNewChat}>
                 + New chat
               </button>
+              <button
+                className="chat-panel-close-btn"
+                onClick={() => setMinimized((m) => !m)}
+                aria-label={minimized ? "Restore chat" : "Minimize chat"}
+              >
+                {minimized ? "▢" : "−"}
+              </button>
               <button className="chat-panel-close-btn" onClick={() => setOpen(false)} aria-label="Close chat">
                 ✕
               </button>
             </div>
           </div>
 
-          <MessageList messages={messages} />
+          {!minimized && (
+            <>
+              <MessageList messages={messages} />
 
-          {budgetExhausted && (
-            <div className="budget-exhausted-banner">
-              {budgetExhaustedMessage} -- you can&apos;t send more messages, but you can still finish up the task
-              below.
-            </div>
-          )}
+              {budgetExhausted && (
+                <div className="budget-exhausted-banner">
+                  {budgetExhaustedMessage} -- you can&apos;t send more messages, but you can still finish up the task
+                  below.
+                </div>
+              )}
 
-          <Composer
-            value={draft}
-            onChange={onDraftChange}
+              <Composer
+                value={draft}
+                onChange={onDraftChange}
             onSend={onSend}
             disabled={sending || sessionEnded || budgetExhausted}
             topContent={
@@ -160,7 +170,9 @@ export function FloatingChat(props: {
                 />
               </div>
             }
-          />
+              />
+            </>
+          )}
         </div>
       )}
 

@@ -59,7 +59,18 @@ button {
 
 .chat-panel {
   position: fixed;
-  bottom: 88px;
+  /* Anchored from the TOP, not the bottom -- with a bottom anchor, a tall
+     max-height (needed so long responses have real room) pushes the
+     panel's top edge, header included, above y=0 and off-screen the
+     moment its content actually reaches that height (anchoring math:
+     bottom-offset + max-height was allowed to exceed 100dvh with nothing
+     stopping it). Anchoring from the top instead means the header -- the
+     first child -- always renders at a fixed, visible position near the
+     top of the screen no matter how tall the rest of the panel grows;
+     max-height below is now measured down from that fixed top, leaving
+     room at the bottom for the FAB, so the panel can never push past
+     either edge of the viewport. */
+  top: 20px;
   right: 20px;
   width: 460px;
   min-width: 320px;
@@ -78,9 +89,11 @@ button {
      rest as an internally-scrolling area. A short conversation never
      scrolls at all; a long one only scrolls the message list, not the
      whole panel. Was a flat 640px before, which cut off a long response
-     well before using the available screen space. */
+     well before using the available screen space. Now measured from the
+     top anchor down to a bottom margin that clears the FAB (56px button +
+     spacing, see .chat-fab). */
   height: auto;
-  max-height: min(760px, calc(100dvh - 40px));
+  max-height: calc(100dvh - 116px);
   background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
@@ -88,6 +101,17 @@ button {
   flex-direction: column;
   overflow: hidden;
   z-index: 60;
+}
+
+/* Collapsed to just the header bar via the minimize toggle (see
+   FloatingChat.tsx) -- everything else (messages, nudges, composer) is
+   conditionally unmounted rather than hidden, so there's nothing left
+   needing a max-height/resize/scroll; the panel just shrinks to the
+   header's natural height. */
+.chat-panel.chat-panel-minimized {
+  max-height: none;
+  height: auto;
+  resize: none;
 }
 
 .chat-panel-header {
