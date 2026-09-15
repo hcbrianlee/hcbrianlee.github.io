@@ -67,7 +67,7 @@ export function ModelPicker(props: {
             className={`model-toggle-card${selected === "light" ? " active" : ""}`}
             onClick={() => onChange("light")}
           >
-            <strong>Light model</strong>
+            <strong className="model-toggle-card-title">Light model</strong>
             <span>{lightCaption}</span>
           </button>
           <button
@@ -75,7 +75,7 @@ export function ModelPicker(props: {
             className={`model-toggle-card${selected === "heavy" ? " active" : ""}`}
             onClick={() => onChange("heavy")}
           >
-            <strong>Heavy model</strong>
+            <strong className="model-toggle-card-title">Heavy model</strong>
             <span>{heavyCaption}</span>
           </button>
         </div>

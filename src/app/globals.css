@@ -524,7 +524,18 @@ button {
   cursor: pointer;
 }
 
+/* Bold emphasis inline within the caption sentence (e.g. "~<strong>1,162</strong>
+   tokens") -- just colored, NOT block, so it wraps as normal prose. */
 .model-toggle-card strong {
+  color: #0b6b4d;
+}
+
+/* The card's own title ("Light model"/"Heavy model") is the one place a
+   <strong> should sit on its own line -- scoped to this class specifically
+   so it doesn't turn the caption's inline <strong> tags into stacked block
+   lines too (that was making each model card several times taller than it
+   needed to be). */
+.model-toggle-card-title {
   display: block;
   margin-bottom: 2px;
   font-size: 12.5px;
@@ -958,32 +969,6 @@ button {
   margin-top: 18px;
   font-size: 13px;
   color: #888;
-}
-
-.nudge-block {
-  padding: 12px 16px;
-  border-radius: 12px;
-  font-size: 13.5px;
-  line-height: 1.5;
-}
-
-.nudge-block.info {
-  background: #eafaf3;
-  border: 1.5px solid #7fd4ac;
-  color: #0b6b4d;
-  box-shadow: 0 2px 8px rgba(16, 163, 127, 0.12);
-}
-
-.nudge-block.pricing {
-  background: #f4f4f8;
-  border: 1.5px solid #c9c9dc;
-  color: #33334a;
-}
-
-.nudge-block strong {
-  display: block;
-  margin-bottom: 3px;
-  font-size: 14px;
 }
 
 .plan-picker-nudge {
