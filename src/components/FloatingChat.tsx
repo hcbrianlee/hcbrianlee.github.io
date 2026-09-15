@@ -31,6 +31,27 @@ export function FloatingChat(props: {
   const { session, messages, draft, onDraftChange, onSend, sending, sessionEnded, selectedModel, onModelChange, onNewChat } =
     props;
   const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // Shown only once a response has fully finished -- hidden the instant a
+  // new message is sent (sending flips true immediately in page.tsx's
+  // handleSend, before the request even goes out), so it never displays a
+  // stale response while a new one is streaming in.
+  const lastMessage = messages[messages.length - 1];
+  const showOutputCard =
+    !sending && lastMessage?.role === "assistant" && !lastMessage.pending && lastMessage.content.trim().length > 0;
+
+  async function handleCopyOutput() {
+    if (!lastMessage) return;
+    try {
+      await navigator.clipboard.writeText(lastMessage.content);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard API can be unavailable (permissions, non-secure context)
+      // -- fail silently rather than showing an error for a copy button.
+    }
+  }
 
   const { cumulative, condition, pricingCopy, modelComparison, budgetExhausted } = session;
   const { infoVariant, pricingVariant } = condition;
@@ -66,6 +87,18 @@ export function FloatingChat(props: {
           </div>
 
           <MessageList messages={messages} />
+
+          {showOutputCard && (
+            <div className="chat-output-float">
+              <div className="chat-output-float-header">
+                <span>Latest response</span>
+                <button className="chat-output-copy-btn" onClick={handleCopyOutput}>
+                  {copied ? "Copied!" : "Copy"}
+                </button>
+              </div>
+              <div className="chat-output-float-body">{lastMessage.content}</div>
+            </div>
+          )}
 
           {budgetExhausted && (
             <div className="budget-exhausted-banner">
