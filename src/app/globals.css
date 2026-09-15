@@ -125,6 +125,17 @@ button {
   max-height: none;
   height: auto;
   resize: none;
+  /* Below the 480px breakpoint, the fullscreen rule pins BOTH top and
+     bottom to 0 -- with both offsets set, a fixed/absolutely positioned
+     box's height is forced to fill that whole gap regardless of
+     height: auto (that's the CSS spec's constraint-resolution rule for
+     top+bottom both non-auto), so minimizing left a full-screen blank
+     white area below the header instead of collapsing to it. Unsetting
+     bottom here means only `top` constrains position, so height: auto
+     genuinely shrinks to the header's content height the way it already
+     did above the breakpoint (where .chat-panel never had a `bottom` to
+     begin with). No effect above 480px, where this was already unset. */
+  bottom: auto;
 }
 
 .chat-panel-header {
