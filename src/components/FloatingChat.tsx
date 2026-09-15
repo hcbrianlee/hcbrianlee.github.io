@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ModelPicker } from "./ModelPicker";
 import { MessageList } from "./MessageList";
 import { Composer } from "./Composer";
@@ -32,14 +32,30 @@ export function FloatingChat(props: {
     props;
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
 
   // Shown only once a response has fully finished -- hidden the instant a
   // new message is sent (sending flips true immediately in page.tsx's
   // handleSend, before the request even goes out), so it never displays a
-  // stale response while a new one is streaming in.
+  // stale response while a new one is streaming in. Rendered as a
+  // page-level overlay (outside the {open && ...} chat panel below), not
+  // inside the chatbox, so it shows centered on the whole screen -- and
+  // still appears even if the panel itself gets closed while a response
+  // is in flight.
   const lastMessage = messages[messages.length - 1];
   const showOutputCard =
-    !sending && lastMessage?.role === "assistant" && !lastMessage.pending && lastMessage.content.trim().length > 0;
+    !sending &&
+    !dismissed &&
+    lastMessage?.role === "assistant" &&
+    !lastMessage.pending &&
+    lastMessage.content.trim().length > 0;
+
+  // A manual dismiss only applies to the response that was on screen when
+  // it was clicked -- once a new message starts, un-dismiss so the next
+  // finished response gets its own turn on screen.
+  useEffect(() => {
+    setDismissed(false);
+  }, [lastMessage?.id]);
 
   async function handleCopyOutput() {
     if (!lastMessage) return;
@@ -87,18 +103,6 @@ export function FloatingChat(props: {
           </div>
 
           <MessageList messages={messages} />
-
-          {showOutputCard && (
-            <div className="chat-output-float">
-              <div className="chat-output-float-header">
-                <span>Latest response</span>
-                <button className="chat-output-copy-btn" onClick={handleCopyOutput}>
-                  {copied ? "Copied!" : "Copy"}
-                </button>
-              </div>
-              <div className="chat-output-float-body">{lastMessage.content}</div>
-            </div>
-          )}
 
           {budgetExhausted && (
             <div className="budget-exhausted-banner">
@@ -153,6 +157,29 @@ export function FloatingChat(props: {
               </div>
             }
           />
+        </div>
+      )}
+
+      {showOutputCard && (
+        <div className="chat-output-overlay">
+          <div className="chat-output-overlay-card">
+            <div className="chat-output-float-header">
+              <span>Latest response</span>
+              <div className="chat-output-overlay-actions">
+                <button className="chat-output-copy-btn" onClick={handleCopyOutput}>
+                  {copied ? "Copied!" : "Copy"}
+                </button>
+                <button
+                  className="chat-output-overlay-close-btn"
+                  onClick={() => setDismissed(true)}
+                  aria-label="Dismiss"
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+            <div className="chat-output-float-body">{lastMessage.content}</div>
+          </div>
         </div>
       )}
     </>
