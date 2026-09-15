@@ -33,6 +33,7 @@ export function FloatingChat(props: {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [dismissed, setDismissed] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   // Shown only once a response has fully finished -- hidden the instant a
   // new message is sent (sending flips true immediately in page.tsx's
@@ -93,6 +94,9 @@ export function FloatingChat(props: {
           <div className="chat-panel-header">
             <span className="chat-panel-title">🤖 Generative AI Assistant</span>
             <div className="chat-panel-header-actions">
+              <button className="chat-panel-new-chat-btn" onClick={() => setHistoryOpen(true)} disabled={messages.length === 0}>
+                History
+              </button>
               <button className="chat-panel-new-chat-btn" onClick={onNewChat}>
                 + New chat
               </button>
@@ -179,6 +183,20 @@ export function FloatingChat(props: {
               </div>
             </div>
             <div className="chat-output-float-body">{lastMessage.content}</div>
+          </div>
+        </div>
+      )}
+
+      {historyOpen && (
+        <div className="chat-history-overlay" onClick={() => setHistoryOpen(false)}>
+          <div className="chat-history-card" onClick={(e) => e.stopPropagation()}>
+            <div className="chat-history-card-header">
+              <h2>Chat history</h2>
+              <button className="chat-history-close-btn" onClick={() => setHistoryOpen(false)} aria-label="Close history">
+                ✕
+              </button>
+            </div>
+            <MessageList messages={messages} />
           </div>
         </div>
       )}

@@ -126,6 +126,15 @@ button {
   background: rgba(255, 255, 255, 0.08);
 }
 
+.chat-panel-new-chat-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.chat-panel-new-chat-btn:disabled:hover {
+  background: transparent;
+}
+
 .chat-panel-close-btn {
   background: transparent;
   border: none;
@@ -340,6 +349,60 @@ button {
   font-size: 14.5px;
   line-height: 1.55;
   color: #1a1a1a;
+}
+
+/* Full conversation history, on demand -- a genuine modal (dark backdrop,
+   click-outside-to-close) unlike the passive .chat-output-overlay above,
+   since opening it is a deliberate "let me review everything" action
+   rather than an incoming notification. Reuses MessageList/.messages
+   as-is -- .messages' existing flex: 1 + overflow-y: auto rules make it
+   the scrolling area within this card's own flex column, same as it is
+   inside .chat-panel. */
+.chat-history-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 80;
+  padding: 20px;
+}
+
+.chat-history-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+  width: 100%;
+  max-width: 640px;
+  height: min(680px, calc(100dvh - 60px));
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.chat-history-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 18px;
+  border-bottom: 1px solid #e7e7e7;
+  flex-shrink: 0;
+}
+
+.chat-history-card-header h2 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.chat-history-close-btn {
+  background: transparent;
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 2px 6px;
+  color: #555;
 }
 
 .budget-exhausted-banner {
