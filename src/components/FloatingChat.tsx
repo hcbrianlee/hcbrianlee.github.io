@@ -80,7 +80,7 @@ export function FloatingChat(props: {
             onSend={onSend}
             disabled={sending || sessionEnded || budgetExhausted}
             topContent={
-              <>
+              <div className="chat-composer-top">
                 <div className="chat-panel-nudges">
                   <h3>Your usage this session</h3>
                   <div className="chat-nudge-stat-row">
@@ -117,7 +117,7 @@ export function FloatingChat(props: {
                   infoVariant={infoVariant}
                   avgResponseImpact={session.avgResponseImpact}
                 />
-              </>
+              </div>
             }
           />
         </div>

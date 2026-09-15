@@ -874,6 +874,21 @@ button {
   flex-shrink: 0;
 }
 
+/* Wraps the nudge stats + model picker (Composer's topContent, see
+   FloatingChat.tsx) -- in the more verbose conditions (both a CO2 note
+   and a token note, plus two model cards each with their own avg-usage
+   caption) that content can get tall. Without a cap it can grow large
+   enough to starve .messages (the only flex: 1 area in the panel) down
+   to almost nothing, which is what made the output area look "squeezed."
+   Capping just this portion -- not the whole composer-wrap -- means a
+   verbose nudge/model section scrolls internally on its own, while the
+   actual input row and send button stay fully visible below it, never
+   needing a scroll to reach. */
+.chat-composer-top {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
 .composer {
   max-width: 768px;
   margin: 0 auto;
