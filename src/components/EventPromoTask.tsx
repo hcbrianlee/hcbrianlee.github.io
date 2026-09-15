@@ -9,7 +9,6 @@ import {
   PART1_REQUIREMENTS,
   PART2_INTRO,
   PART2_BODY,
-  PART2_REQUIREMENT,
   getEvidenceRules,
   EVIDENCE_RULE_5_EXAMPLE,
   REQUIRED_EVIDENCE_COUNT,
@@ -28,7 +27,7 @@ export function EventPromoTask(props: {
   onSubmit: (evidenceSelected: string[], part1: string, part2: string) => void;
 }) {
   const { evidenceItems, submissions, maxSubmissions, submitting, onSubmit } = props;
-  const evidenceRules = getEvidenceRules(evidenceItems.length);
+  const evidenceRules = getEvidenceRules(evidenceItems.length, REQUIRED_EVIDENCE_COUNT);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [part1, setPart1] = useState("");
   const [part2, setPart2] = useState("");
@@ -117,13 +116,13 @@ export function EventPromoTask(props: {
 
       <div className="scheduling-constraints">
         <strong>Your Task</strong>
-        <p style={{ margin: "6px 0 0" }}>You will create two coordinated promotional messages.</p>
+        <p style={{ margin: "6px 0 0" }}>Create two coordinated promotional messages for the Riverside Night Market.</p>
 
         <p style={{ margin: "12px 0 0" }}>
           <strong>Part 1: Promotional Message</strong>
         </p>
         <p style={{ margin: "4px 0 0" }}>{PART1_INTRO}</p>
-        <p style={{ margin: "4px 0 0" }}>Your message must:</p>
+        <p style={{ margin: "4px 0 0" }}>It should:</p>
         <ul style={{ margin: "4px 0 0" }}>
           {PART1_REQUIREMENTS.map((r) => (
             <li key={r}>{r}</li>
@@ -133,14 +132,15 @@ export function EventPromoTask(props: {
         <p style={{ margin: "12px 0 0" }}>
           <strong>Part 2: Response to a Potential Attendee</strong>
         </p>
-        <p style={{ margin: "4px 0 0" }}>{PART2_INTRO}</p>
-        <p style={{ margin: "4px 0 0", fontStyle: "italic" }}>&quot;{ATTENDEE_CONCERN}&quot;</p>
+        <p style={{ margin: "4px 0 0" }}>
+          {PART2_INTRO} &quot;{ATTENDEE_CONCERN}&quot;
+        </p>
         <p style={{ margin: "4px 0 0" }}>{PART2_BODY}</p>
-        <p style={{ margin: "4px 0 0" }}>{PART2_REQUIREMENT}</p>
       </div>
 
       <div className="scheduling-constraints">
-        <strong>Evidence Rules (across Parts 1 and 2 combined)</strong>
+        <strong>Evidence Rules</strong>
+        <p style={{ margin: "6px 0 0" }}>Across Parts 1 and 2:</p>
         <ol style={{ margin: "6px 0 0" }}>
           {evidenceRules.map((rule, i) => (
             <li key={i} style={{ marginBottom: 4 }}>

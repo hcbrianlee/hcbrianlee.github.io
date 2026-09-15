@@ -137,45 +137,44 @@ export const TASK_INSTRUCTIONS =
   "is to create promotional content that makes as many people as possible interested in attending the event. " +
   "You may use the AI assistant however you would like while completing this task.";
 
-export const REQUIRED_EVIDENCE_COUNT = 6;
+export const REQUIRED_EVIDENCE_COUNT = 5;
 export const PART1_MAX_WORDS = 100;
 export const PART2_MAX_WORDS = 60;
 
-export const PART1_INTRO = "Write a promotional message that makes people interested in attending the Riverside Night Market.";
+export const PART1_INTRO = "Write a realistic promotional message that makes people interested in attending.";
 export const PART1_REQUIREMENTS = [
-  "include the event's date, time, location, and admission price;",
-  "be 100 words or fewer, including any headline;",
-  "read naturally as something that could realistically be used to promote a local event.",
+  "include the date, time, location, and admission price;",
+  "be 100 words or fewer, including any headline.",
 ];
 
-export const PART2_INTRO = "After seeing information about the event, a potential attendee says:";
-export const PART2_BODY = "Write a response intended to make this person more interested in attending the event.";
-export const PART2_REQUIREMENT = "Your response must be 60 words or fewer.";
+export const PART2_INTRO = "Respond to:";
+export const PART2_BODY = "Your response should make the person more interested in attending and must be 60 words or fewer.";
 
 /**
- * Adapted from the task doc. Rule 1 is generated (not hardcoded to E1-E14)
- * since the evidence set is now /admin-editable and its size can change --
- * pass the effective list's length. Rule 5's example is kept as a separate
- * field so it can be rendered as a distinct note rather than folded into
- * the numbered list; it's written generically (not tied to a specific
- * evidence id) so it stays accurate no matter how /admin edits the set.
+ * Adapted from the task doc. Rule 1 is generated (not hardcoded to a fixed
+ * item count or required count) since both the evidence set and
+ * REQUIRED_EVIDENCE_COUNT are /admin-editable -- pass the effective list's
+ * length and REQUIRED_EVIDENCE_COUNT so this never drifts out of sync with
+ * them. Rule 5's example is kept as a separate field (EVIDENCE_RULE_5_EXAMPLE)
+ * so it can be rendered as a distinct note rather than folded into the
+ * numbered list; it's written generically (not tied to a specific evidence
+ * id) so it stays accurate no matter how /admin edits the set.
  */
-export function getEvidenceRules(itemCount: number): string[] {
+export function getEvidenceRules(itemCount: number, requiredCount: number): string[] {
   return [
-    `You must select exactly six evidence items from E1-E${itemCount}.`,
-    "Each of your six selected evidence items must be used in at least one of the two messages.",
-    "You may use the same selected evidence item in both messages if you think doing so is helpful.",
-    "You may not use information from evidence items you did not select.",
-    "If you use an evidence item, you must communicate all substantive information contained in that item. You may rephrase or shorten the wording, but you may not omit information that materially affects how the evidence should be interpreted.",
-    "You may reorganize, combine, and rephrase the selected information, but you may not invent facts or make claims unsupported by the information provided.",
+    `Select exactly ${requiredCount} evidence items from E1-E${itemCount}.`,
+    `Use all ${requiredCount} selected items at least once.`,
+    "You may reuse a selected item in both messages.",
+    "Do not use any unselected evidence.",
+    "When using an item, include all information needed to interpret it correctly, including important qualifiers such as sample size, comparison group, or time period.",
+    "You may rephrase, shorten, reorganize, or combine selected evidence, but do not add unsupported information.",
     'Do not use unsupported superlatives such as "the best," "#1," or "the city\'s favorite."',
   ];
 }
 
 export const EVIDENCE_RULE_5_EXAMPLE =
-  'For example, if a selected evidence item states a rating out of 5 based on a certain number of reviews, you ' +
-  "may not state only the rating -- you must also communicate how many reviews it's based on. Similarly, sample " +
-  "sizes, comparison groups, relevant time periods, and other meaningful qualifiers must be retained.";
+  "For example, if an item reports a 5/5 rating based on 4 reviews, you must include both the rating and the " +
+  "number of reviews.";
 
 /** Most full submissions (evidence + both parts) a single session may make. */
 export const MAX_EVENT_PROMO_SUBMISSIONS = 3;
