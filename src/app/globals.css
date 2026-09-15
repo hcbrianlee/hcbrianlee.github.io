@@ -511,71 +511,41 @@ button {
 }
 
 .model-toggle-card {
-  position: relative;
   flex: 1;
-  text-align: center;
-  padding: 10px 12px;
+  text-align: left;
+  padding: 8px 12px;
   background: #f4fbf8;
   border: 1px solid #cdeee0;
   border-radius: 10px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #0b6b4d;
+  font-size: 12px;
+  line-height: 1.45;
+  color: #33334a;
   font-family: inherit;
   cursor: pointer;
+}
+
+/* Bold emphasis inline within the caption sentence (e.g. "~<strong>1,162</strong>
+   tokens") -- just colored, NOT block, so it wraps as normal prose. */
+.model-toggle-card strong {
+  color: #0b6b4d;
+}
+
+/* The card's own title ("Light model"/"Heavy model") is the one place a
+   <strong> should sit on its own line -- scoped to this class specifically
+   so it doesn't turn the caption's inline <strong> tags into stacked block
+   lines too (that was making each model card several times taller than it
+   needed to be). */
+.model-toggle-card-title {
+  display: block;
+  margin-bottom: 2px;
+  font-size: 12.5px;
+  color: #0b6b4d;
 }
 
 .model-toggle-card.active {
   border-color: #10a37f;
   background: #e6f7f0;
   box-shadow: 0 0 0 1px #10a37f;
-}
-
-/* The avg-usage caption (tokens/CO2 per response) is a tooltip now, not
-   always-on text -- only shown on hover or keyboard focus ("navigate to
-   the button"), which keeps the two buttons themselves compact (just the
-   model name) while the detail is still one interaction away. */
-.model-toggle-tooltip {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  width: max-content;
-  max-width: 220px;
-  background: #171717;
-  color: #ececec;
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-size: 11.5px;
-  font-weight: 400;
-  line-height: 1.4;
-  text-align: left;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-  transition: opacity 0.15s ease;
-  z-index: 5;
-}
-
-.model-toggle-tooltip::after {
-  content: "";
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: #171717;
-}
-
-.model-toggle-card:hover .model-toggle-tooltip,
-.model-toggle-card:focus-visible .model-toggle-tooltip {
-  opacity: 1;
-  visibility: visible;
-}
-
-.model-toggle-tooltip strong {
-  color: #8ff0c6;
 }
 
 .cartoon-panel {
