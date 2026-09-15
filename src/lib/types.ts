@@ -137,6 +137,8 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   pending?: boolean;
+  /** Reasoning-summary text streamed alongside the answer, reasoning models only (see src/lib/providers/openai.ts isReasoningModel). Undefined for non-reasoning models and for user messages. */
+  reasoning?: string;
 }
 
 export interface ImpactEstimate {
@@ -154,6 +156,7 @@ export interface UsageTotals {
 // Newline-delimited JSON frames streamed back from POST /api/chat.
 export type ChatStreamFrame =
   | { type: "delta"; text: string }
+  | { type: "reasoning"; text: string }
   | {
       type: "done";
       usage: UsageTotals;

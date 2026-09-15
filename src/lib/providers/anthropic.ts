@@ -3,6 +3,9 @@ import type { UsageTotals } from "../types";
 
 const DEFAULT_MAX_TOKENS = 1024;
 
+/** Anthropic has no reasoning-summary equivalent wired up (see openai.ts's OpenAIStreamEvent) -- this only ever yields "text". */
+export type AnthropicStreamEvent = { type: "text"; text: string };
+
 export async function streamAnthropic(params: {
   apiKey: string;
   model: string;
@@ -10,7 +13,7 @@ export async function streamAnthropic(params: {
   temperature: number;
   topP: number;
   maxTokens: number;
-}): Promise<{ textStream: AsyncIterable<string>; getUsage: () => UsageTotals }> {
+}): Promise<{ events: AsyncIterable<AnthropicStreamEvent>; getUsage: () => UsageTotals }> {
   const client = new Anthropic({ apiKey: params.apiKey });
   const usage: UsageTotals = { inputTokens: 0, outputTokens: 0, totalTokens: 0 };
 
@@ -33,10 +36,10 @@ export async function streamAnthropic(params: {
     top_p: params.topP,
   });
 
-  async function* textStream(): AsyncIterable<string> {
+  async function* events(): AsyncIterable<AnthropicStreamEvent> {
     for await (const event of stream) {
       if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
-        yield event.delta.text;
+        yield { type: "text", text: event.delta.text };
       }
     }
     const final = await stream.finalMessage();
@@ -45,5 +48,5 @@ export async function streamAnthropic(params: {
     usage.totalTokens = usage.inputTokens + usage.outputTokens;
   }
 
-  return { textStream: textStream(), getUsage: () => usage };
+  return { events: events(), getUsage: () => usage };
 }

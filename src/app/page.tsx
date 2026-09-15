@@ -134,6 +134,7 @@ export default function Home() {
       const decoder = new TextDecoder();
       let buffer = "";
       let accumulated = "";
+      let accumulatedReasoning = "";
 
       // eslint-disable-next-line no-constant-condition
       while (true) {
@@ -151,6 +152,10 @@ export default function Home() {
             accumulated += frame.text;
             const snapshot = accumulated;
             setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, content: snapshot } : m)));
+          } else if (frame.type === "reasoning") {
+            accumulatedReasoning += frame.text;
+            const snapshot = accumulatedReasoning;
+            setMessages((prev) => prev.map((m) => (m.id === assistantId ? { ...m, reasoning: snapshot } : m)));
           } else if (frame.type === "done") {
             setSession((prev) =>
               prev

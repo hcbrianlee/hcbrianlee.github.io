@@ -2,6 +2,14 @@ import type { Provider, UsageTotals } from "../types";
 import { streamOpenAI } from "./openai";
 import { streamAnthropic } from "./anthropic";
 
+/**
+ * A visible-answer delta ("text") or a reasoning-summary delta
+ * ("reasoning") -- see openai.ts's OpenAIStreamEvent. Anthropic never
+ * yields "reasoning" today (no equivalent wired up), but shares the same
+ * event shape so callers don't need a provider-specific union.
+ */
+export type ChatStreamEvent = { type: "text"; text: string } | { type: "reasoning"; text: string };
+
 export async function streamChat(params: {
   provider: Provider;
   model: string;
@@ -15,7 +23,7 @@ export async function streamChat(params: {
   seed: number | null;
   /** OpenAI reasoning models only (o1/o3/o4-*) -- silently ignored otherwise. */
   reasoningEffort: string | null;
-}): Promise<{ textStream: AsyncIterable<string>; getUsage: () => UsageTotals }> {
+}): Promise<{ events: AsyncIterable<ChatStreamEvent>; getUsage: () => UsageTotals }> {
   if (params.provider === "anthropic") {
     const apiKey = process.env.ANTHROPIC_API_KEY;
     if (!apiKey) throw new Error("ANTHROPIC_API_KEY is not set");

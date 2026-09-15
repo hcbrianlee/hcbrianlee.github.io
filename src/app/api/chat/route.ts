@@ -188,7 +188,7 @@ export async function POST(req: NextRequest) {
           await new Promise((resolve) => setTimeout(resolve, extraDelayMs));
         }
 
-        const { textStream, getUsage } = await streamChat({
+        const { events, getUsage } = await streamChat({
           provider: modelCfg.provider,
           model: effectiveModelId,
           messages: [...systemMessages, ...messages],
@@ -200,9 +200,13 @@ export async function POST(req: NextRequest) {
           reasoningEffort: effective.reasoningEffort,
         });
 
-        for await (const delta of textStream) {
-          fullText += delta;
-          controller.enqueue(encodeFrame({ type: "delta", text: delta }));
+        for await (const event of events) {
+          if (event.type === "reasoning") {
+            controller.enqueue(encodeFrame({ type: "reasoning", text: event.text }));
+          } else {
+            fullText += event.text;
+            controller.enqueue(encodeFrame({ type: "delta", text: event.text }));
+          }
         }
 
         const usage = getUsage();
