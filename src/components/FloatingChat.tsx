@@ -96,8 +96,8 @@ export function FloatingChat(props: {
 
       {showCo2 && (
         <div className="chat-nudge-note">
-          🌍 If all the participants used what you have, that&apos;s{" "}
-          <strong>{formatGrams(cumulative.co2G * scaleUsers)}</strong> of CO₂ -- like driving{" "}
+          🌍 If all the participants used what you have (and we have <strong>{scaleUsers.toLocaleString()}</strong>
+          ), that&apos;s <strong>{formatGrams(cumulative.co2G * scaleUsers)}</strong> of CO₂ -- like driving{" "}
           <strong>{formatMiles(milesFromCo2G(cumulative.co2G * scaleUsers))}</strong>.
         </div>
       )}
