@@ -78,6 +78,45 @@ export function FloatingChat(props: {
   const showCo2 = infoVariant === "environmental" || infoVariant === "environmental_token";
   const showTokenUsage = infoVariant === "token" || infoVariant === "environmental_token";
   const showTokenLimitNote = pricingVariant === "variable";
+  // V0/F0 (infoVariant "none") keep the original above-the-input placement
+  // unchanged -- there's nothing (F0) or just the bare token-limit note
+  // (V0) to show, not worth a whole separate panel for. Every other
+  // condition has real nudge content (a CO2 note, a tokens-used stat, or
+  // both), which now gets its own panel next to the chatbox instead of
+  // sitting above the input.
+  const hasNudgeInfo = infoVariant !== "none";
+
+  const nudgeBlock = (
+    <>
+      <h3>Your usage this session</h3>
+      <div className="chat-nudge-stat-row">
+        <span className="chat-nudge-stat-label">Prompts sent</span>
+        <span>{cumulative.promptCount}</span>
+      </div>
+
+      {showCo2 && (
+        <div className="chat-nudge-note">
+          🌍 If <strong>{formatUserCount(scaleUsers)}</strong> people each used what you have, that&apos;s{" "}
+          <strong>{formatGrams(cumulative.co2G * scaleUsers)}</strong> of CO₂ -- like driving{" "}
+          <strong>{formatMiles(milesFromCo2G(cumulative.co2G * scaleUsers))}</strong>.
+        </div>
+      )}
+
+      {showTokenUsage && (
+        <div className="chat-nudge-stat-row">
+          <span className="chat-nudge-stat-label">Tokens used</span>
+          <span>{cumulative.totalTokens.toLocaleString()}</span>
+        </div>
+      )}
+
+      {showTokenLimitNote && pricingCopy && (
+        <div className="chat-nudge-note">
+          <strong className="chat-nudge-note-title">{pricingCopy.title}</strong>
+          {pricingCopy.body}
+        </div>
+      )}
+    </>
+  );
 
   const budgetExhaustedMessage =
     pricingVariant === "variable" && cumulative.spentCents >= session.fixedCreditCents
@@ -91,7 +130,10 @@ export function FloatingChat(props: {
       </button>
 
       {open && (
-        <div className={`chat-panel${minimized ? " chat-panel-minimized" : ""}`}>
+        <div className="chat-widget-row">
+          {hasNudgeInfo && !minimized && <div className="chat-panel-nudges chat-nudge-panel">{nudgeBlock}</div>}
+
+          <div className={`chat-panel${minimized ? " chat-panel-minimized" : ""}`}>
           <div className="chat-panel-header">
             <span className="chat-panel-title">🤖 Generative AI Assistant</span>
             <div className="chat-panel-header-actions">
@@ -132,35 +174,7 @@ export function FloatingChat(props: {
             disabled={sending || sessionEnded || budgetExhausted}
             topContent={
               <div className="chat-composer-top">
-                <div className="chat-panel-nudges">
-                  <h3>Your usage this session</h3>
-                  <div className="chat-nudge-stat-row">
-                    <span className="chat-nudge-stat-label">Prompts sent</span>
-                    <span>{cumulative.promptCount}</span>
-                  </div>
-
-                  {showCo2 && (
-                    <div className="chat-nudge-note">
-                      🌍 If <strong>{formatUserCount(scaleUsers)}</strong> people each used what you have, that&apos;s{" "}
-                      <strong>{formatGrams(cumulative.co2G * scaleUsers)}</strong> of CO₂ -- like driving{" "}
-                      <strong>{formatMiles(milesFromCo2G(cumulative.co2G * scaleUsers))}</strong>.
-                    </div>
-                  )}
-
-                  {showTokenUsage && (
-                    <div className="chat-nudge-stat-row">
-                      <span className="chat-nudge-stat-label">Tokens used</span>
-                      <span>{cumulative.totalTokens.toLocaleString()}</span>
-                    </div>
-                  )}
-
-                  {showTokenLimitNote && pricingCopy && (
-                    <div className="chat-nudge-note">
-                      <strong className="chat-nudge-note-title">{pricingCopy.title}</strong>
-                      {pricingCopy.body}
-                    </div>
-                  )}
-                </div>
+                {!hasNudgeInfo && <div className="chat-panel-nudges">{nudgeBlock}</div>}
 
                 <ModelPicker
                   selected={selectedModel}
@@ -173,6 +187,7 @@ export function FloatingChat(props: {
               />
             </>
           )}
+          </div>
         </div>
       )}
 

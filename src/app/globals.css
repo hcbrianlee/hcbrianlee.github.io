@@ -57,21 +57,35 @@ button {
   background: #0d8a6b;
 }
 
-.chat-panel {
+/* Fixed-positioned wrapper for the chat panel and (when the condition has
+   real nudge content -- see FloatingChat.tsx hasNudgeInfo) the nudge
+   panel beside it. Owning the fixed positioning here, rather than on
+   .chat-panel itself, means the two sit in one flex row that reflows
+   automatically -- including when the chat panel's own width changes via
+   its resize handle -- instead of needing the nudge panel's horizontal
+   offset hardcoded against the chat panel's current (variable) width. */
+.chat-widget-row {
   position: fixed;
-  /* Anchored from the TOP, not the bottom -- with a bottom anchor, a tall
-     max-height (needed so long responses have real room) pushes the
-     panel's top edge, header included, above y=0 and off-screen the
-     moment its content actually reaches that height (anchoring math:
-     bottom-offset + max-height was allowed to exceed 100dvh with nothing
-     stopping it). Anchoring from the top instead means the header -- the
-     first child -- always renders at a fixed, visible position near the
-     top of the screen no matter how tall the rest of the panel grows;
-     max-height below is now measured down from that fixed top, leaving
-     room at the bottom for the FAB, so the panel can never push past
-     either edge of the viewport. */
   top: 20px;
   right: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  z-index: 60;
+}
+
+.chat-panel {
+  /* Anchored from the TOP, not the bottom, via the wrapper above -- with a
+     bottom anchor, a tall max-height (needed so long responses have real
+     room) pushes the panel's top edge, header included, above y=0 and
+     off-screen the moment its content actually reaches that height
+     (anchoring math: bottom-offset + max-height was allowed to exceed
+     100dvh with nothing stopping it). Anchoring from the top instead
+     means the header -- the first child -- always renders at a fixed,
+     visible position near the top of the screen no matter how tall the
+     rest of the panel grows; max-height below is measured down from that
+     fixed top, leaving room at the bottom for the FAB, so the panel can
+     never push past either edge of the viewport. */
   width: 460px;
   min-width: 320px;
   max-width: min(720px, calc(100vw - 32px));
@@ -100,7 +114,6 @@ button {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  z-index: 60;
 }
 
 /* Collapsed to just the header bar via the minimize toggle (see
@@ -179,6 +192,21 @@ button {
   flex-shrink: 0;
 }
 
+/* Standalone side panel (combined with .chat-panel-nudges for the same
+   card look -- see FloatingChat.tsx: `className="chat-panel-nudges
+   chat-nudge-panel"`) for conditions with real nudge content
+   (hasNudgeInfo), sitting beside .chat-panel instead of above the input.
+   V0/F0 (no real nudge content) keep the plain .chat-panel-nudges
+   rendering inline above the composer, unchanged. */
+.chat-nudge-panel {
+  margin-bottom: 0;
+  width: 260px;
+  max-width: calc(50vw - 44px);
+  max-height: calc(100dvh - 116px);
+  overflow-y: auto;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+}
+
 .chat-panel-nudges h3 {
   margin: 0 0 6px;
   font-size: 11px;
@@ -228,7 +256,20 @@ button {
 }
 
 @media (max-width: 480px) {
+  /* No room to show the nudge panel beside the chat panel once the chat
+     panel itself goes fullscreen below -- V0/F0's inline treatment inside
+     the composer already covers that case; other conditions simply don't
+     show their nudge content on this narrow a screen. */
+  .chat-nudge-panel {
+    display: none;
+  }
+
   .chat-panel {
+    /* Needs position set explicitly here -- the base rule above no longer
+       sets it (the .chat-widget-row wrapper owns fixed positioning at
+       wider widths), but this override replaces that wrapper-relative
+       layout with the chat panel positioning itself directly again. */
+    position: fixed;
     top: 0;
     left: 0;
     right: 0;
