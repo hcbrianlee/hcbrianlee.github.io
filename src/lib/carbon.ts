@@ -2,17 +2,18 @@ import { getModelConfig } from "./models";
 import type { ImpactEstimate, ModelComparison, ModelKey } from "./types";
 
 // Hypothetical group size used to scale the per-1,000-token comparison and
-// the sidebar's cumulative-session figure into a more tangible aggregate for
-// nudge copy ("if N people did this..."). A single response's savings, or
-// even one session's cumulative usage, is a fraction of a gram/mL/Wh -- too
-// small to feel consequential -- multiplying by a group size makes the same
-// underlying figures legible without changing what they represent. Kept
-// deliberately small (order of "a lecture hall," not "a global platform")
-// so the resulting numbers stay something a person could picture actually
-// happening -- a huge multiplier (e.g. ChatGPT's global user count) produces
-// numbers so large they read as implausible marketing hyperbole and lose
+// the nudge panel's cumulative-session figure into a more tangible
+// aggregate for nudge copy ("if all the participants did this..."). A
+// single response's savings, or even one session's cumulative usage, is a
+// fraction of a gram/mL/Wh -- too small to feel consequential --
+// multiplying by a group size makes the same underlying figures legible
+// without changing what they represent. Framed in the copy as "all the
+// participants" rather than a bare number now, but the figure itself
+// still has to stay something a person could picture actually happening
+// -- a huge multiplier (e.g. ChatGPT's global user count) produces numbers
+// so large they read as implausible marketing hyperbole and lose
 // credibility instead of gaining it.
-const NUDGE_IMPACT_SCALE_USERS = Number(process.env.NUDGE_IMPACT_SCALE_USERS ?? 100);
+const NUDGE_IMPACT_SCALE_USERS = Number(process.env.NUDGE_IMPACT_SCALE_USERS ?? 500);
 
 // Sourced 2026: IEA global average grid intensity (~420-430 g/kWh for
 // 2025-2026, declining ~3.7%/yr from 445 in 2024) and average data-center

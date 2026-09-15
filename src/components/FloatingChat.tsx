@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ModelPicker } from "./ModelPicker";
 import { MessageList } from "./MessageList";
 import { Composer } from "./Composer";
-import { formatGrams, formatUserCount, formatMiles } from "@/lib/format";
+import { formatGrams, formatMiles } from "@/lib/format";
 import { milesFromCo2G } from "@/lib/carbon";
 import type { ChatMessage, ModelKey, SessionInfo } from "@/lib/types";
 
@@ -96,7 +96,7 @@ export function FloatingChat(props: {
 
       {showCo2 && (
         <div className="chat-nudge-note">
-          🌍 If <strong>{formatUserCount(scaleUsers)}</strong> people each used what you have, that&apos;s{" "}
+          🌍 If all the participants used what you have, that&apos;s{" "}
           <strong>{formatGrams(cumulative.co2G * scaleUsers)}</strong> of CO₂ -- like driving{" "}
           <strong>{formatMiles(milesFromCo2G(cumulative.co2G * scaleUsers))}</strong>.
         </div>
