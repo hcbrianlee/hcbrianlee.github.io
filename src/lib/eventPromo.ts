@@ -181,8 +181,8 @@ export const EVIDENCE_RULE_5_EXAMPLE =
 export const EVIDENCE_COMPLIANCE_WARNING =
   "To remain eligible for the competition, please follow all evidence rules carefully.";
 
-/** Most full submissions (evidence + both parts) a single session may make. */
-export const MAX_EVENT_PROMO_SUBMISSIONS = 3;
+/** Most full submissions (evidence + both parts) a single session may make -- one shot, no resubmitting. */
+export const MAX_EVENT_PROMO_SUBMISSIONS = 1;
 
 /** Whitespace-delimited word count -- matches how the task's own "100 words or fewer" rule would naturally be read. */
 export function countWords(text: string): number {
