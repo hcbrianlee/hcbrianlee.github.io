@@ -3,7 +3,7 @@ import { getSupabaseServerClient } from "@/lib/supabase";
 import { getTripPlanSubmissions } from "@/lib/session";
 import { MAX_TRIP_PLAN_SUBMISSIONS } from "@/lib/tripPlanning";
 import { getExperimentOverrides } from "@/lib/overrides";
-import { getSessionTimeLimitMinutes, isPastSessionTimeLimit } from "@/lib/pricing";
+import { getSessionTimeLimitMinutes, getTimeLeftMs } from "@/lib/pricing";
 
 export const runtime = "nodejs";
 
@@ -44,13 +44,14 @@ export async function POST(req: NextRequest) {
     }
 
     const overrides = await getExperimentOverrides(supabase);
-    const late = isPastSessionTimeLimit(session.started_at, getSessionTimeLimitMinutes(overrides.sessionTimeLimitMinutes));
+    const timeLeftMs = getTimeLeftMs(session.started_at, getSessionTimeLimitMinutes(overrides.sessionTimeLimitMinutes));
+    const late = timeLeftMs < 0;
 
     const { error: insertErr } = await supabase.from("events").insert({
       session_id: sessionId,
       event_type: "trip_plan_submitted",
       caption_text: trimmed,
-      metadata: { late },
+      metadata: { late, timeLeftMs },
     });
     if (insertErr) throw new Error(`trip_plan_submitted insert failed: ${insertErr.message}`);
 

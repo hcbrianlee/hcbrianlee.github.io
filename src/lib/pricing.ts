@@ -50,7 +50,23 @@ export function getSessionTimeLimitMinutes(override?: number | null): number {
   return override ?? Number(process.env.SESSION_TIME_LIMIT_MINUTES ?? 20);
 }
 
-/** True once `sessionStartedAt` (sessions.started_at) is further in the past than the session's time limit -- see getSessionTimeLimitMinutes. Used server-side by every submit-* route to stamp a `late` flag on the submission, never trusted from the client. */
+/**
+ * Milliseconds left on the session's time limit as of right now -- negative
+ * once past it. Computed server-side from `sessionStartedAt`
+ * (sessions.started_at), never trusted from the client, same principle as
+ * token usage and response timing elsewhere in this app. Every submit-*
+ * route stamps this into its event's metadata as `timeLeftMs` alongside the
+ * derived `late` flag (see isPastSessionTimeLimit below), and /api/donate
+ * does the same on the session_ended event, so how early or late a
+ * submission (or the whole session) landed is available as a real number,
+ * not just a boolean.
+ */
+export function getTimeLeftMs(sessionStartedAt: string, limitMinutes: number): number {
+  const deadline = new Date(sessionStartedAt).getTime() + limitMinutes * 60 * 1000;
+  return deadline - Date.now();
+}
+
+/** True once `sessionStartedAt` is further in the past than the session's time limit -- see getSessionTimeLimitMinutes/getTimeLeftMs. Used server-side by every submit-* route to stamp a `late` flag on the submission, never trusted from the client. */
 export function isPastSessionTimeLimit(sessionStartedAt: string, limitMinutes: number): boolean {
-  return Date.now() - new Date(sessionStartedAt).getTime() > limitMinutes * 60 * 1000;
+  return getTimeLeftMs(sessionStartedAt, limitMinutes) < 0;
 }

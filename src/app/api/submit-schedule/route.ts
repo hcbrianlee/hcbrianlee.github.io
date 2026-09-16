@@ -3,7 +3,7 @@ import { getSupabaseServerClient } from "@/lib/supabase";
 import { getScheduleStartedAt } from "@/lib/session";
 import { checkSchedule, SPEAKERS } from "@/lib/scheduling";
 import { getExperimentOverrides } from "@/lib/overrides";
-import { getSessionTimeLimitMinutes, isPastSessionTimeLimit } from "@/lib/pricing";
+import { getSessionTimeLimitMinutes, getTimeLeftMs } from "@/lib/pricing";
 
 export const runtime = "nodejs";
 
@@ -55,12 +55,13 @@ export async function POST(req: NextRequest) {
     const elapsedMs = Date.now() - new Date(scheduleStartedAt).getTime();
 
     const overrides = await getExperimentOverrides(supabase);
-    const late = isPastSessionTimeLimit(session.started_at, getSessionTimeLimitMinutes(overrides.sessionTimeLimitMinutes));
+    const timeLeftMs = getTimeLeftMs(session.started_at, getSessionTimeLimitMinutes(overrides.sessionTimeLimitMinutes));
+    const late = timeLeftMs < 0;
 
     const { error: insertErr } = await supabase.from("events").insert({
       session_id: sessionId,
       event_type: "schedule_submitted",
-      metadata: { schedule, results, allCorrect, elapsedMs, late },
+      metadata: { schedule, results, allCorrect, elapsedMs, late, timeLeftMs },
     });
     if (insertErr) throw new Error(`schedule_submitted insert failed: ${insertErr.message}`);
 

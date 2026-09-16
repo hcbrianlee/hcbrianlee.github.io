@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSupabaseServerClient } from "@/lib/supabase";
 import { getCumulativeUsage } from "@/lib/session";
+import { getExperimentOverrides } from "@/lib/overrides";
+import { getSessionTimeLimitMinutes, getTimeLeftMs } from "@/lib/pricing";
 
 export const runtime = "nodejs";
 
@@ -21,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     const { data: session, error: sessionErr } = await supabase
       .from("sessions")
-      .select("id, fixed_credit_cents")
+      .select("id, fixed_credit_cents, started_at")
       .eq("id", sessionId)
       .maybeSingle();
 
@@ -48,9 +50,12 @@ export async function POST(req: NextRequest) {
       .eq("id", sessionId);
     if (updateErr) throw new Error(`sessions update failed: ${updateErr.message}`);
 
+    const overrides = await getExperimentOverrides(supabase);
+    const timeLeftMs = getTimeLeftMs(session.started_at, getSessionTimeLimitMinutes(overrides.sessionTimeLimitMinutes));
+
     await supabase.from("events").insert([
       { session_id: sessionId, event_type: "donation_submitted", metadata: { donation_cents: donationCents } },
-      { session_id: sessionId, event_type: "session_ended" },
+      { session_id: sessionId, event_type: "session_ended", metadata: { timeLeftMs } },
     ]);
 
     const cumulative = await getCumulativeUsage(supabase, sessionId);
