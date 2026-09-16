@@ -51,9 +51,14 @@ button {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  cursor: pointer;
+  cursor: grab;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
   z-index: 60;
+  /* Draggable (FloatingChat.tsx) -- without these, a touch-drag on mobile
+     gets eaten by the browser's own scroll/selection gestures instead of
+     reaching the pointermove handler. */
+  touch-action: none;
+  user-select: none;
 }
 
 .chat-fab:hover {

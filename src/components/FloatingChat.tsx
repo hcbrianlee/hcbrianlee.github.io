@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { ModelPicker } from "./ModelPicker";
 import { MessageList } from "./MessageList";
 import { Composer } from "./Composer";
@@ -35,6 +36,76 @@ export function FloatingChat(props: {
   const [copied, setCopied] = useState(false);
   const [dismissed, setDismissed] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+
+  // Draggable FAB -- on a small/mobile screen the default bottom-right spot
+  // can land right on top of a task's own Submit button, and there's no
+  // single default position that avoids every task layout. Letting the
+  // participant drag it out of the way covers all of them instead of
+  // guessing one fixed spot. `fabPos` is null until the first drag (meaning
+  // "use the default bottom-right CSS position"); once set, it's an
+  // absolute viewport position that overrides that default.
+  const fabRef = useRef<HTMLButtonElement>(null);
+  const dragStateRef = useRef<{ startX: number; startY: number; startLeft: number; startTop: number; dragging: boolean } | null>(
+    null
+  );
+  const suppressClickRef = useRef(false);
+  const [fabPos, setFabPos] = useState<{ left: number; top: number } | null>(null);
+
+  // Re-clamp a dragged position after a resize/orientation change so the
+  // button can't end up stranded off-screen (e.g. dragged near the right
+  // edge in landscape, then the phone is rotated back to portrait).
+  useEffect(() => {
+    function handleResize() {
+      setFabPos((prev) => (prev ? clampFabPosition(prev, fabRef.current) : prev));
+    }
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  function clampFabPosition(pos: { left: number; top: number }, btn: HTMLButtonElement | null) {
+    const width = btn?.offsetWidth ?? 56;
+    const height = btn?.offsetHeight ?? 56;
+    const maxLeft = Math.max(8, window.innerWidth - width - 8);
+    const maxTop = Math.max(8, window.innerHeight - height - 8);
+    return { left: Math.min(Math.max(pos.left, 8), maxLeft), top: Math.min(Math.max(pos.top, 8), maxTop) };
+  }
+
+  function handleFabPointerDown(e: ReactPointerEvent<HTMLButtonElement>) {
+    const btn = fabRef.current;
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    dragStateRef.current = { startX: e.clientX, startY: e.clientY, startLeft: rect.left, startTop: rect.top, dragging: false };
+    btn.setPointerCapture(e.pointerId);
+  }
+
+  function handleFabPointerMove(e: ReactPointerEvent<HTMLButtonElement>) {
+    const drag = dragStateRef.current;
+    if (!drag) return;
+    const dx = e.clientX - drag.startX;
+    const dy = e.clientY - drag.startY;
+    // Below this threshold, treat it as a still-pending tap rather than a
+    // drag -- avoids every ordinary click jittering the button by a pixel.
+    if (!drag.dragging && Math.hypot(dx, dy) < 6) return;
+    drag.dragging = true;
+    setFabPos(clampFabPosition({ left: drag.startLeft + dx, top: drag.startTop + dy }, fabRef.current));
+  }
+
+  function handleFabPointerUp(e: ReactPointerEvent<HTMLButtonElement>) {
+    const drag = dragStateRef.current;
+    dragStateRef.current = null;
+    fabRef.current?.releasePointerCapture(e.pointerId);
+    // A drag ending fires a synthetic click right after -- suppress just
+    // that one so dropping the button doesn't also toggle the chat open.
+    if (drag?.dragging) suppressClickRef.current = true;
+  }
+
+  function handleFabClick() {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    setOpen((o) => !o);
+  }
 
   // Shown only once a response has fully finished -- hidden the instant a
   // new message is sent (sending flips true immediately in page.tsx's
@@ -125,7 +196,17 @@ export function FloatingChat(props: {
 
   return (
     <>
-      <button className="chat-fab" onClick={() => setOpen((o) => !o)} aria-label={open ? "Close chat" : "Open chat"}>
+      <button
+        ref={fabRef}
+        className="chat-fab"
+        style={fabPos ? { left: fabPos.left, top: fabPos.top, right: "auto", bottom: "auto" } : undefined}
+        onPointerDown={handleFabPointerDown}
+        onPointerMove={handleFabPointerMove}
+        onPointerUp={handleFabPointerUp}
+        onPointerCancel={handleFabPointerUp}
+        onClick={handleFabClick}
+        aria-label={open ? "Close chat" : "Open chat"}
+      >
         {open ? "✕" : <>💬 AI Assistant</>}
       </button>
 
