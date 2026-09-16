@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
 
     const { data: session, error: sessionErr } = await supabase
       .from("sessions")
-      .select("id, status, cartoon_filename, started_at")
+      .select("id, status, started_at")
       .eq("id", sessionId)
       .maybeSingle();
 
@@ -50,7 +50,6 @@ export async function POST(req: NextRequest) {
       session_id: sessionId,
       event_type: "caption_submitted",
       caption_text: trimmed,
-      cartoon_filename: session.cartoon_filename,
       metadata: { late, timeLeftMs },
     });
     if (insertErr) throw new Error(`caption_submitted insert failed: ${insertErr.message}`);

@@ -195,15 +195,14 @@ export async function POST(req: NextRequest) {
       .single();
     if (insertError) throw new Error(`sessions insert failed: ${insertError.message}`);
 
+    // No metadata here -- condition, participant_ref, and device info are
+    // all session-level facts that already live on the sessions row itself
+    // (condition via condition_id, participant_ref and device_type/device_info
+    // directly) or are derivable by joining it, so logging them a second
+    // time into this event would just be redundant storage.
     await supabase.from("events").insert({
       session_id: sessionId,
       event_type: "session_started",
-      metadata: {
-        condition_code: condition.code,
-        participant_ref: participantRef ?? null,
-        debug: Boolean(debugConditionCode),
-        device_info: deviceInfo,
-      },
     });
 
     const info = await buildSessionInfo(
