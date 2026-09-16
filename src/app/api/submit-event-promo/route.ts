@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   }
   if (uniqueEvidence.size !== REQUIRED_EVIDENCE_COUNT) {
     return NextResponse.json(
-      { error: `You must select exactly ${REQUIRED_EVIDENCE_COUNT} evidence items (selected ${uniqueEvidence.size}).` },
+      { error: `You must select ${REQUIRED_EVIDENCE_COUNT} evidence items (selected ${uniqueEvidence.size}).` },
       { status: 400 }
     );
   }

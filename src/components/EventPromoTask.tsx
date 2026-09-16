@@ -11,6 +11,7 @@ import {
   PART2_BODY,
   getEvidenceRules,
   EVIDENCE_RULE_5_EXAMPLE,
+  EVIDENCE_COMPLIANCE_WARNING,
   REQUIRED_EVIDENCE_COUNT,
   PART1_MAX_WORDS,
   PART2_MAX_WORDS,
@@ -52,7 +53,7 @@ export function EventPromoTask(props: {
   function handleSubmit() {
     setError(null);
     if (selected.size !== REQUIRED_EVIDENCE_COUNT) {
-      setError(`Select exactly ${REQUIRED_EVIDENCE_COUNT} evidence items (you've selected ${selected.size}).`);
+      setError(`Select ${REQUIRED_EVIDENCE_COUNT} evidence items (you've selected ${selected.size}).`);
       return;
     }
     if (!part1.trim() || !part2.trim()) {
@@ -85,7 +86,7 @@ export function EventPromoTask(props: {
 
       <div className="scheduling-constraints">
         <strong>
-          Evidence -- select exactly {REQUIRED_EVIDENCE_COUNT} ({selected.size}/{REQUIRED_EVIDENCE_COUNT} selected)
+          Evidence -- select {REQUIRED_EVIDENCE_COUNT} ({selected.size}/{REQUIRED_EVIDENCE_COUNT} selected)
         </strong>
         <ul className="staff-background-list" style={{ marginTop: 10 }}>
           {evidenceItems.map((item) => {
@@ -151,6 +152,7 @@ export function EventPromoTask(props: {
             </li>
           ))}
         </ol>
+        <p className="evidence-compliance-warning">{EVIDENCE_COMPLIANCE_WARNING}</p>
       </div>
 
       {submissions.length > 0 && (

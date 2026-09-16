@@ -162,7 +162,7 @@ export const PART2_BODY = "Your response should make the person more interested 
  */
 export function getEvidenceRules(itemCount: number, requiredCount: number): string[] {
   return [
-    `Select exactly ${requiredCount} evidence items from E1-E${itemCount}.`,
+    `Select ${requiredCount} evidence items from E1-E${itemCount}.`,
     `Use all ${requiredCount} selected items at least once.`,
     "You may reuse a selected item in both messages.",
     "Do not use any unselected evidence.",
@@ -175,6 +175,9 @@ export function getEvidenceRules(itemCount: number, requiredCount: number): stri
 export const EVIDENCE_RULE_5_EXAMPLE =
   "For example, if an item reports a 5/5 rating based on 4 reviews, you must include both the rating and the " +
   "number of reviews.";
+
+export const EVIDENCE_COMPLIANCE_WARNING =
+  "To remain eligible for the competition, please follow all evidence rules carefully.";
 
 /** Most full submissions (evidence + both parts) a single session may make. */
 export const MAX_EVENT_PROMO_SUBMISSIONS = 3;

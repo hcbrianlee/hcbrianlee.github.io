@@ -126,7 +126,7 @@ export function FloatingChat(props: {
   return (
     <>
       <button className="chat-fab" onClick={() => setOpen((o) => !o)} aria-label={open ? "Close chat" : "Open chat"}>
-        {open ? "✕" : "💬"}
+        {open ? "✕" : <>💬 AI Assistant</>}
       </button>
 
       {open && (
