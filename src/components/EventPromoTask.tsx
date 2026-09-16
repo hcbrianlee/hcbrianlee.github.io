@@ -12,7 +12,8 @@ import {
   getEvidenceRules,
   EVIDENCE_RULE_5_EXAMPLE,
   EVIDENCE_COMPLIANCE_WARNING,
-  REQUIRED_EVIDENCE_COUNT,
+  MIN_EVIDENCE_COUNT,
+  MAX_EVIDENCE_COUNT,
   PART1_MAX_WORDS,
   PART2_MAX_WORDS,
   countWords,
@@ -28,7 +29,7 @@ export function EventPromoTask(props: {
   onSubmit: (evidenceSelected: string[], part1: string, part2: string) => void;
 }) {
   const { evidenceItems, submissions, maxSubmissions, submitting, onSubmit } = props;
-  const evidenceRules = getEvidenceRules(evidenceItems.length, REQUIRED_EVIDENCE_COUNT);
+  const evidenceRules = getEvidenceRules(evidenceItems.length, MIN_EVIDENCE_COUNT, MAX_EVIDENCE_COUNT);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [part1, setPart1] = useState("");
   const [part2, setPart2] = useState("");
@@ -43,7 +44,7 @@ export function EventPromoTask(props: {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
-      } else if (next.size < REQUIRED_EVIDENCE_COUNT) {
+      } else if (next.size < MAX_EVIDENCE_COUNT) {
         next.add(id);
       }
       return next;
@@ -52,8 +53,8 @@ export function EventPromoTask(props: {
 
   function handleSubmit() {
     setError(null);
-    if (selected.size !== REQUIRED_EVIDENCE_COUNT) {
-      setError(`Select ${REQUIRED_EVIDENCE_COUNT} evidence items (you've selected ${selected.size}).`);
+    if (selected.size < MIN_EVIDENCE_COUNT || selected.size > MAX_EVIDENCE_COUNT) {
+      setError(`Select between ${MIN_EVIDENCE_COUNT} and ${MAX_EVIDENCE_COUNT} evidence items (you've selected ${selected.size}).`);
       return;
     }
     if (!part1.trim() || !part2.trim()) {
@@ -86,12 +87,12 @@ export function EventPromoTask(props: {
 
       <div className="scheduling-constraints">
         <strong>
-          Evidence -- select {REQUIRED_EVIDENCE_COUNT} ({selected.size}/{REQUIRED_EVIDENCE_COUNT} selected)
+          Evidence -- select {MIN_EVIDENCE_COUNT}-{MAX_EVIDENCE_COUNT} ({selected.size}/{MAX_EVIDENCE_COUNT} selected)
         </strong>
         <ul className="staff-background-list" style={{ marginTop: 10 }}>
           {evidenceItems.map((item) => {
             const isChecked = selected.has(item.id);
-            const disabled = !isChecked && selected.size >= REQUIRED_EVIDENCE_COUNT;
+            const disabled = !isChecked && selected.size >= MAX_EVIDENCE_COUNT;
             return (
               <li key={item.id}>
                 <label style={{ display: "flex", gap: 8, alignItems: "flex-start", cursor: disabled ? "default" : "pointer" }}>

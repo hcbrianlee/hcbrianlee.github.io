@@ -5,10 +5,11 @@
  *
  * Unlike the other judged tasks (captions, staffScheduling's rationale,
  * tripPlanning), this one has a real mechanically-checkable core alongside
- * the judged part: exactly REQUIRED_EVIDENCE_COUNT evidence items must be
- * selected, and both parts must stay within their word limits -- both
- * enforced server-side in /api/submit-event-promo, never trusted from the
- * client. What can't be mechanically checked (did the participant actually
+ * the judged part: between MIN_EVIDENCE_COUNT and MAX_EVIDENCE_COUNT
+ * evidence items must be selected, and both parts must stay within their
+ * word limits -- both enforced server-side in /api/submit-event-promo,
+ * never trusted from the client. What can't be mechanically checked (did
+ * the participant actually
  * use only the evidence they selected, did they preserve every item's
  * substantive qualifiers, no fabricated claims, no unsupported
  * superlatives) is exactly what's left for the human judge -- see the
@@ -137,7 +138,9 @@ export const TASK_INSTRUCTIONS =
   "is to create promotional content that makes as many people as possible interested in attending the event. " +
   "You may use the AI assistant however you would like while completing this task.";
 
-export const REQUIRED_EVIDENCE_COUNT = 5;
+/** Participants must select at least this many evidence items -- picking none isn't allowed, but any count up to MAX_EVIDENCE_COUNT is. */
+export const MIN_EVIDENCE_COUNT = 1;
+export const MAX_EVIDENCE_COUNT = 5;
 export const PART1_MAX_WORDS = 100;
 export const PART2_MAX_WORDS = 60;
 
@@ -152,18 +155,17 @@ export const PART2_BODY = "Your response should make the person more interested 
 
 /**
  * Adapted from the task doc. Rule 1 is generated (not hardcoded to a fixed
- * item count or required count) since both the evidence set and
- * REQUIRED_EVIDENCE_COUNT are /admin-editable -- pass the effective list's
- * length and REQUIRED_EVIDENCE_COUNT so this never drifts out of sync with
- * them. Rule 5's example is kept as a separate field (EVIDENCE_RULE_5_EXAMPLE)
- * so it can be rendered as a distinct note rather than folded into the
- * numbered list; it's written generically (not tied to a specific evidence
- * id) so it stays accurate no matter how /admin edits the set.
+ * item count) since the evidence set is /admin-editable -- pass the
+ * effective list's length so this never drifts out of sync with it. Rule
+ * 5's example is kept as a separate field (EVIDENCE_RULE_5_EXAMPLE) so it
+ * can be rendered as a distinct note rather than folded into the numbered
+ * list; it's written generically (not tied to a specific evidence id) so
+ * it stays accurate no matter how /admin edits the set.
  */
-export function getEvidenceRules(itemCount: number, requiredCount: number): string[] {
+export function getEvidenceRules(itemCount: number, minCount: number, maxCount: number): string[] {
   return [
-    `Select ${requiredCount} evidence items from E1-E${itemCount}.`,
-    `Use all ${requiredCount} selected items at least once.`,
+    `Select between ${minCount} and ${maxCount} evidence items from E1-E${itemCount}.`,
+    "Use every evidence item you selected at least once.",
     "You may reuse a selected item in both messages.",
     "Do not use any unselected evidence.",
     "When using an item, include all information needed to interpret it correctly, including important qualifiers such as sample size, comparison group, or time period.",

@@ -4,7 +4,8 @@ import { getEventPromoSubmissions } from "@/lib/session";
 import { getExperimentOverrides } from "@/lib/overrides";
 import { getSessionTimeLimitMinutes, getTimeLeftMs } from "@/lib/pricing";
 import {
-  REQUIRED_EVIDENCE_COUNT,
+  MIN_EVIDENCE_COUNT,
+  MAX_EVIDENCE_COUNT,
   PART1_MAX_WORDS,
   PART2_MAX_WORDS,
   MAX_EVENT_PROMO_SUBMISSIONS,
@@ -35,9 +36,11 @@ export async function POST(req: NextRequest) {
   if (uniqueEvidence.size !== evidenceSelected.length) {
     return NextResponse.json({ error: "evidenceSelected must be distinct evidence IDs" }, { status: 400 });
   }
-  if (uniqueEvidence.size !== REQUIRED_EVIDENCE_COUNT) {
+  if (uniqueEvidence.size < MIN_EVIDENCE_COUNT || uniqueEvidence.size > MAX_EVIDENCE_COUNT) {
     return NextResponse.json(
-      { error: `You must select ${REQUIRED_EVIDENCE_COUNT} evidence items (selected ${uniqueEvidence.size}).` },
+      {
+        error: `You must select between ${MIN_EVIDENCE_COUNT} and ${MAX_EVIDENCE_COUNT} evidence items (selected ${uniqueEvidence.size}).`,
+      },
       { status: 400 }
     );
   }
