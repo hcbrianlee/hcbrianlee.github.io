@@ -26,7 +26,7 @@ import { getAdProductImageUrl, MAX_AD_CAPTION_SUBMISSIONS } from "@/lib/adTask";
 import { MAX_TRIP_PLAN_SUBMISSIONS } from "@/lib/tripPlanning";
 import { MAX_EVENT_PROMO_SUBMISSIONS, getEffectiveEvidenceItems } from "@/lib/eventPromo";
 import { getExperimentOverrides } from "@/lib/overrides";
-import { getDeviceType } from "@/lib/device";
+import { getDeviceInfo } from "@/lib/device";
 import type { ConditionRow, SessionInfo } from "@/lib/types";
 
 export const runtime = "nodejs";
@@ -174,7 +174,11 @@ export async function POST(req: NextRequest) {
 
     const cartoonFilename = pickCartoonFilename(sessionId);
     const fixedCreditCents = Number(process.env.FIXED_CREDIT_CENTS ?? 300);
-    const deviceType = getDeviceType(req.headers.get("user-agent"));
+    const deviceInfo = getDeviceInfo({
+      userAgent: req.headers.get("user-agent"),
+      forwardedFor: req.headers.get("x-forwarded-for"),
+      realIp: req.headers.get("x-real-ip"),
+    });
 
     const { data: inserted, error: insertError } = await supabase
       .from("sessions")
@@ -184,7 +188,8 @@ export async function POST(req: NextRequest) {
         participant_ref: participantRef ?? null,
         fixed_credit_cents: fixedCreditCents,
         cartoon_filename: cartoonFilename,
-        device_type: deviceType,
+        device_type: deviceInfo.deviceType,
+        device_info: deviceInfo,
       })
       .select("started_at")
       .single();
@@ -197,8 +202,7 @@ export async function POST(req: NextRequest) {
         condition_code: condition.code,
         participant_ref: participantRef ?? null,
         debug: Boolean(debugConditionCode),
-        cartoon_filename: cartoonFilename,
-        device_type: deviceType,
+        device_info: deviceInfo,
       },
     });
 
